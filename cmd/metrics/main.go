@@ -17,5 +17,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Metrics: %+v\n", m)
+	//fmt.Printf("Metrics: %+v\n", m)
+	fmt.Printf("Rate limit is %v\n", m.RateLimit)
+	fmt.Printf("MaxBatchSize is %v\n", m.MaxBatchSize)
+	fmt.Printf("Current rate limit is %v\n", m.CurrentRateLimit)
+	fmt.Printf("TotalAPICalls is %v\n", m.TotalAPICalls)
 }
