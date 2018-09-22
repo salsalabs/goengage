@@ -66,6 +66,5 @@ func (e EngEnv) Metrics() (*MetricData, error) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("MetricReturn is: %+v\n", m)
 	return &m.Payload, err
 }
