@@ -13,12 +13,11 @@ type MetricData struct {
 	RateLimit                      int32  `json:"rateLimit"`
 	MaxBatchSize                   int32  `json:"maxBatchSize"`
 	CurrentRateLimit               int32  `json:"currentRateLimit"`
-	SupporterRead                  int32  `json:"supporterRead"`
 	TotalAPICalls                  int32  `json:"totalAPICalls"`
 	LastAPICall                    string `json:"lastAPICall"`
 	TotalAPICallFailures           int32  `json:"totalAPICallFailures"`
 	LastAPICallFailure             string `json:"lastAPICallFailure"`
-	SupporterReads1                int32  `json:"supporterRead"`
+	SupporterRead                  int32  `json:"supporterRead"`
 	SupporterAdd                   int32  `json:"supporterAdd"`
 	SupporterUpdate                int32  `json:"supporterUpdate"`
 	SupporterDelete                int32  `json:"supporterDelete"`
@@ -41,7 +40,7 @@ type MetricReturn struct {
 	Payload MetricData
 }
 
-//Measure reads metrics and returns them.
+//Metrics reads metrics and returns them.
 func (e EngEnv) Metrics() (*MetricData, error) {
 	u, _ := url.Parse("/api/integration/ext/v1/metrics")
 	x := fmt.Sprintf("https://%v", e.Host)
