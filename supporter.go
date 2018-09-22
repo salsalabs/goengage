@@ -55,12 +55,38 @@ type Supporter struct {
 	CustomFieldValues []Custom
 }
 
-//SupporterPayload is returned when supporters are found by a search.
-type SupporterPayload struct {
+//SupporterHeader contains an optional refID.
+type SupporterHeader struct {
+	Header struct {
+		RefID string `json:"refId"`
+	} `json:"header"`
+}
+
+//SupSearchRequest is used to ask for supporters.
+type SupSearchRequest struct {
 	Payload struct {
-		Count      string
-		Offset     string
-		Total      string
-		supporters []Supporter
+		ModifiedFrom   string `json:"modifiedFrom"`
+		ModifiedTo     string `json:"modifiedTo"`
+		Offset         int32
+		Count          int32
+		Identifiers    []string `json:"identifiers"`
+		IdentifierType string   `json:"identifierType"`
+	} `json:"payload"`
+}
+
+//SupUpdateRequest is a request to change/insert a supporter.
+type SupUpdateRequest struct {
+	Payload struct {
+		Supporters []Supporter `json:"supporters"`
+	} `json:"payload"`
+}
+
+//SupSearchResult is returned when supporters are found by a search.
+type SupSearchResult struct {
+	Payload struct {
+		Count      string      `json:"count"`
+		Offset     string      `json:"offset"`
+		Total      string      `json:"total"`
+		Supporters []Supporter `json:"suporters"`
 	}
 }
