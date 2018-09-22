@@ -29,8 +29,8 @@ type MetricData struct {
 	ActivitySubscriptionManagement int32  `json:"activitySubscriptionManagement"`
 }
 
-//MetricReturn is returned by Engage when asking for metrics.
-type MetricReturn struct {
+//MetResponse is returned by Engage when asking for metrics.
+type MetResponse struct {
 	ID        string
 	Timestamp string
 	Header    struct {
@@ -43,28 +43,26 @@ type MetricReturn struct {
 //Metrics reads metrics and returns them.
 func (e EngEnv) Metrics() (*MetricData, error) {
 	u, _ := url.Parse("/api/integration/ext/v1/metrics")
-	x := fmt.Sprintf("https://%v", e.Host)
-	b, _ := url.Parse(x)
-	t := b.ResolveReference(u)
-	fmt.Printf("Meterics URL is %v", t)
+	u.Scheme = "https"
+	u.Host = e.Host
+	fmt.Printf("Meterics URL is %v\n", u)
 	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, t.String(), nil)
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
 	req.Header.Set("authToken", e.Token)
 	var body []byte
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
-	if err != nil {
-		panic(err)
-	}
 	body, err = ioutil.ReadAll(resp.Body)
-	fmt.Printf("body: %v\n", string(body))
-	var m MetricReturn
+	if err != nil {
+		return nil, err
+	}
+	var m MetResponse
 	err = json.Unmarshal(body, &m)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &m.Payload, err
 }
