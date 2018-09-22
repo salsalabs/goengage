@@ -19,13 +19,21 @@ type Contact struct {
 
 //Address is a geographic locaiton for a supporter.
 type Address struct {
-	AddressLine1 string
-	AddressLine2 string
-	City         string
-	State        string
-	PostalCode   string
-	County       string
-	Country      string
+	AddressLine1         string
+	AddressLine2         string
+	City                 string
+	State                string
+	PostalCode           string
+	County               string
+	Country              string
+	FederalDistrict      string
+	StateHouseDistrict   string
+	StateSenateDistrict  string
+	CountyDistrict       string
+	MunicipalityDistrict string
+	Lattitude            float32
+	Longitude            float32
+	Status               string
 }
 
 //Supporter is a supporter from the database or being saved to the database.
@@ -45,4 +53,14 @@ type Supporter struct {
 	Address           Address
 	Contacts          []Contact
 	CustomFieldValues []Custom
+}
+
+//SupporterPayload is returned when supporters are found by a search.
+type SupporterPayload struct {
+	Payload struct {
+		Count      string
+		Offset     string
+		Total      string
+		supporters []Supporter
+	}
 }
