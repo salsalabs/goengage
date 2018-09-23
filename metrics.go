@@ -40,22 +40,27 @@ type MetResponse struct {
 	Payload MetricData
 }
 
-//Metrics reads metrics and returns them.
-func (e EngEnv) Metrics() (*MetricData, error) {
-	u, _ := url.Parse("/api/integration/ext/v1/metrics")
+func (e EngEnv) get(method string, fragment string) ([]byte, error) {
+	u, _ := url.Parse(fragment)
 	u.Scheme = "https"
 	u.Host = e.Host
 	fmt.Printf("Meterics URL is %v\n", u)
 	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	req, _ := http.NewRequest(method, u.String(), nil)
 	req.Header.Set("authToken", e.Token)
 	var body []byte
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return body, err
 	}
 	defer resp.Body.Close()
 	body, err = ioutil.ReadAll(resp.Body)
+	return body, err
+}
+
+//Metrics reads metrics and returns them.
+func (e EngEnv) Metrics() (*MetricData, error) {
+	body, err := e.get(http.MethodGet, FragMetrics)
 	if err != nil {
 		return nil, err
 	}

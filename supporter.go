@@ -15,6 +15,7 @@ type Contact struct {
 	Type   string
 	Value  string
 	Status string
+	Errors []Error
 }
 
 //Address is a geographic locaiton for a supporter.
@@ -55,27 +56,18 @@ type Supporter struct {
 	CustomFieldValues []Custom
 }
 
-//SupporterHeader contains an optional refID.
-type SupporterHeader struct {
-	Header struct {
-		RefID string `json:"refId"`
-	} `json:"header"`
-}
-
 //SupSearchRequest is used to ask for supporters.
 type SupSearchRequest struct {
-	Payload struct {
-		ModifiedFrom   string `json:"modifiedFrom"`
-		ModifiedTo     string `json:"modifiedTo"`
-		Offset         int32
-		Count          int32
-		Identifiers    []string `json:"identifiers"`
-		IdentifierType string   `json:"identifierType"`
-	} `json:"payload"`
+	ModifiedFrom   string `json:"modifiedFrom"`
+	ModifiedTo     string `json:"modifiedTo"`
+	Offset         int32
+	Count          int32
+	Identifiers    []string `json:"identifiers"`
+	IdentifierType string   `json:"identifierType"`
 }
 
-//SupUpdateRequest is a request to change/insert a supporter.
-type SupUpdateRequest struct {
+//SupUpsertRequest is a request to change/insert a supporter.
+type SupUpsertRequest struct {
 	Payload struct {
 		Supporters []Supporter `json:"supporters"`
 	} `json:"payload"`

@@ -10,7 +10,7 @@ const token = "wBTvk4rH5auTh4up8nOaVCcJBYWT3jr2Wk7QnlcOc4Qa7dvkgaDBGK6pP3hUaneP_
 
 func main() {
 	e := goengage.EngEnv{
-		Host:  "hq.uat.igniteaction.net",
+		Host:  goengage.UatHost,
 		Token: token}
 	fmt.Printf("EngEnv is %+v\n", e)
 	m, err := e.Metrics()
