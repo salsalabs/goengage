@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 
 	"github.com/salsalabs/goengage"
 )
 
-const token = `wBTvk4rH5auTh4up8nOaVCcJBYWT3jr2Wk7QnlcOc4RlzTBx1sFmcTTI5go4M-lg_Jyh97x--zg4FwCCXx7Cmhnc_hRaAo_mk5pOloQtiOM`
+const token = ``
 
 func main() {
 	rqt := goengage.SupSearchRequest{
@@ -18,20 +18,23 @@ func main() {
 	}
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
-		Host:     goengage.UatHost,
+		Host:     goengage.ProdHost,
 		Fragment: goengage.SupSearch,
 		Token:    token,
-		Request:  rqt,
+		Request:  &rqt,
 		Response: &resp,
 	}
-	err := n.Search()
-	if err != nil {
-		panic(err)
+	count := int32(rqt.Count)
+	for count > 0 {
+		err := n.Search()
+		if err != nil {
+			panic(err)
+		}
+		count = int32(len(resp.Payload.Supporters))
+		fmt.Printf("Read %d supporters from offset %d\n", count, rqt.Offset)
+		rqt.Offset = rqt.Offset + count
+		for _, s := range resp.Payload.Supporters {
+			fmt.Printf("%-20s %-20s\n", s.FirstName, s.LastName)
+		}
 	}
-	b, err := json.MarshalIndent(resp, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Response\n%v\n", string(b))
-
 }
