@@ -11,6 +11,8 @@ const (
 	FragMetrics = "/api/integration/ext/v1/metrics"
 	//SupSearch is used to search for supporters.
 	SupSearch = "/api/integration/ext/v1/supporters/search"
+	//SegSearch is used to search for segments.
+	SegSearch = "/api/integration/ext/v1/segments/search"
 	//UatHost is the hostname for Engage instances on the test server.
 	UatHost = "hq.uat.igniteaction.net"
 	//ProdHost is the hostname for Engage instances on the production server.
