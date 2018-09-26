@@ -25,22 +25,25 @@ func (n *NetOp) Search() error {
 
 	client := &http.Client{}
 	rqt := RequestBase{
-		Header:  Header{},
+		//Header:  Header{},
 		Payload: n.Request,
 	}
 	b, err := json.Marshal(rqt)
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("Search: request is %v\n", string(b))
 	r := bytes.NewReader(b)
+
 	req, err := http.NewRequest(http.MethodPost, u.String(), r)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("authToken", n.Token)
+	req.Header.Set("Content-Type", ContentType)
 
 	resp, err := client.Do(req)
+	// resp.Header.Set("Content-Type", ContentType)
 	if err != nil {
 		return err
 	}

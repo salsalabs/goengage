@@ -58,12 +58,12 @@ type Supporter struct {
 
 //SupSearchRequest is used to ask for supporters.
 type SupSearchRequest struct {
-	ModifiedFrom   string `json:"modifiedFrom"`
-	ModifiedTo     string `json:"modifiedTo"`
-	Offset         int32
-	Count          int32
-	Identifiers    []string `json:"identifiers"`
-	IdentifierType string   `json:"identifierType"`
+	ModifiedFrom string `json:"modifiedFrom"`
+	ModifiedTo   string `json:"modifiedTo"`
+	Offset       int32  `json:"offset"`
+	Count        int32  `json:"count"`
+	//Identifiers    []string `json:"identifiers"`
+	//IdentifierType string   `json:"identifierType"`
 }
 
 //SupUpsertRequest is a request to change/insert a supporter.
@@ -76,9 +76,9 @@ type SupUpsertRequest struct {
 //SupSearchResult is returned when supporters are found by a search.
 type SupSearchResult struct {
 	Payload struct {
-		Count      string      `json:"count"`
-		Offset     string      `json:"offset"`
-		Total      string      `json:"total"`
-		Supporters []Supporter `json:"suporters"`
-	}
+		Count      int32       `json:"count"`
+		Offset     int32       `json:"offset"`
+		Total      int32       `json:"total"`
+		Supporters []Supporter `json:"supporters"`
+	} `json:"payload"`
 }

@@ -14,7 +14,9 @@ const (
 	//UatHost is the hostname for Engage instances on the test server.
 	UatHost = "hq.uat.igniteaction.net"
 	//ProdHost is the hostname for Engage instances on the production server.
-	ProdHost = "api.salsalabs.org/"
+	ProdHost = "api.salsalabs.org"
+	//ContentType is always Javascript.
+	ContentType = "application/json"
 )
 
 //Error is used to report validation and input errors.
@@ -27,11 +29,9 @@ type Error struct {
 }
 
 //Header contains an optional refID.
-type Header struct {
-	Header struct {
-		RefID string `json:"refId"`
-	} `json:"header"`
-}
+//type Header struct {
+//	RefID string `json:"refId"`
+//}
 
 //NetOp is the wrapper for calls to Engage.  Here to keep
 //call complexity down.
@@ -45,6 +45,6 @@ type NetOp struct {
 
 //RequestBase is the common structure for a request.
 type RequestBase struct {
-	Header  Header      `json:"header"`
+	//	Header  Header      `json:"header"`
 	Payload interface{} `json:"payload"`
 }

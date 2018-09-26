@@ -7,12 +7,12 @@ import (
 	"github.com/salsalabs/goengage"
 )
 
-const token = "wBTvk4rH5auTh4up8nOaVCcJBYWT3jr2Wk7QnlcOc4Qa7dvkgaDBGK6pP3hUaneP_aw0vGveE3XqDEfXSBIsQy7slH24kQ_SZVlojNYkNrg"
+const token = `wBTvk4rH5auTh4up8nOaVCcJBYWT3jr2Wk7QnlcOc4RlzTBx1sFmcTTI5go4M-lg_Jyh97x--zg4FwCCXx7Cmhnc_hRaAo_mk5pOloQtiOM`
 
 func main() {
 	rqt := goengage.SupSearchRequest{
-		ModifiedFrom: "2010-09-01T00:00:00.00Z",
-		ModifiedTo:   "2010-09-01T00:00:00.00Z",
+		ModifiedFrom: "2016-09-01T00:00:00.000Z",
+		ModifiedTo:   "2019-09-01T00:00:00.000Z",
 		Offset:       0,
 		Count:        20,
 	}
@@ -22,7 +22,7 @@ func main() {
 		Fragment: goengage.SupSearch,
 		Token:    token,
 		Request:  rqt,
-		Response: resp,
+		Response: &resp,
 	}
 	err := n.Search()
 	if err != nil {
