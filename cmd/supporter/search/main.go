@@ -11,7 +11,7 @@ import (
 
 func main() {
 	var (
-		app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
+		app   = kingpin.New("activity-search", "A command-line app to see all supporters.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
 	)
 	app.Parse(os.Args[1:])

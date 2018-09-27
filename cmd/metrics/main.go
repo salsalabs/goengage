@@ -10,7 +10,7 @@ import (
 
 func main() {
 	var (
-		app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
+		app   = kingpin.New("metrics", "A command-line app to display the current Engage metrics for a token.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
 	)
 	app.Parse(os.Args[1:])
