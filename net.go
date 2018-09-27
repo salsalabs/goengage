@@ -59,22 +59,6 @@ func (n *NetOp) Search() error {
 	return err
 }
 
-//FirstEmail returns the first email address for the provided supporter.
-//Returns nil if the supporter does not have an email.  (As if...)
-func FirstEmail(s Supporter) *string {
-	c := s.Contacts
-	if c == nil || len(c) == 0 {
-		return nil
-	}
-	for _, x := range c {
-		if x.Type == "EMAIL" {
-			email := x.Value
-			return &email
-		}
-	}
-	return nil
-}
-
 //Credentials reads a YAML file with a token in it and returns the token.
 func Credentials(fn string) (*EngEnv, error) {
 	var c struct {
