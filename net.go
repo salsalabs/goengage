@@ -21,7 +21,7 @@ func (n *NetOp) Search() error {
 	u, _ := url.Parse(n.Fragment)
 	u.Scheme = "https"
 	u.Host = n.Host
-	fmt.Printf("Search:  URL is %v\n", u)
+	//fmt.Printf("Search:  URL is %v\n", u)
 
 	client := &http.Client{}
 	rqt := RequestBase{
@@ -32,7 +32,7 @@ func (n *NetOp) Search() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Search: request is %v\n", string(b))
+	//fmt.Printf("Search: request is %v\n", string(b))
 	r := bytes.NewReader(b)
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), r)

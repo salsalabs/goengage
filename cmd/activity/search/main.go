@@ -28,7 +28,7 @@ func Lookup(in chan goengage.SupActivity, out chan Merged) {
 			close(in)
 			return
 		}
-		fmt.Printf("Lookkup: received %+v\n", sa)
+		//fmt.Printf("Lookkup: received %+v\n", sa)
 		rqt := goengage.SupSearchRequest{
 			Identifiers:    []string{sa.SupporterID},
 			IdentifierType: "SUPPORTER_ID",
@@ -47,14 +47,12 @@ func Lookup(in chan goengage.SupActivity, out chan Merged) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Lookup: search for supporter %v returned %d records.\n", sa.SupporterID, resp.Payload.Count)
 		if resp.Payload.Count != 0 {
 			m := Merged{
 				Activity:  sa,
 				Supporter: resp.Payload.Supporters[0],
 			}
 			out <- m
-			fmt.Printf("Lookup: sent %+v", m)
 		}
 	}
 }
@@ -85,7 +83,7 @@ func View(in chan Merged) {
 			close(in)
 			return
 		}
-		fmt.Printf("View: Received %+v", m)
+		//fmt.Printf("View: Received %+v", m)
 		e := FirstEmail(m.Supporter)
 		email := "(None)"
 		if e != nil {
@@ -134,7 +132,7 @@ func Drive(out chan goengage.SupActivity) {
 		fmt.Printf("Read %d activities from offset %d\n", count, rqt.Offset)
 		rqt.Offset = rqt.Offset + count
 		for _, a := range resp.Payload.SupActivities {
-			fmt.Printf("Drive: pushing %s %s %s\n", a.SupporterID, a.ActivityID, a.ActivityFormName)
+			//fmt.Printf("Drive: pushing %s %s %s\n", a.SupporterID, a.ActivityID, a.ActivityFormName)
 			out <- a
 		}
 	}
