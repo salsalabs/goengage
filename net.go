@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"gopkg.in/yaml.v2"
 )
 
 //Search submits a request and populates a response. Note
@@ -71,4 +73,16 @@ func FirstEmail(s Supporter) *string {
 		}
 	}
 	return nil
+}
+
+//Credentials reads a YAML file with a token in it and returns the token.
+func Credentials(fn string) (string, error) {
+	var c struct {
+		Token string `json:"token"`
+	}
+	raw, err := ioutil.ReadFile(fn)
+	if err == nil {
+		err = yaml.Unmarshal(raw, &c)
+	}
+	return c.Token, err
 }

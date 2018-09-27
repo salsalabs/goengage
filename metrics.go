@@ -64,6 +64,7 @@ func (e EngEnv) Metrics() (*MetricData, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(body))
 	var m MetResponse
 	err = json.Unmarshal(body, &m)
 	if err != nil {

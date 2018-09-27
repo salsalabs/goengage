@@ -9,10 +9,8 @@ import (
 	"time"
 
 	"github.com/salsalabs/goengage"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
-
-//No Labels
-const token = ``
 
 //Merged is a supporter and the acivity used to subscribe the supporter.
 type Merged struct {
@@ -31,7 +29,7 @@ type Out struct {
 
 //OutHeads are the headers for Out.  Sets the order so that the CSV
 //output is consistent.
-const OutHeads = "SupporterID,CreatedDate,,Email,ActivityFormID,ActivityFormName"
+const OutHeads = "SupporterID,CreatedDate,Email,ActivityFormID,ActivityFormName"
 
 //Line accepts a merge record and returns an Output Record.
 //Note that the fields are in the same order as OutHeads.
@@ -53,7 +51,7 @@ func Line(m Merged) []string {
 
 //Lookup accepts a slice of SupActivity from a channel, reads the associated supporter
 //records then puts a slice of merged record onto the output channel.
-func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
+func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
@@ -81,7 +79,7 @@ func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
 		n := goengage.NetOp{
 			Host:     goengage.ProdHost,
 			Fragment: goengage.SupSearch,
-			Token:    token,
+			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
 		}
@@ -107,7 +105,7 @@ func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
 
 //View accepts a slice of merge records and writes them to disk
 //in CSV format.
-func View(in chan []Merged) {
+func View(e goengage.EngEnv, in chan []Merged) {
 	log.Println("Merge: start")
 	f, err := os.Create("supporter_page.csv")
 	if err != nil {
@@ -132,12 +130,18 @@ func View(in chan []Merged) {
 }
 
 //Drive finds all subscribe activities and pushes them onto a queue.
-func Drive(out chan []goengage.SupActivity) {
+func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
+	// Use the metrics to determine buffer size.
+	m, err := e.Metrics()
+	if err != nil {
+		panic(err)
+	}
+
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        20,
+		Count:        m.MaxBatchSize,
 		Type:         "SUBSCRIBE",
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
@@ -145,11 +149,11 @@ func Drive(out chan []goengage.SupActivity) {
 	n := goengage.NetOp{
 		Host:     goengage.ProdHost,
 		Fragment: goengage.ActSearch,
-		Token:    token,
+		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err := n.Search()
+	err = n.Search()
 	if err != nil {
 		panic(err)
 	}
@@ -173,25 +177,39 @@ func Drive(out chan []goengage.SupActivity) {
 
 //main starts all of the go routines and then waits for them to finish.
 func main() {
+	var (
+		app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
+		login = app.Flag("login", "YAML file with API token").Required().String()
+	)
+	app.Parse(os.Args[1:])
+	token, err := goengage.Credentials(*login)
+	if err != nil {
+		panic(err)
+	}
+	e := goengage.EngEnv{
+		Host:  "api.salsalabs.org",
+		Token: token,
+	}
+
 	var wg sync.WaitGroup
 	c1 := make(chan []goengage.SupActivity)
 	c2 := make(chan []Merged)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		Lookup(c1, c2)
+		Lookup(e, c1, c2)
 		wg.Done()
 	})(&wg)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		View(c2)
+		View(e, c2)
 		wg.Done()
 	})(&wg)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		Drive(c1)
+		Drive(e, c1)
 		wg.Done()
 	})(&wg)
 
