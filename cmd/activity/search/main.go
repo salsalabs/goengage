@@ -12,7 +12,7 @@ import (
 )
 
 //No Labels
-const token = `sLw8A6soxe-TiccQVB22QiFHSvw1HlYiEQ8aUdfAYaUYLWUf0okqAaXonEexfP_VSxzmEfg6ifh9jIPUKoIjVBTw2BoPpmfvX5yArYmRaXY6mV6gjpQUWu-y5glDm_esgnLODGZZPEmMxKRSS8tqTA`
+const token = ``
 
 //Merged is a supporter and the acivity used to subscribe the supporter.
 type Merged struct {
@@ -29,8 +29,8 @@ type Out struct {
 	ActivityFormName string
 }
 
-//OutHeads  are the headers for Out.  Sets the order so that the CSV
-//output is not all weird.
+//OutHeads are the headers for Out.  Sets the order so that the CSV
+//output is consistent.
 const OutHeads = "SupporterID,CreatedDate,,Email,ActivityFormID,ActivityFormName"
 
 //Line accepts a merge record and returns an Output Record.
@@ -51,8 +51,8 @@ func Line(m Merged) []string {
 	return a
 }
 
-//Lookup accepts a SupActivity and finds the supporter record.  Output goes to the
-//merged queue for downstream process.
+//Lookup accepts a slice of SupActivity from a channel, reads the associated supporter
+//records then puts a slice of merged record onto the output channel.
 func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
@@ -121,7 +121,8 @@ func FirstEmail(s goengage.Supporter) *string {
 	return nil
 }
 
-//View accepts a merge record and displays it.  Or writes it a disk.  Or something.
+//View accepts a slice of merge records and writes them to disk
+//in CSV format.
 func View(in chan []Merged) {
 	log.Println("Merge: start")
 	f, err := os.Create("supporter_page.csv")
@@ -135,7 +136,6 @@ func View(in chan []Merged) {
 		m, ok := <-in
 		if !ok {
 			log.Println("View done!")
-			close(in)
 			return
 		}
 		var a [][]string
@@ -153,7 +153,7 @@ func Drive(out chan []goengage.SupActivity) {
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        20,
+		Count:        50,
 		Type:         "SUBSCRIBE",
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
