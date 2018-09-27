@@ -7,7 +7,6 @@ package main
 //supporter.
 import (
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -75,7 +74,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			m[r.SupporterID] = r
 			a = append(a, r.SupporterID)
 		}
-
+		log.Printf("Lookup: have %d supporterIDs\n", len(a))
 		//log.Printf("Lookkup: received %+v\n", sa)
 		rqt := goengage.SupSearchRequest{
 			Identifiers:    a,
@@ -91,10 +90,12 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			Request:  &rqt,
 			Response: &resp,
 		}
+		log.Printf("Lookup: %d messages received, asking for %d supporters\n", len(sa), len(a))
 		err := n.Search()
 		if err != nil {
 			panic(err)
 		}
+		log.Printf("Lookup: got %d of %d supporters\n", len(resp.Payload.Supporters), len(a))
 		var x []Merged
 		for _, s := range resp.Payload.Supporters {
 			email := goengage.FirstEmail(s)
@@ -109,6 +110,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			}
 		}
 		if len(x) > 0 {
+			log.Printf("Lookup: passing %d of %d\n", len(x), len(sa))
 			out <- x
 		}
 	}
@@ -137,7 +139,7 @@ func View(e goengage.EngEnv, in chan []Merged) {
 				a = append(a, Line(r))
 			}
 		}
-		fmt.Printf("View: writing %d of %d\n", len(a), len(m))
+		log.Printf("View:   writing %d of %d\n", len(a), len(m))
 		w.WriteAll(a)
 		w.Flush()
 	}
@@ -151,13 +153,13 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		panic(err)
 	}
 
-	fmt.Printf("Drive: max size is %d, we're using %d\n", m.MaxBatchSize, 20)
+	//log.Printf("Drive:  max size is %d, we're using %d\n", m.MaxBatchSize, 20)
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        20,
+		Count:        m.MaxBatchSize,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp goengage.ActSearchResult
@@ -182,7 +184,8 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		}
 		count = int32(len(resp.Payload.SupActivities))
 		if count > 0 {
-			log.Printf("Drive: read %d activities from offset %d\n", count, rqt.Offset)
+			log.Println()
+			log.Printf("Drive:  read %d activities from offset %d\n", count, rqt.Offset)
 			rqt.Offset = rqt.Offset + count
 			out <- resp.Payload.SupActivities
 		}
