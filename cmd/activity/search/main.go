@@ -1,5 +1,10 @@
 package main
 
+//Application to search for "SUBSCRIBE" activities that resulted in a supporter
+//being add to Engage.  If one is found, then a line is added to
+//the output file ("supporter_page.csv").  Each line contains some
+//supporter info and the name of the activity page that added the
+//supporter.
 import (
 	"encoding/csv"
 	"fmt"
@@ -24,13 +29,14 @@ type Out struct {
 	SupporterID      string
 	CreatedDate      string
 	Email            string
+	ActivityType     string
 	ActivityFormID   string
 	ActivityFormName string
 }
 
 //OutHeads are the headers for Out.  Sets the order so that the CSV
 //output is consistent.
-const OutHeads = "SupporterID,CreatedDate,Email,ActivityFormID,ActivityFormName"
+const OutHeads = "SupporterID,CreatedDate,Email,ActivityType,ActivityFormID,ActivityFormName"
 
 //Line accepts a merge record and returns an Output Record.
 //Note that the fields are in the same order as OutHeads.
@@ -44,6 +50,7 @@ func Line(m Merged) []string {
 	a = append(a, m.Supporter.SupporterID)
 	a = append(a, email)
 	a = append(a, m.Supporter.CreatedDate)
+	a = append(a, m.Activity.ActivityType)
 	a = append(a, m.Activity.ActivityFormID)
 	a = append(a, m.Activity.ActivityFormName)
 
@@ -126,8 +133,11 @@ func View(e goengage.EngEnv, in chan []Merged) {
 		}
 		var a [][]string
 		for _, r := range m {
-			a = append(a, Line(r))
+			if PrettyClose(r) {
+				a = append(a, Line(r))
+			}
 		}
+		fmt.Printf("View: writing %d of %d\n", len(a), len(m))
 		w.WriteAll(a)
 		w.Flush()
 	}
@@ -148,7 +158,6 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
 		Count:        20,
-		Type:         "SUBSCRIBE",
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp goengage.ActSearchResult
@@ -179,6 +188,19 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		}
 	}
 	close(out)
+}
+
+//PrettyClose computes the difference between the activity time and the supporter's
+//date created.  If the difference is less than a second, then we're saying that the
+//activity created the supporter.
+//
+//NB time.Duration.Seconds() is the whole duration in seconds, not just the seconds
+//since the minute.  Same goes for Hours() and Minutes()...
+func PrettyClose(r Merged) bool {
+	t1 := goengage.Date(r.Activity.ActivityDate)
+	t2 := goengage.Date(r.Supporter.CreatedDate)
+	d := t1.Sub(t2)
+	return d.Seconds() < 0.0
 }
 
 //main starts all of the go routines and then waits for them to finish.
