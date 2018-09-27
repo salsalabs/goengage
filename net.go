@@ -56,3 +56,19 @@ func (n *NetOp) Search() error {
 	err = json.Unmarshal(b, n.Response)
 	return err
 }
+
+//FirstEmail returns the first email address for the provided supporter.
+//Returns nil if the supporter does not have an email.  (As if...)
+func FirstEmail(s Supporter) *string {
+	c := s.Contacts
+	if c == nil || len(c) == 0 {
+		return nil
+	}
+	for _, x := range c {
+		if x.Type == "EMAIL" {
+			email := x.Value
+			return &email
+		}
+	}
+	return nil
+}

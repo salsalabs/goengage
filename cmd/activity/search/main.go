@@ -37,7 +37,7 @@ const OutHeads = "SupporterID,CreatedDate,,Email,ActivityFormID,ActivityFormName
 //Note that the fields are in the same order as OutHeads.
 func Line(m Merged) []string {
 	email := "None"
-	e := FirstEmail(m.Supporter)
+	e := goengage.FirstEmail(m.Supporter)
 	if e != nil {
 		email = *e
 	}
@@ -98,27 +98,11 @@ func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
 				}
 				x = append(x, mg)
 			} else {
-				log.Printf("Lookup: %v status %v\n", FirstEmail(s), s.Result)
+				log.Printf("Lookup: %v status %v\n", goengage.FirstEmail(s), s.Result)
 			}
 		}
 		out <- x
 	}
-}
-
-//FirstEmail returns the first email address for the provided supporter.
-//Returns nil if the supporter does not have an email.  (As if...)
-func FirstEmail(s goengage.Supporter) *string {
-	c := s.Contacts
-	if c == nil || len(c) == 0 {
-		return nil
-	}
-	for _, x := range c {
-		if x.Type == "EMAIL" {
-			email := x.Value
-			return &email
-		}
-	}
-	return nil
 }
 
 //View accepts a slice of merge records and writes them to disk
@@ -153,7 +137,7 @@ func Drive(out chan []goengage.SupActivity) {
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        50,
+		Count:        20,
 		Type:         "SUBSCRIBE",
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
