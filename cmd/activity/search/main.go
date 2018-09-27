@@ -23,15 +23,15 @@ type Merged struct {
 //Out is the record that we're writing to the output.
 type Out struct {
 	SupporterID      string
-	Email            string
 	CreatedDate      string
+	Email            string
 	ActivityFormID   string
 	ActivityFormName string
 }
 
 //OutHeads  are the headers for Out.  Sets the order so that the CSV
 //output is not all weird.
-const OutHeads = "SupporterID,Email,CreatedDate,ActivityDate,ActivityFormID,ActivityFormName"
+const OutHeads = "SupporterID,CreatedDate,,Email,ActivityFormID,ActivityFormName"
 
 //Line accepts a merge record and returns an Output Record.
 //Note that the fields are in the same order as OutHeads.
@@ -45,7 +45,6 @@ func Line(m Merged) []string {
 	a = append(a, m.Supporter.SupporterID)
 	a = append(a, email)
 	a = append(a, m.Supporter.CreatedDate)
-	a = append(a, m.Activity.ActivityDate)
 	a = append(a, m.Activity.ActivityFormID)
 	a = append(a, m.Activity.ActivityFormName)
 
@@ -54,21 +53,29 @@ func Line(m Merged) []string {
 
 //Lookup accepts a SupActivity and finds the supporter record.  Output goes to the
 //merged queue for downstream process.
-func Lookup(in chan goengage.SupActivity, out chan Merged) {
+func Lookup(in chan []goengage.SupActivity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
 		if !ok {
 			log.Println("Lookup done!")
-			close(in)
+			close(out)
 			return
 		}
+		//Make a map of supporter ID and supActivities.
+		m := make(map[string]goengage.SupActivity)
+		var a []string
+		for _, r := range sa {
+			m[r.SupporterID] = r
+			a = append(a, r.SupporterID)
+		}
+
 		//log.Printf("Lookkup: received %+v\n", sa)
 		rqt := goengage.SupSearchRequest{
-			Identifiers:    []string{sa.SupporterID},
+			Identifiers:    a,
 			IdentifierType: "SUPPORTER_ID",
 			Offset:         0,
-			Count:          1,
+			Count:          int32(len(a)),
 		}
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
@@ -82,13 +89,19 @@ func Lookup(in chan goengage.SupActivity, out chan Merged) {
 		if err != nil {
 			panic(err)
 		}
-		if resp.Payload.Count != 0 {
-			m := Merged{
-				Activity:  sa,
-				Supporter: resp.Payload.Supporters[0],
+		var x []Merged
+		for _, s := range resp.Payload.Supporters {
+			if s.Result == "FOUND" {
+				mg := Merged{
+					Activity:  m[s.SupporterID],
+					Supporter: s,
+				}
+				x = append(x, mg)
+			} else {
+				log.Printf("Lookup: %v status %v\n", FirstEmail(s), s.Result)
 			}
-			out <- m
 		}
+		out <- x
 	}
 }
 
@@ -109,7 +122,7 @@ func FirstEmail(s goengage.Supporter) *string {
 }
 
 //View accepts a merge record and displays it.  Or writes it a disk.  Or something.
-func View(in chan Merged) {
+func View(in chan []Merged) {
 	log.Println("Merge: start")
 	f, err := os.Create("supporter_page.csv")
 	if err != nil {
@@ -125,13 +138,17 @@ func View(in chan Merged) {
 			close(in)
 			return
 		}
-		w.Write(Line(m))
+		var a [][]string
+		for _, r := range m {
+			a = append(a, Line(r))
+		}
+		w.WriteAll(a)
 		w.Flush()
 	}
 }
 
 //Drive finds all subscribe activities and pushes them onto a queue.
-func Drive(out chan goengage.SupActivity) {
+func Drive(out chan []goengage.SupActivity) {
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
@@ -161,20 +178,20 @@ func Drive(out chan goengage.SupActivity) {
 			panic(err)
 		}
 		count = int32(len(resp.Payload.SupActivities))
-		log.Printf("Drive: read %d activities from offset %d\n", count, rqt.Offset)
-		rqt.Offset = rqt.Offset + count
-		for _, a := range resp.Payload.SupActivities {
-			//log.Printf("Drive: pushing %s %s %s\n", a.SupporterID, a.ActivityID, a.ActivityFormName)
-			out <- a
+		if count > 0 {
+			log.Printf("Drive: read %d activities from offset %d\n", count, rqt.Offset)
+			rqt.Offset = rqt.Offset + count
+			out <- resp.Payload.SupActivities
 		}
 	}
+	close(out)
 }
 
 //main starts all of the go routines and then waits for them to finish.
 func main() {
 	var wg sync.WaitGroup
-	c1 := make(chan goengage.SupActivity)
-	c2 := make(chan Merged)
+	c1 := make(chan []goengage.SupActivity)
+	c2 := make(chan []Merged)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
