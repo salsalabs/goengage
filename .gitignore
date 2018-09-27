@@ -16,4 +16,5 @@ logins/*
 
 # App outputs
 *.csv
+*.bash
 
