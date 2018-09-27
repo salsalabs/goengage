@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -182,34 +183,30 @@ func main() {
 		login = app.Flag("login", "YAML file with API token").Required().String()
 	)
 	app.Parse(os.Args[1:])
-	token, err := goengage.Credentials(*login)
+	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
 	}
-	e := goengage.EngEnv{
-		Host:  "api.salsalabs.org",
-		Token: token,
-	}
-
+	fmt.Printf("main e is %+v\n", e)
 	var wg sync.WaitGroup
 	c1 := make(chan []goengage.SupActivity)
 	c2 := make(chan []Merged)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		Lookup(e, c1, c2)
+		Lookup(*e, c1, c2)
 		wg.Done()
 	})(&wg)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		View(e, c2)
+		View(*e, c2)
 		wg.Done()
 	})(&wg)
 
 	go (func(wg *sync.WaitGroup) {
 		wg.Add(1)
-		Drive(e, c1)
+		Drive(*e, c1)
 		wg.Done()
 	})(&wg)
 

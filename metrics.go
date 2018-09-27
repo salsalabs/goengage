@@ -41,6 +41,7 @@ type MetResponse struct {
 }
 
 func (e EngEnv) get(method string, fragment string) ([]byte, error) {
+	fmt.Printf("metrics.get e is %+v\n", e)
 	u, _ := url.Parse(fragment)
 	u.Scheme = "https"
 	u.Host = e.Host

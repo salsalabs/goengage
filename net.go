@@ -76,13 +76,24 @@ func FirstEmail(s Supporter) *string {
 }
 
 //Credentials reads a YAML file with a token in it and returns the token.
-func Credentials(fn string) (string, error) {
+func Credentials(fn string) (*EngEnv, error) {
 	var c struct {
 		Token string `json:"token"`
+		Host  string `json:"host"`
 	}
 	raw, err := ioutil.ReadFile(fn)
-	if err == nil {
-		err = yaml.Unmarshal(raw, &c)
+	if err != nil {
+		return nil, err
 	}
-	return c.Token, err
+	err = yaml.Unmarshal(raw, &c)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Credentials, ci is %+v\n", c)
+	e := EngEnv{
+		Token: c.Token,
+		Host:  c.Host,
+	}
+	fmt.Printf("Credentials, e is %+v\n", e)
+	return &e, nil
 }
