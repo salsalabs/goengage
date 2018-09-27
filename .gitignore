@@ -13,3 +13,7 @@
 
 # Logins
 logins/*
+
+# App outputs
+*.csv
+
