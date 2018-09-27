@@ -51,7 +51,9 @@ func main() {
     if err != nil {
         panic(err)
     }
-    //Internate through the items in `resp` to do stuff.
+    //Iternate through the items in `resp` to do stuff.
+    for _, s := range resp.Payload.Segments {
+    }
 }
 ```
 
