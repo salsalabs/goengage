@@ -2,7 +2,6 @@ package goengage
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -41,11 +40,9 @@ type MetResponse struct {
 }
 
 func (e EngEnv) get(method string, fragment string) ([]byte, error) {
-	fmt.Printf("metrics.get e is %+v\n", e)
 	u, _ := url.Parse(fragment)
 	u.Scheme = "https"
 	u.Host = e.Host
-	fmt.Printf("Meterics URL is %v\n", u)
 	client := &http.Client{}
 	req, _ := http.NewRequest(method, u.String(), nil)
 	req.Header.Set("authToken", e.Token)
@@ -65,7 +62,6 @@ func (e EngEnv) Metrics() (*MetricData, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(body))
 	var m MetResponse
 	err = json.Unmarshal(body, &m)
 	if err != nil {
