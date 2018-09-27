@@ -1,7 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"encoding/csv"
+	"log"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,18 +20,50 @@ type Merged struct {
 	Supporter goengage.Supporter
 }
 
+//Out is the record that we're writing to the output.
+type Out struct {
+	SupporterID      string
+	Email            string
+	CreatedDate      string
+	ActivityFormID   string
+	ActivityFormName string
+}
+
+//OutHeads  are the headers for Out.  Sets the order so that the CSV
+//output is not all weird.
+const OutHeads = "SupporterID,Email,CreatedDate,ActivityDate,ActivityFormID,ActivityFormName"
+
+//Line accepts a merge record and returns an Output Record.
+//Note that the fields are in the same order as OutHeads.
+func Line(m Merged) []string {
+	email := "None"
+	e := FirstEmail(m.Supporter)
+	if e != nil {
+		email = *e
+	}
+	var a []string
+	a = append(a, m.Supporter.SupporterID)
+	a = append(a, email)
+	a = append(a, m.Supporter.CreatedDate)
+	a = append(a, m.Activity.ActivityDate)
+	a = append(a, m.Activity.ActivityFormID)
+	a = append(a, m.Activity.ActivityFormName)
+
+	return a
+}
+
 //Lookup accepts a SupActivity and finds the supporter record.  Output goes to the
 //merged queue for downstream process.
 func Lookup(in chan goengage.SupActivity, out chan Merged) {
-	fmt.Printf("Lookup: start")
+	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
 		if !ok {
-			fmt.Printf("Lookup done!")
+			log.Println("Lookup done!")
 			close(in)
 			return
 		}
-		//fmt.Printf("Lookkup: received %+v\n", sa)
+		//log.Printf("Lookkup: received %+v\n", sa)
 		rqt := goengage.SupSearchRequest{
 			Identifiers:    []string{sa.SupporterID},
 			IdentifierType: "SUPPORTER_ID",
@@ -75,26 +110,23 @@ func FirstEmail(s goengage.Supporter) *string {
 
 //View accepts a merge record and displays it.  Or writes it a disk.  Or something.
 func View(in chan Merged) {
-	fmt.Printf("Merge: start")
+	log.Println("Merge: start")
+	f, err := os.Create("supporter_page.csv")
+	if err != nil {
+		panic(err)
+	}
+	w := csv.NewWriter(f)
+	h := strings.Split(OutHeads, ",")
+	w.Write(h)
 	for {
 		m, ok := <-in
 		if !ok {
-			fmt.Printf("View done!")
+			log.Println("View done!")
 			close(in)
 			return
 		}
-		//fmt.Printf("View: Received %+v", m)
-		e := FirstEmail(m.Supporter)
-		email := "(None)"
-		if e != nil {
-			email = *e
-		}
-		fmt.Printf("%v,%v,%v,%v,%v,%v\n", m.Supporter.SupporterID,
-			email,
-			m.Supporter.CreatedDate,
-			m.Activity.ActivityFormID,
-			m.Activity.ActivityFormName,
-			m.Activity.ActivityDate)
+		w.Write(Line(m))
+		w.Flush()
 	}
 }
 
@@ -129,10 +161,10 @@ func Drive(out chan goengage.SupActivity) {
 			panic(err)
 		}
 		count = int32(len(resp.Payload.SupActivities))
-		fmt.Printf("Read %d activities from offset %d\n", count, rqt.Offset)
+		log.Printf("Drive: read %d activities from offset %d\n", count, rqt.Offset)
 		rqt.Offset = rqt.Offset + count
 		for _, a := range resp.Payload.SupActivities {
-			//fmt.Printf("Drive: pushing %s %s %s\n", a.SupporterID, a.ActivityID, a.ActivityFormName)
+			//log.Printf("Drive: pushing %s %s %s\n", a.SupporterID, a.ActivityID, a.ActivityFormName)
 			out <- a
 		}
 	}
@@ -162,8 +194,8 @@ func main() {
 		wg.Done()
 	})(&wg)
 
-	fmt.Println("Main: napping and then waiting.")
+	log.Println("Main: napping and then waiting.")
 	time.Sleep(20)
 	wg.Wait()
-	fmt.Println("Main: done")
+	log.Println("Main: done")
 }
