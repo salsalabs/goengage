@@ -2,24 +2,47 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/salsalabs/goengage"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-const token = "wBTvk4rH5auTh4up8nOaVCcJBYWT3jr2Wk7QnlcOc4Qa7dvkgaDBGK6pP3hUaneP_aw0vGveE3XqDEfXSBIsQy7slH24kQ_SZVlojNYkNrg"
-
 func main() {
-	e := goengage.EngEnv{
-		Host:  goengage.UatHost,
-		Token: token}
-	fmt.Printf("EngEnv is %+v\n", e)
+	var (
+		app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
+		login = app.Flag("login", "YAML file with API token").Required().String()
+	)
+	app.Parse(os.Args[1:])
+	e, err := goengage.Credentials(*login)
+	if err != nil {
+		panic(err)
+	}
+
 	m, err := e.Metrics()
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Printf("Metrics: %+v\n", m)
-	fmt.Printf("Rate limit is %v\n", m.RateLimit)
-	fmt.Printf("MaxBatchSize is %v\n", m.MaxBatchSize)
-	fmt.Printf("Current rate limit is %v\n", m.CurrentRateLimit)
-	fmt.Printf("TotalAPICalls is %v\n", m.TotalAPICalls)
+	dashes := "----------------------------------------------------------"
+	fmt.Println()
+	fmt.Printf("%-30v %v\n", "Setting", "Value")
+	fmt.Printf("%-30v %v\n", dashes[0:30], dashes[0:25])
+	fmt.Printf("%-30v %v\n", "RateLimit", m.RateLimit)
+	fmt.Printf("%-30v %v\n", "MaxBatchSize", m.MaxBatchSize)
+	fmt.Printf("%-30v %v\n", "CurrentRateLimit", m.CurrentRateLimit)
+	fmt.Printf("%-30v %v\n", "TotalAPICalls", m.TotalAPICalls)
+	fmt.Printf("%-30v %v\n", "LastAPICall", m.LastAPICall)
+	fmt.Printf("%-30v %v\n", "TotalAPICallFailures", m.TotalAPICallFailures)
+	fmt.Printf("%-30v %v\n", "LastAPICallFailure", m.LastAPICallFailure)
+	fmt.Printf("%-30v %v\n", "SupporterRead", m.SupporterRead)
+	fmt.Printf("%-30v %v\n", "SupporterAdd", m.SupporterAdd)
+	fmt.Printf("%-30v %v\n", "SupporterUpdate", m.SupporterUpdate)
+	fmt.Printf("%-30v %v\n", "SupporterDelete", m.SupporterDelete)
+	fmt.Printf("%-30v %v\n", "ActivityEvent", m.ActivityEvent)
+	fmt.Printf("%-30v %v\n", "ActivitySubscribe", m.ActivitySubscribe)
+	fmt.Printf("%-30v %v\n", "ActivityFundraise", m.ActivityFundraise)
+	fmt.Printf("%-30v %v\n", "ActivityTargetedLetter", m.ActivityTargetedLetter)
+	fmt.Printf("%-30v %v\n", "ActivityPetition", m.ActivityPetition)
+	fmt.Printf("%-30v %v\n", "ActivitySubscriptionManagement", m.ActivitySubscriptionManagement)
+	fmt.Println()
 }

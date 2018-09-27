@@ -78,7 +78,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		}
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
-			Host:     goengage.ProdHost,
+			Host:     e.Host,
 			Fragment: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
@@ -90,6 +90,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		}
 		var x []Merged
 		for _, s := range resp.Payload.Supporters {
+			email := goengage.FirstEmail(s)
 			if s.Result == "FOUND" {
 				mg := Merged{
 					Activity:  m[s.SupporterID],
@@ -97,10 +98,12 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 				}
 				x = append(x, mg)
 			} else {
-				log.Printf("Lookup: %v status %v\n", goengage.FirstEmail(s), s.Result)
+				log.Printf("Lookup: %v status %v\n", email, s.Result)
 			}
 		}
-		out <- x
+		if len(x) > 0 {
+			out <- x
+		}
 	}
 }
 
@@ -138,17 +141,19 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		panic(err)
 	}
 
+	fmt.Printf("Drive: max size is %d, we're using %d\n", m.MaxBatchSize, 20)
+
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        m.MaxBatchSize,
+		Count:        20,
 		Type:         "SUBSCRIBE",
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp goengage.ActSearchResult
 	n := goengage.NetOp{
-		Host:     goengage.ProdHost,
+		Host:     e.Host,
 		Fragment: goengage.ActSearch,
 		Token:    e.Token,
 		Request:  &rqt,
@@ -187,7 +192,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("main e is %+v\n", e)
+
 	var wg sync.WaitGroup
 	c1 := make(chan []goengage.SupActivity)
 	c2 := make(chan []Merged)

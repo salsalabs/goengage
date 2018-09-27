@@ -89,11 +89,9 @@ func Credentials(fn string) (*EngEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("Credentials, ci is %+v\n", c)
 	e := EngEnv{
 		Token: c.Token,
 		Host:  c.Host,
 	}
-	fmt.Printf("Credentials, e is %+v\n", e)
 	return &e, nil
 }
