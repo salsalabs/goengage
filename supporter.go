@@ -51,6 +51,9 @@ type Supporter struct {
 	CreatedDate       string
 	LastModified      string
 	ExternalSystemID  string
+	Timezone          string
+	Status            string
+	LanguageCode      string
 	Address           Address
 	Contacts          []Contact
 	CustomFieldValues []Custom
