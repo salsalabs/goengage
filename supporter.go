@@ -71,16 +71,16 @@ type SupSearchRequest struct {
 
 //SupUpsertRequest is a request to change/insert a supporter.
 type SupUpsertRequest struct {
-	Payload struct {
-		Supporters []Supporter `json:"supporters"`
-	} `json:"payload"`
+	//Payload struct {
+	Supporters []Supporter `json:"supporters"`
+	//} `json:"payload"`
 }
 
 //SupUpsertResult is returned after an upsert (add/modify)
 type SupUpsertResult struct {
-	Payload struct {
-		Supporters []Supporter `json:"supporters"`
-	} `json:"payload"`
+	//Payload struct {
+	Supporters []Supporter `json:"supporters"`
+	//} `json:"payload"`
 }
 
 //SupSearchResult is returned when supporters are found by a search.

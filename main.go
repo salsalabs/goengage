@@ -35,9 +35,9 @@ type Error struct {
 }
 
 //Header contains an optional refID.
-//type Header struct {
-//	RefID string `json:"refId"`
-//}
+type Header struct {
+	RefID string `json:"refId,omitempty"`
+}
 
 //NetOp is the wrapper for calls to Engage.  Here to keep
 //call complexity down.
@@ -51,6 +51,6 @@ type NetOp struct {
 
 //RequestBase is the common structure for a request.
 type RequestBase struct {
-	//	Header  Header      `json:"header"`
+	//Header  Header      `json:"header,omitempty"`
 	Payload interface{} `json:"payload"`
 }

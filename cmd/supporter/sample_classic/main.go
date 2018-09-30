@@ -60,7 +60,7 @@ func main() {
 	}
 
 	rqt := goengage.SupUpsertRequest{}
-	rqt.Payload.Supporters = supporters
+	rqt.Supporters = supporters
 
 	var resp goengage.SupUpsertResult
 	n := goengage.NetOp{
@@ -71,8 +71,7 @@ func main() {
 		Response: &resp,
 	}
 
-	// This is WRONG but it makes the compile work.
-	err = n.Search()
+	err = n.Upsert()
 	if err != nil {
 		panic(err)
 	}

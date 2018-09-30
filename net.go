@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 //Search submits a request and populates a response. Note
@@ -119,15 +120,23 @@ func SupXform(c map[string]string) Supporter {
 		Status:           c["Receive_Email"],
 		ExternalSystemID: c["supporter_KEY"],
 	}
+	if len(c["Receive_Email"]) > 0 {
+		i, _ := strconv.ParseInt(c["Receive_Email"], 0, 64)
+		if i > 0 {
+			s.Status = "Subscribed"
+		} else {
+			s.Status = "Unsubscribed"
+		}
+	}
 
 	f := false
 	af := []string{
-		"AddressLine1",
-		"AddressLine2",
+		"Street",
+		"Street_2",
 		"City",
 		"State",
 		"Country",
-		"PostalCode",
+		"Zip",
 	}
 	for _, k := range af {
 		f = f || len(c[k]) > 0
