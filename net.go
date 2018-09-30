@@ -109,9 +109,6 @@ func (n *NetOp) Upsert() error {
 
 //SupXform transforms a map of strings into a supporter record.
 func SupXform(c map[string]string) Supporter {
-	// I can't find a place in engage to store job-related info.
-	// leaving it out of this test.
-
 	s := Supporter{
 		FirstName:        c["First_Name"],
 		LanguageCode:     c["Language_Code"],
@@ -173,6 +170,5 @@ func SupXform(c map[string]string) Supporter {
 	if len(contacts) > 0 {
 		s.Contacts = contacts
 	}
-	fmt.Printf("xform: returning %+v\n", s)
 	return s
 }
