@@ -1,8 +1,11 @@
 package goengage
 
 import (
+	"io/ioutil"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
 //FirstEmail returns the first email address for the provided supporter.
@@ -29,4 +32,25 @@ func Date(s string) time.Time {
 		panic(err)
 	}
 	return t
+}
+
+//Credentials reads a YAML file with a token in it and returns the token.
+func Credentials(fn string) (*EngEnv, error) {
+	var c struct {
+		Token string `json:"token"`
+		Host  string `json:"host"`
+	}
+	raw, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(raw, &c)
+	if err != nil {
+		return nil, err
+	}
+	e := EngEnv{
+		Token: c.Token,
+		Host:  c.Host,
+	}
+	return &e, nil
 }

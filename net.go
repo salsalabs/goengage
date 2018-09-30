@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"gopkg.in/yaml.v2"
 )
 
 //Search submits a request and populates a response. Note
@@ -69,7 +67,7 @@ func (n *NetOp) Search() error {
 //errors containing the HTTP tatus code (e.g. "200 OK").
 //
 //The HTTP response is unmarshalled into n.Response.
-func (n *NetOp) Upsert) error {
+func (n *NetOp) Upsert() error {
 
 	u, _ := url.Parse(n.Fragment)
 	u.Scheme = "https"
@@ -85,7 +83,7 @@ func (n *NetOp) Upsert) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("Search: request is %v\n", string(b))
+	fmt.Printf("\nSearch: request is %v\n\n", string(b))
 	r := bytes.NewReader(b)
 
 	req, err := http.NewRequest(http.MethodPut, u.String(), r)
@@ -109,23 +107,72 @@ func (n *NetOp) Upsert) error {
 	return err
 }
 
-//Credentials reads a YAML file with a token in it and returns the token.
-func Credentials(fn string) (*EngEnv, error) {
-	var c struct {
-		Token string `json:"token"`
-		Host  string `json:"host"`
+//SupXform transforms a map of strings into a supporter record.
+func SupXform(c map[string]string) Supporter {
+	// I can't find a place in engage to store job-related info.
+	// leaving it out of this test.
+
+	s := Supporter{
+		FirstName:        c["First_Name"],
+		LanguageCode:     c["Language_Code"],
+		LastName:         c["Last_Name"],
+		MiddleName:       c["MI"],
+		Timezone:         c["Timezone"],
+		Title:            c["Title"],
+		Status:           c["Receive_Email"],
+		ExternalSystemID: c["supporter_KEY"],
 	}
-	raw, err := ioutil.ReadFile(fn)
-	if err != nil {
-		return nil, err
+
+	f := false
+	af := []string{
+		"AddressLine1",
+		"AddressLine2",
+		"City",
+		"State",
+		"Country",
+		"PostalCode",
 	}
-	err = yaml.Unmarshal(raw, &c)
-	if err != nil {
-		return nil, err
+	for _, k := range af {
+		f = f || len(c[k]) > 0
 	}
-	e := EngEnv{
-		Token: c.Token,
-		Host:  c.Host,
+	if f {
+		s.Address = Address{
+			AddressLine1: c["Street"],
+			AddressLine2: c["Street_2"],
+			City:         c["City"],
+			State:        c["State"],
+			Country:      c["Country"],
+			PostalCode:   c["Zip"],
+		}
 	}
-	return &e, nil
+
+	am := map[string]string{
+		"Email":      "EMAIL",
+		"Phone":      "HOME_PHONE",
+		"Cell_Phone": "CELL_PHONE",
+		"Work_Phone": "WORK_PHONE",
+	}
+	as := map[string]string{
+		"Email":      "OPT_IN",
+		"Phone":      "",
+		"Cell_Phone": "",
+		"Work_Phone": "",
+	}
+
+	var contacts []Contact
+	for k, v := range am {
+		if len(c[k]) > 0 {
+			contact := Contact{
+				Type:   v,
+				Value:  c[k],
+				Status: as[k],
+			}
+			contacts = append(contacts, contact)
+		}
+	}
+	if len(contacts) > 0 {
+		s.Contacts = contacts
+	}
+	fmt.Printf("xform: returning %+v\n", s)
+	return s
 }
