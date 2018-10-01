@@ -93,7 +93,7 @@ func main() {
 		if s.Address != nil {
 			a := *s.Address
 			if len(a.Errors) > 0 {
-				fmt.Printf("%v %v %v, %v %v", a.AddressLine1, a.City, a.State, a.PostalCode, a.Country)
+				fmt.Printf("%v %v %v, %v %v\n", a.AddressLine1, a.City, a.State, a.PostalCode, a.Country)
 				for _, e := range a.Errors {
 					fmt.Printf("%10v %10v %v Code: %v\n", "", "", "", e.Code)
 					fmt.Printf("%10v %10v %v Message: %v\n", "", "", "", e.Message)
