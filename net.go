@@ -102,7 +102,6 @@ func (n *NetOp) Upsert() error {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
-	fmt.Printf("Upsert, body\n%v\n", string(b))
 	err = json.Unmarshal(b, n.Response)
 	return err
 }
