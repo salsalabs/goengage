@@ -1,6 +1,9 @@
 package goengage
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 //SupXform transforms a map of strings into a supporter record.
 func SupXform(c map[string]string) Supporter {
@@ -22,7 +25,6 @@ func SupXform(c map[string]string) Supporter {
 			s.Status = "Unsubscribed"
 		}
 	}
-
 	f := false
 	af := []string{
 		"Street",
@@ -34,9 +36,10 @@ func SupXform(c map[string]string) Supporter {
 	}
 	for _, k := range af {
 		f = f || len(c[k]) > 0
+		fmt.Printf("%v %v %v\n", k, c[k], f)
 	}
 	if f {
-		s.Address = Address{
+		a := Address{
 			AddressLine1: c["Street"],
 			AddressLine2: c["Street_2"],
 			City:         c["City"],
@@ -44,6 +47,7 @@ func SupXform(c map[string]string) Supporter {
 			Country:      c["Country"],
 			PostalCode:   c["Zip"],
 		}
+		s.Address = &a
 	}
 
 	am := map[string]string{

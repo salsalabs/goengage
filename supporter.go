@@ -54,7 +54,7 @@ type Supporter struct {
 	Timezone          string    `json:"timezone,omitempty"`
 	Status            string    `json:"status,omitempty"`
 	LanguageCode      string    `json:"languageCode,omitempty"`
-	Address           Address   `json:"address,omitempty"`
+	Address           *Address  `json:"address,omitempty"`
 	Contacts          []Contact `json:"contacts,omitempty"`
 	CustomFieldValues []Custom  `json:"customFieldValues,omitempty"`
 }
