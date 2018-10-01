@@ -14,16 +14,7 @@ func SupXform(c map[string]string) Supporter {
 		MiddleName:       c["MI"],
 		Timezone:         c["Timezone"],
 		Title:            c["Title"],
-		Status:           c["Receive_Email"],
 		ExternalSystemID: c["supporter_KEY"],
-	}
-	if len(c["Receive_Email"]) > 0 {
-		i, _ := strconv.ParseInt(c["Receive_Email"], 0, 64)
-		if i > 0 {
-			s.Status = "Subscribed"
-		} else {
-			s.Status = "Unsubscribed"
-		}
 	}
 	f := false
 	af := []string{
@@ -56,20 +47,23 @@ func SupXform(c map[string]string) Supporter {
 		"Cell_Phone": "CELL_PHONE",
 		"Work_Phone": "WORK_PHONE",
 	}
-	as := map[string]string{
-		"Email":      "OPT_IN",
-		"Phone":      "",
-		"Cell_Phone": "",
-		"Work_Phone": "",
-	}
 
 	var contacts []Contact
 	for k, v := range am {
 		if len(c[k]) > 0 {
+			x := "OPT_IN"
+			if k == "Email" {
+				if len(c["Receive_Email"]) > 0 {
+					i, _ := strconv.ParseInt(c["Receive_Email"], 0, 64)
+					if i < 0 {
+						x = "OPT_OUT"
+					}
+				}
+			}
 			contact := Contact{
 				Type:   v,
 				Value:  c[k],
-				Status: as[k],
+				Status: x,
 			}
 			contacts = append(contacts, contact)
 		}
