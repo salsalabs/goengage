@@ -40,7 +40,7 @@ type Address struct {
 
 //Supporter is a supporter from the database or being saved to the database.
 type Supporter struct {
-	SupporterID       string    `json:"supporterID,omitempty"`
+	SupporterID       string    `json:"supporterId,omitempty"`
 	Result            string    `json:"result,omitempty"`
 	Title             string    `json:"title,omitempty"`
 	FirstName         string    `json:"firstName,omitempty"`
@@ -72,9 +72,7 @@ type SupSearchRequest struct {
 
 //SupUpsertRequest is a request to change/insert a supporter.
 type SupUpsertRequest struct {
-	//Payload struct {
 	Supporters []Supporter `json:"supporters"`
-	//} `json:"payload"`
 }
 
 //SupUpsertResult is returned after an upsert (add/modify)
@@ -87,6 +85,39 @@ type SupUpsertResult struct {
 	} `json:"header"`
 	Payload struct {
 		Supporters []Supporter `json:"supporters"`
+	} `json:"payload"`
+}
+
+//DeletingSupporters contains the list of supporters IDs that will be
+//deleted
+type DeletingSupporters []string
+
+//DeleteResults contains the list of supporters and reasons returned
+//after supporters are deleted.
+type DeleteResults struct {
+	Supporter string `json:"supporterId"`
+	Reason    string `json:"reason"`
+}
+
+//SupDeleteRequest is a request to delete supporters.  Deleting
+//supporters uses a (supporterId, result) duple.  Note that this
+//works because empty fields are ignored.
+type SupDeleteRequest struct {
+	Supporters DeletingSupporters `json:"supporters"`
+}
+
+//SupDeleteResult is the result of deleting a supporter.  Deleting
+//supporters returns a (supporterId, result) duple.  Note that this
+//works because empty fields are ignored.
+type SupDeleteResult struct {
+	ID        string `json:"id"`
+	Timestamp string `json:"timestamp"`
+	Header    struct {
+		ProcessingTime int32  `json:"processingTime"`
+		ServerID       string `json:"serverId"`
+	} `json:"header"`
+	Payload struct {
+		Supporters []DeleteResults `json:"supporters"`
 	} `json:"payload"`
 }
 

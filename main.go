@@ -13,6 +13,8 @@ const (
 	SupSearch = "/api/integration/ext/v1/supporters/search"
 	//SupUpsert is used to add and modify supporters.
 	SupUpsert = "/api/integration/ext/v1/supporters"
+	//SupDelete is used to remove supporters.
+	SupDelete = "/api/integration/ext/v1/supporters"
 	//SegSearch is used to search for segments.
 	SegSearch = "/api/integration/ext/v1/segments/search"
 	//ActSearch is used to search for activities.
