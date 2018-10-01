@@ -47,12 +47,12 @@ func (n *NetOp) Search() error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v", resp.Status)
-		return errors.New(m)
-	}
 	defer resp.Body.Close()
 	b, err = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
+		return errors.New(m)
+	}
 	err = json.Unmarshal(b, n.Response)
 	return err
 }
@@ -83,7 +83,7 @@ func (n *NetOp) Upsert() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("\nSearch: request is %v\n\n", string(b))
+	fmt.Printf("Upsert: request is %v\n\n", string(b))
 	r := bytes.NewReader(b)
 
 	req, err := http.NewRequest(http.MethodPut, u.String(), r)
@@ -97,12 +97,12 @@ func (n *NetOp) Upsert() error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v", resp.Status)
-		return errors.New(m)
-	}
 	defer resp.Body.Close()
 	b, err = ioutil.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
+		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
+		return errors.New(m)
+	}
 	err = json.Unmarshal(b, n.Response)
 	return err
 }
