@@ -11,6 +11,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+//get retrieves active supporters from Salsa Classic.  The number of records
+//is limited to the Engage instance's maximum batch size.
 func get(api *godig.API, m *goengage.MetricData) ([]map[string]string, error) {
 	t := api.Supporter()
 	c := []string{
