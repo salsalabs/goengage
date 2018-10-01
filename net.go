@@ -83,7 +83,6 @@ func (n *NetOp) Upsert() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Upsert: request is %v\n\n", string(b))
 	r := bytes.NewReader(b)
 
 	req, err := http.NewRequest(http.MethodPut, u.String(), r)
@@ -103,6 +102,7 @@ func (n *NetOp) Upsert() error {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
+	fmt.Printf("Upsert, body\n%v\n", string(b))
 	err = json.Unmarshal(b, n.Response)
 	return err
 }

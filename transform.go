@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -27,7 +26,6 @@ func SupXform(c map[string]string) Supporter {
 	}
 	for _, k := range af {
 		f = f || len(c[k]) > 0
-		fmt.Printf("%v %v %v\n", k, c[k], f)
 	}
 	if f {
 		a := Address{

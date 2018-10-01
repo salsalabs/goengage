@@ -35,6 +35,7 @@ type Address struct {
 	Lattitude            float32 `json:"lattitude,omitempty"`
 	Longitude            float32 `json:"longitude,omitempty"`
 	Status               string  `json:"status,omitempty"`
+	Errors               []Error `json:"errors,omitempty"`
 }
 
 //Supporter is a supporter from the database or being saved to the database.
@@ -50,7 +51,7 @@ type Supporter struct {
 	Gender            string    `json:"gender,omitempty"`
 	CreatedDate       string    `json:"createdDate,omitempty"`
 	LastModified      string    `json:"lastModified,omitempty"`
-	ExternalSystemID  string    `json:"externalSystemID,omitempty"`
+	ExternalSystemID  string    `json:"externalSystemId,omitempty"`
 	Timezone          string    `json:"timezone,omitempty"`
 	Status            string    `json:"status,omitempty"`
 	LanguageCode      string    `json:"languageCode,omitempty"`
@@ -78,9 +79,15 @@ type SupUpsertRequest struct {
 
 //SupUpsertResult is returned after an upsert (add/modify)
 type SupUpsertResult struct {
-	//Payload struct {
-	Supporters []Supporter `json:"supporters"`
-	//} `json:"payload"`
+	ID        string `json:"id"`
+	Timestamp string `json:"timestamp"`
+	Header    struct {
+		ProcessingTime int32  `json:"processingTime"`
+		ServerID       string `json:"serverId"`
+	} `json:"header"`
+	Payload struct {
+		Supporters []Supporter `json:"supporters"`
+	} `json:"payload"`
 }
 
 //SupSearchResult is returned when supporters are found by a search.
