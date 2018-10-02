@@ -34,7 +34,9 @@ func Date(s string) time.Time {
 	return t
 }
 
-//Credentials reads a YAML file with a token in it and returns the token.
+//Credentials reads a YAML file containing an Engage API host
+//and an Engage API token.  These are then stored into an
+//environment object.
 func Credentials(fn string) (*EngEnv, error) {
 	var c struct {
 		Token string `json:"token"`
