@@ -11,9 +11,23 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+//get retrieves active supporters from Salsa Classic.  The number of records
+//is limited to the Engage instance's maximum batch size.
+func get(api *godig.API, offset int32, m *goengage.MetricData) ([]map[string]string, error) {
+	t := api.Supporter()
+	c := []string{
+		"Email IS NOT EMPTY",
+		"Email LIKE %@%.%",
+		"Receive_Email>0",
+	}
+	crit := strings.Join(c, "&conmdition")
+	x, err := t.ManyMap(offset, int(m.MaxBatchSize), crit)
+	log.Printf("get: offset %7d, count %d\n", offset, len(x))
+	return x, err
+}
+
 //note writes a line to a file and dies if there's an error.
 func note(s string, f *os.File) {
-	fmt.Print(s)
 	_, err := f.WriteString(s)
 	if err != nil {
 		log.Fatalf("Error writing to log, %v\n", err)
@@ -49,25 +63,12 @@ func see(s goengage.Supporter, f *os.File) {
 	}
 }
 
-//get retrieves active supporters from Salsa Classic.  The number of records
-//is limited to the Engage instance's maximum batch size.
-func get(api *godig.API, m *goengage.MetricData) ([]map[string]string, error) {
-	t := api.Supporter()
-	c := []string{
-		"Email IS NOT EMPTY",
-		"Email LIKE %@%.%",
-		"Receive_Email>0",
-	}
-	crit := strings.Join(c, "&conmdition")
-	x, err := t.ManyMap(int32(0), int(m.MaxBatchSize), crit)
-	return x, err
-}
+//main is the entry point for Go applications.
 func main() {
-
 	var (
 		app    = kingpin.New("engexport", "Classic-to-Engage exporter.")
-		cLogin = app.Flag("login", "YAML file with Classic credentials").Required().String()
-		eLogin = app.Flag("token", "YAML file with Engage API token").Required().String()
+		eLogin = app.Flag("login", "YAML file with Engage API token").Required().String()
+		cLogin = app.Flag("classic", "YAML file with Classic credentials").Required().String()
 	)
 	app.Parse(os.Args[1:])
 
@@ -79,7 +80,6 @@ func main() {
 	api.Verbose = false
 
 	e, err := goengage.Credentials(*eLogin)
-
 	if err != nil {
 		log.Fatalf("Main: %v\n", err)
 	}
@@ -88,39 +88,53 @@ func main() {
 		log.Fatalf("Main: %v\n", err)
 	}
 
-	x, err := get(api, m)
+	f, err := os.Create("transfer_results.txt")
 	if err != nil {
 		log.Fatalf("Main: %v\n", err)
 	}
 
-	var supporters []goengage.Supporter
-	for _, c := range x {
-		s := goengage.SupXform(c)
-		supporters = append(supporters, s)
-	}
+	count := m.MaxBatchSize
+	offset := int32(0)
+	//Make this "count > 0" to copy everything from classic
+	//to engage in MaxBatchSize chunks.  Will be slow...
+	for offset < 100 {
+		x, err := get(api, offset, m)
+		if err != nil {
+			log.Fatalf("Main: %v\n", err)
+		}
 
-	rqt := goengage.SupUpsertRequest{}
-	rqt.Supporters = supporters
+		count = int32(len(x))
+		offset = offset + count
+		if count == 0 {
+			break
+		}
 
-	var resp goengage.SupUpsertResult
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Fragment: goengage.SupUpsert,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
+		var supporters []goengage.Supporter
+		for _, c := range x {
+			s := goengage.SupXform(c)
+			supporters = append(supporters, s)
+		}
 
-	err = n.Upsert()
-	if err != nil {
-		log.Fatalf("Main: %v\n", err)
+		rqt := goengage.SupUpsertRequest{}
+		rqt.Supporters = supporters
+
+		var resp goengage.SupUpsertResult
+		n := goengage.NetOp{
+			Host:     e.Host,
+			Fragment: goengage.SupUpsert,
+			Token:    e.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+
+		err = n.Upsert()
+		if err != nil {
+			log.Fatalf("Main: %v\n", err)
+		}
+		for _, s := range resp.Payload.Supporters {
+			see(s, f)
+		}
 	}
-	fmt.Printf("\nUpsert supporter results")
-	f, err := os.Create("transfer_errors.txt")
-	if err != nil {
-		log.Fatalf("Main: %v\n", err)
-	}
-	for _, s := range resp.Payload.Supporters {
-		see(s, f)
-	}
+	_ = f.Close()
+	fmt.Println("Transfer result details can be found in transfer_results.txt")
 }
