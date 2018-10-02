@@ -90,20 +90,23 @@ type SupUpsertResult struct {
 
 //DeletingSupporters contains the list of supporters IDs that will be
 //deleted
-type DeletingSupporters []string
+type DeletingSupporters struct {
+	SupporterID string `json:"supporterId"`
+}
 
 //DeleteResults contains the list of supporters and reasons returned
 //after supporters are deleted.
 type DeleteResults struct {
-	Supporter string `json:"supporterId"`
-	Reason    string `json:"reason"`
+	ReadOnly    bool   `json:"readOnly"`
+	SupporterID string `json:"supporterId"`
+	Result      string `json:"result"`
 }
 
 //SupDeleteRequest is a request to delete supporters.  Deleting
 //supporters uses a (supporterId, result) duple.  Note that this
 //works because empty fields are ignored.
 type SupDeleteRequest struct {
-	Supporters DeletingSupporters `json:"supporters"`
+	Supporters []DeletingSupporters `json:"supporters"`
 }
 
 //SupDeleteResult is the result of deleting a supporter.  Deleting

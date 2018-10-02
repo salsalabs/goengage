@@ -56,7 +56,7 @@ func main() {
 		Response: &dResp,
 	}
 
-	maxCount := int32(100)
+	maxCount := int32(1000)
 	count := int32(rqt.Count)
 	for count < maxCount && count > 0 {
 		fmt.Printf("Deleting from offset %d, %d remain.\n", rqt.Offset, maxCount)
@@ -69,9 +69,10 @@ func main() {
 		fmt.Printf("Deleting %d supporters from offset %d\n", count, rqt.Offset)
 		rqt.Offset = rqt.Offset + count
 
-		var a goengage.DeletingSupporters
+		var a []goengage.DeletingSupporters
 		for _, x := range resp.Payload.Supporters {
-			a = append(a, x.SupporterID)
+			d := goengage.DeletingSupporters{SupporterID: x.SupporterID}
+			a = append(a, d)
 		}
 		dRqt.Supporters = a
 		err = nDel.Delete()
@@ -79,7 +80,7 @@ func main() {
 			panic(err)
 		}
 
-		for _, s := range resp.Payload.Supporters {
+		for _, s := range dResp.Payload.Supporters {
 			fmt.Printf("%s %s\n", s.SupporterID, s.Result)
 		}
 	}

@@ -131,7 +131,6 @@ func (n *NetOp) Delete() error {
 	}
 	r := bytes.NewReader(b)
 
-	fmt.Printf("SubDelete: %v\n", string(b))
 	req, err := http.NewRequest(http.MethodDelete, u.String(), r)
 	if err != nil {
 		return err
