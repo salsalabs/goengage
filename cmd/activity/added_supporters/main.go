@@ -1,8 +1,8 @@
 package main
 
-//Application to search for "SUBSCRIBE" activities that resulted in a supporter
-//being add to Engage.  If one is found, then a line is added to
-//the output file ("supporter_page.csv").  Each line contains some
+//Application to search for "SUBSCRIBE" activities that resulted in a
+//supporter being add to Engage.  If one is found, then a line is added
+//to the output file ("supporter_page.csv").  Each line contains some
 //supporter info and the name of the activity page that added the
 //supporter.
 import (
@@ -56,8 +56,8 @@ func Line(m Merged) []string {
 	return a
 }
 
-//Lookup accepts a slice of SupActivity from a channel, reads the associated supporter
-//records then puts a slice of merged record onto the output channel.
+//Lookup accepts a slice of SupActivity from a channel, reads the associated
+//supporter records, then puts a slice of merged record onto the output channel.
 func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
