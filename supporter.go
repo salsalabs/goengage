@@ -52,12 +52,12 @@ type Supporter struct {
 	CreatedDate       string    `json:"createdDate,omitempty"`
 	LastModified      string    `json:"lastModified,omitempty"`
 	ExternalSystemID  string    `json:"externalSystemId,omitempty"`
-	Timezone          string    `json:"timezone,omitempty"`
 	Status            string    `json:"status,omitempty"`
-	LanguageCode      string    `json:"languageCode,omitempty"`
 	Address           *Address  `json:"address,omitempty"`
 	Contacts          []Contact `json:"contacts,omitempty"`
 	CustomFieldValues []Custom  `json:"customFieldValues,omitempty"`
+	//Timezone          string    `json:"timezone,omitempty"`
+	//LanguageCode      string    `json:"languageCode,omitempty"`
 }
 
 //SupSearchRequest is used to ask for supporters.

@@ -8,10 +8,8 @@ import (
 func SupXform(c map[string]string) Supporter {
 	s := Supporter{
 		FirstName:        c["First_Name"],
-		LanguageCode:     c["Language_Code"],
 		LastName:         c["Last_Name"],
 		MiddleName:       c["MI"],
-		Timezone:         c["Timezone"],
 		Title:            c["Title"],
 		ExternalSystemID: c["supporter_KEY"],
 	}
