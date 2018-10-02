@@ -27,9 +27,9 @@ type NetOp struct {
 //
 //Note that Engage uses HTTP status codes to denote some error
 //failures.  Search passes those back to the caller as standard
-//errors containing the HTTP tatus code (e.g. "200 OK").
-//
-//The HTTP response is unmarshalled into n.Response.
+//errors containing the HTTP status code (e.g. "200 OK") and the
+//response body, which usually contains enlightenment about the
+//error.
 func (n *NetOp) Do() error {
 	rqt := RequestBase{
 		//Header:  Header{},

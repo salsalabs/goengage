@@ -16,19 +16,19 @@ type Segment struct {
 
 //SegSearchRequest is used to ask for supporters.
 type SegSearchRequest struct {
-	Identifiers    []string `json:"identifiers"`
-	IdentifierType string   `json:"identifierType"`
-	Offset         int32    `json:"offset"`
-	Count          int32    `json:"count"`
-	MemberCounts   bool     `json:"includeMemberCounts"`
+	Identifiers    []string `json:"identifiers,omitempty"`
+	IdentifierType string   `json:"identifierType,omitempty"`
+	Offset         int32    `json:"offset,omitempty"`
+	Count          int32    `json:"count,omitempty"`
+	MemberCounts   bool     `json:"includeMemberCounts,omitempty"`
 }
 
 //SegSearchResult is returned when supporters are found by a search.
 type SegSearchResult struct {
 	Payload struct {
-		Count    int32     `json:"count"`
-		Offset   int32     `json:"offset"`
-		Total    int32     `json:"total"`
-		Segments []Segment `json:"segments"`
-	} `json:"payload"`
+		Count    int32     `json:"count,omitempty"`
+		Offset   int32     `json:"offset,omitempty"`
+		Total    int32     `json:"total,omitempty"`
+		Segments []Segment `json:"segments,omitempty"`
+	} `json:"payload,omitempty"`
 }
