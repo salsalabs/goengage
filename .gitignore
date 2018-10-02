@@ -18,4 +18,5 @@ logins/*
 *.csv
 *.bash
 *.txt
+*.json
 
