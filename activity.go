@@ -1,5 +1,8 @@
 package goengage
 
+//ActSearch is used to search for activities.
+const ActSearch = "/api/integration/ext/v1/activities/search"
+
 //Activity is a generic action that someone takes in Engage.
 type Activity struct {
 	ActivityType     string

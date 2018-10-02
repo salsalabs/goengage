@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage"
@@ -32,6 +33,7 @@ func main() {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SegSearch,
+		Method:   http.MethodPost,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -45,7 +47,7 @@ func main() {
 
 	for rqt.Count > 0 {
 		fmt.Printf("Reading %d from %d\n", rqt.Count, rqt.Offset)
-		err = n.Search()
+		err = n.Do()
 		if err != nil {
 			panic(err)
 		}

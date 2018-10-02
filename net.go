@@ -10,71 +10,27 @@ import (
 	"net/url"
 )
 
-//Search submits a request and populates a response. Note
-//that Engage uses HTTP status codes to denote some error
-//failures.  Search passes those back to the caller as standard
-//errors containing the HTTP tatus code (e.g. "200 OK").
-//
-//The HTTP response is unmarshalled into n.Response.
-func (n *NetOp) Search() error {
-
-	u, _ := url.Parse(n.Fragment)
-	u.Scheme = "https"
-	u.Host = n.Host
-	//fmt.Printf("Search:  URL is %v\n", u)
-
-	client := &http.Client{}
-	rqt := RequestBase{
-		//Header:  Header{},
-		Payload: n.Request,
-	}
-	b, err := json.Marshal(rqt)
-	if err != nil {
-		return err
-	}
-	//fmt.Printf("Search: request is %v\n", string(b))
-	r := bytes.NewReader(b)
-
-	req, err := http.NewRequest(http.MethodPost, u.String(), r)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("authToken", n.Token)
-	req.Header.Set("Content-Type", ContentType)
-
-	resp, err := client.Do(req)
-	// resp.Header.Set("Content-Type", ContentType)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	b, err = ioutil.ReadAll(resp.Body)
-	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
-		return errors.New(m)
-	}
-	err = json.Unmarshal(b, n.Response)
-	return err
+//NetOp is the wrapper for calls to Engage.  Here to keep
+//call complexity down.
+type NetOp struct {
+	Host     string
+	Method   string
+	Fragment string
+	Token    string
+	Request  interface{}
+	Response interface{}
 }
 
-//Upsert cause Engage to add/update a supporter.  If the supporter's
-// ID and Email are not in the database, then Engage inserts a new
-//supporter.  If either are in the database, then Engage updates the
-//supporter.
+//Generic API request/response handler.  Uses the contents of the
+//provided NetOp to send a request.  Parses the response back into
+//the NetOp's reply.
 //
 //Note that Engage uses HTTP status codes to denote some error
 //failures.  Search passes those back to the caller as standard
 //errors containing the HTTP tatus code (e.g. "200 OK").
 //
 //The HTTP response is unmarshalled into n.Response.
-func (n *NetOp) Upsert() error {
-
-	u, _ := url.Parse(n.Fragment)
-	u.Scheme = "https"
-	u.Host = n.Host
-	//fmt.Printf("Search:  URL is %v\n", u)
-
-	client := &http.Client{}
+func (n *NetOp) Do() error {
 	rqt := RequestBase{
 		//Header:  Header{},
 		Payload: n.Request,
@@ -85,53 +41,12 @@ func (n *NetOp) Upsert() error {
 	}
 	r := bytes.NewReader(b)
 
-	req, err := http.NewRequest(http.MethodPut, u.String(), r)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("authToken", n.Token)
-	req.Header.Set("Content-Type", ContentType)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	b, err = ioutil.ReadAll(resp.Body)
-	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
-		return errors.New(m)
-	}
-	err = json.Unmarshal(b, n.Response)
-	return err
-}
-
-//Delete removes supporters.
-//
-//Note that Engage uses HTTP status codes to denote some error
-//failures.  Search passes those back to the caller as standard
-//errors containing the HTTP tatus code (e.g. "200 OK").
-//
-//The HTTP response is unmarshalled into n.Response.
-func (n *NetOp) Delete() error {
-
 	u, _ := url.Parse(n.Fragment)
 	u.Scheme = "https"
 	u.Host = n.Host
-	//fmt.Printf("Search:  URL is %v\n", u)
 
 	client := &http.Client{}
-	rqt := RequestBase{
-		//Header:  Header{},
-		Payload: n.Request,
-	}
-	b, err := json.Marshal(rqt)
-	if err != nil {
-		return err
-	}
-	r := bytes.NewReader(b)
-
-	req, err := http.NewRequest(http.MethodDelete, u.String(), r)
+	req, err := http.NewRequest(n.Method, u.String(), r)
 	if err != nil {
 		return err
 	}

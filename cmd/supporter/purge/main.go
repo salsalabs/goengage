@@ -4,6 +4,7 @@ package main
 import (
 	//"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage"
@@ -41,6 +42,7 @@ func main() {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
+		Method:   http.MethodPost,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -51,6 +53,7 @@ func main() {
 	nDel := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupDelete,
+		Method:   http.MethodDelete,
 		Token:    e.Token,
 		Request:  &dRqt,
 		Response: &dResp,
@@ -60,7 +63,7 @@ func main() {
 	count := int32(rqt.Count)
 	for count < maxCount && count > 0 {
 		fmt.Printf("Deleting from offset %d, %d remain.\n", rqt.Offset, maxCount)
-		err = n.Search()
+		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
@@ -75,7 +78,7 @@ func main() {
 			a = append(a, d)
 		}
 		dRqt.Supporters = a
-		err = nDel.Delete()
+		err = nDel.Do()
 		if err != nil {
 			panic(err)
 		}

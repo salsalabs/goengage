@@ -7,6 +7,9 @@ import (
 	"net/url"
 )
 
+//FragMetrics is used to retrieve runtime metrics.
+const FragMetrics = "/api/integration/ext/v1/metrics"
+
 //MetricData contains the measurable stsuff in Engage.
 type MetricData struct {
 	RateLimit                      int32  `json:"rateLimit"`

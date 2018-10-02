@@ -3,6 +3,7 @@ package main
 import (
 	//"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage"
@@ -30,6 +31,7 @@ func main() {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
+		Method:   http.MethodPost,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -37,7 +39,7 @@ func main() {
 	count := int32(rqt.Count)
 	for count > 0 {
 		fmt.Printf("Searching from offset %d\n", rqt.Offset)
-		err := n.Search()
+		err := n.Do()
 		if err != nil {
 			panic(err)
 		}

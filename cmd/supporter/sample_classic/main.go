@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -122,12 +123,13 @@ func main() {
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Fragment: goengage.SupUpsert,
+			Method:   http.MethodPut,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
 		}
 
-		err = n.Upsert()
+		err = n.Do()
 		if err != nil {
 			log.Fatalf("Main: %v\n", err)
 		}

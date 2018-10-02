@@ -1,5 +1,8 @@
 package goengage
 
+//SegSearch is used to search for segments.
+const SegSearch = "/api/integration/ext/v1/segments/search"
+
 //Segment is a named group of supporters.
 type Segment struct {
 	SegmentID        string

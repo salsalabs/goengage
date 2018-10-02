@@ -1,5 +1,14 @@
 package goengage
 
+const (
+	//SupSearch is used to search for supporters.
+	SupSearch = "/api/integration/ext/v1/supporters/search"
+	//SupUpsert is used to add and modify supporters.
+	SupUpsert = "/api/integration/ext/v1/supporters"
+	//SupDelete is used to remove supporters.
+	SupDelete = "/api/integration/ext/v1/supporters"
+)
+
 //Custom is a custom field in Engage.
 type Custom struct {
 	FieldID    string `json:"fieldID:omitempty"`
