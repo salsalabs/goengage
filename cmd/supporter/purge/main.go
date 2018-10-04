@@ -18,8 +18,9 @@ import (
 const deleteAfter = "2016-12-31T23:59:59.999Z"
 
 //stack gets the maximum number of records, then pushes them onto
-//the channel in MaxBatchSize offsets.
-func stack(e *goengage.EngEnv, d chan int32) {
+//the channel in MaxBatchSize offsets.  Note that the user can override
+//the maximum number...
+func stack(e *goengage.EngEnv, d chan int32, max *int32) {
 	fmt.Printf("stack started\n")
 	m, err := e.Metrics()
 	if err != nil {
@@ -44,17 +45,21 @@ func stack(e *goengage.EngEnv, d chan int32) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("stack: pushing increments of %d up to %d\n", m.MaxBatchSize, resp.Payload.Total)
-	for i := int32(0); i <= resp.Payload.Total; i += m.MaxBatchSize {
+	most := resp.Payload.Total
+	if max != nil {
+		most = *max
+	}
+	fmt.Printf("stack: pushing increments of %d up to %d\n", m.MaxBatchSize, most)
+	for i := int32(0); i <= most; i += m.MaxBatchSize {
 		d <- i
 	}
-	fmt.Printf("stack: done after %d\n", resp.Payload.Total)
+	fmt.Printf("stack: done after %d\n", most)
 	close(d)
 }
 
 //pack reads offset from a channel and pushes batches of supporters onto
 //the other channel channel.  Errors are noisy and fatal.
-func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter) {
+func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter, done chan bool) {
 	fmt.Printf("pack started\n")
 	m, err := e.Metrics()
 	if err != nil {
@@ -79,7 +84,6 @@ func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter) {
 	for {
 		offset, ok := <-d
 		if !ok {
-			fmt.Println("pack done!")
 			break
 		}
 		rqt.Offset = offset
@@ -91,11 +95,11 @@ func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter) {
 		}
 		c <- resp.Payload.Supporters
 	}
-	close(c)
+	done <- true
 }
 
 //cack accepts batches of supporters from the channel and deletes them.
-func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32) {
+func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32, done chan bool) {
 	fmt.Printf("cack started\n")
 	dRqt := goengage.SupDeleteRequest{}
 	dResp := goengage.SupDeleteResult{}
@@ -111,7 +115,6 @@ func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32) {
 	for {
 		p, ok := <-c
 		if !ok {
-			fmt.Println("cack done!")
 			break
 		}
 		var a []goengage.DeletingSupporters
@@ -130,6 +133,7 @@ func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32) {
 		//}
 		b <- int32(len(dResp.Payload.Supporters))
 	}
+	done <- true
 }
 
 //yack keeps a running total of the supporters processed.
@@ -146,22 +150,62 @@ func yack(e chan int32) {
 	}
 }
 
+//pWait listens to a channel for 'n' messages.  When the n-th message arrives,
+//pWait closed the other channel.
+func pWait(b chan bool, c chan []goengage.Supporter, n int32) {
+	fmt.Println("pWait started")
+	for {
+		_, ok := <-b
+		if !ok {
+			fmt.Printf("pWait: channel closed with %d remaining\n", n)
+			break
+		}
+		n--
+		fmt.Printf("pWait: waiting for %d\n", n)
+		if n <= 0 {
+			fmt.Println("pWait: done on count")
+			break
+		}
+	}
+	close(c)
+}
+
+//cWait listens to a channel for 'n' messages.  When the n-th message arrives,
+//cWait closed the other channel.
+func cWait(b chan bool, c chan int32, n int32) {
+	fmt.Println("cWait started")
+	for {
+		_, ok := <-b
+		if !ok {
+			fmt.Printf("cWait: channel closed with %d remaining\n", n)
+			break
+		}
+		n--
+		fmt.Printf("pWait: waiting for %d\n", n)
+		if n <= 0 {
+			fmt.Println("cWait: done on count")
+			break
+		}
+	}
+	close(c)
+}
+
 //main is the standard entry point for Go applications.
 func main() {
 	var (
 		app   = kingpin.New("delete-supporters", "A command-line app to DELETE ENGAGE SUPPORTERS.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
+		max   = app.Flag("max", "Delete no more than this many supporter").Int32()
 		yes   = app.Flag("yes", "Yes, I understand that this program will utterly and completely remove Engage supporters.").Required().Bool()
 	)
 	app.Parse(os.Args[1:])
 	if !*yes {
 		fmt.Printf("You made a good choice.  Supporters won't be deleted.\n")
 		return
-	} else {
-		fmt.Println("***")
-		fmt.Printf("*** Alrighty, then.  You supplied --yes, supporters will be deleted.\n")
-		fmt.Println("***")
 	}
+	fmt.Println("***")
+	fmt.Printf("*** Alrighty, then.  You supplied --yes, supporters will be deleted.\n")
+	fmt.Println("***")
 
 	e, err := goengage.Credentials(*login)
 	if err != nil {
@@ -171,6 +215,8 @@ func main() {
 	c := make(chan []goengage.Supporter, 100)
 	d := make(chan int32, 200)
 	b := make(chan int32, 1000)
+	cDone := make(chan bool)
+	pDone := make(chan bool)
 	var wg sync.WaitGroup
 
 	go (func(b chan int32, wg *sync.WaitGroup) {
@@ -178,25 +224,39 @@ func main() {
 		yack(b)
 		wg.Done()
 	})(b, &wg)
+
+	go (func(b chan bool, c chan []goengage.Supporter, n int32, wg *sync.WaitGroup) {
+		wg.Add(1)
+		pWait(b, c, n)
+		wg.Done()
+	})(pDone, c, 5, &wg)
+
 	for i := 0; i < 5; i++ {
 		go (func(c chan []goengage.Supporter, d chan int32, e *goengage.EngEnv, wg *sync.WaitGroup) {
 			wg.Add(1)
-			pack(e, d, c)
+			pack(e, d, c, pDone)
 			wg.Done()
 		})(c, d, e, &wg)
 	}
+
+	go (func(b chan bool, c chan int32, n int32, wg *sync.WaitGroup) {
+		wg.Add(1)
+		cWait(b, c, n)
+		wg.Done()
+	})(cDone, b, 5, &wg)
+
 	for i := 0; i < 5; i++ {
 		go (func(c chan []goengage.Supporter, b chan int32, e *goengage.EngEnv, wg *sync.WaitGroup) {
 			wg.Add(1)
-			cack(e, c, b)
+			cack(e, c, b, cDone)
 			wg.Done()
 		})(c, b, e, &wg)
 	}
-	go (func(d chan int32, e *goengage.EngEnv, wg *sync.WaitGroup) {
+	go (func(d chan int32, e *goengage.EngEnv, m *int32, wg *sync.WaitGroup) {
 		wg.Add(1)
-		stack(e, d)
+		stack(e, d, max)
 		wg.Done()
-	})(d, e, &wg)
+	})(d, e, max, &wg)
 
 	time.Sleep(3000)
 	fmt.Println("Main: waiting...")
