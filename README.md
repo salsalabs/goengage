@@ -1,7 +1,9 @@
 # goengage
+
 Engage API using Go.
 
 ## Summary
+
 This is the first pass at creating a Go version of the Engage API.  The basic data
 structures all appear in the root directory as do network functions and utilities.
 The "cmd" directory contains applications that use the basic API in the root directory.
@@ -14,39 +16,40 @@ go get ./...
 ```
 
 ## Typical Usage
+
 ```go
 import (
     "github.com/salsalabs/goengage"
     kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 func main() {
-	var (
-		app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
-		login = app.Flag("login", "YAML file with API token").Required().String()
-	)
-	app.Parse(os.Args[1:])
-	e, err := goengage.Credentials(*login)
-	if err != nil {
-		panic(err)
+    var (
+        app   = kingpin.New("activity-search", "A command-line app to search for supporters added by activities.")
+        login = app.Flag("login", "YAML file with API token").Required().String()
+    )
+    app.Parse(os.Args[1:])
+    e, err := goengage.Credentials(*login)
+    if err != nil {
+        panic(err)
     }
-    	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-	rqt := goengage.SegSearchRequest{
-		Offset:       0,
-		Count:        m.MaxBatchSize,
-		MemberCounts: !*fast,
-	}
-	var resp goengage.SegSearchResult
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Fragment: goengage.SegSearch,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
+        m, err := e.Metrics()
+    if err != nil {
+        panic(err)
     }
-    
+    rqt := goengage.SegSearchRequest{
+        Offset:       0,
+        Count:        m.MaxBatchSize,
+        MemberCounts: !*fast,
+    }
+    var resp goengage.SegSearchResult
+    n := goengage.NetOp{
+        Host:     e.Host,
+        Fragment: goengage.SegSearch,
+        Token:    e.Token,
+        Request:  &rqt,
+        Response: &resp,
+    }
+
     err = n.Search()
     if err != nil {
         panic(err)
@@ -70,16 +73,19 @@ Here's a sample for a production Engage instance.
 Host: api.salsalabs.com
 Token: mary-had-little-lamb-its-fleece-was-white-as-snow
 ```
+
 Here's a sample for an instance of Engage that's on Salsa's internal UAT site.
 
 ```yaml
 Host: hq.uat.igniteaction.org
 Token: nowisthetimefor_a_quickbrownfox_to_jumpoveralazydog
 ```
+
 Please read [the Engage documentation](https://help.salsalabs.com/hc/en-us/sections/205407008-API-Engage-Integration) to learn
 more about API hosts and tokens.
 
 ## Applications included
+
 This is a partial list of the applications that are distributed with the Engage API.
 
 ### `cmd/activity/added_supporters`
@@ -134,8 +140,9 @@ Flags:
   ```
 
   Sample output:
-  ```
-  018/09/27 17:12:29 Main: napping and then waiting.
+
+  ```txt
+018/09/27 17:12:29 Main: napping and then waiting.
 2018/09/27 17:12:29 Lookup: start
 2018/09/27 17:12:29 Merge: start
 2018/09/27 17:12:30 Drive: max size is 20, we're using 20
@@ -156,6 +163,7 @@ This app retrieves the current metrics from Engage.  You can learn
 more about metrics by [clicking here](https://help.salsalabs.com/hc/en-us/articles/224470007-Getting-Started).
 
 Usage:
+
 ```bash
 go run cmd/metrics/main.go --help
 usage: metrics --login=LOGIN [<flags>]
@@ -168,7 +176,8 @@ Flags:
   ```
 
   Sample Output:
-  ```
+
+  ```txt
   Setting                        Value
 ------------------------------ -------------------------
 RateLimit                      300
@@ -196,6 +205,7 @@ An application that scans the database for segments (groups).  Each
 line contains a selection of information that's avaiable.
 
 Usage:
+
 ```bash
 go run cmd/segment/search/main.go --help
 usage: see-segments --login=LOGIN [<flags>]
@@ -210,7 +220,7 @@ Flags:
 
 Here's a sample of the default (slow) output.
 
-```
+```txt
 SegmentID                            Name                                     Type       Members ExtID    Description
 ------------------------------------ ---------------------------------------- ---------- ------- -------- -------------------------
 Reading 20 from 0
@@ -226,7 +236,7 @@ f115c126-0577-49ce-82c2-9036356445f5 Dog People                               CU
 
 Here's a sample of the "fast" output.
 
-```
+```txt
 SegmentID                            Name                                     Type       Members ExtID    Description
 ------------------------------------ ---------------------------------------- ---------- ------- -------- -------------------------
 Reading 20 from 0
@@ -238,7 +248,8 @@ a6354b29-43bb-4bbe-85a8-09d10248f9c3 Source is a Petition Form                DE
 4cbafb62-630f-4dcd-816e-10ef5b2fa018 Social Subscribers                       DEFAULT          0
 f115c126-0577-49ce-82c2-9036356445f5 Dog People                               CUSTOM           0          People who indicate that they own dogs.  They may also own cats, but they do own a dog.
 ```
-# `cmd/supporter/search`
+
+## `cmd/supporter/search`
 
 Application that exercises the supporter search function in Engage API.
 
@@ -257,7 +268,7 @@ Flags:
 
 Sample output:
 
-```
+```txt
 go run cmd/supporter/search/main.go --login logins/sandbox.yaml
 
 Searching from offset 0
@@ -271,11 +282,13 @@ Debbie               Williams             eagle@kilo.be
 Salsa Staff Test     Salsa Staff Test     foxtrot@lima.bes
 ```
 
-# `cmd/supporter/see`
+## `cmd/supporter/see`
+
 This application accepts an email address and displays supporters
 that have that address.
 
 Usage:
+
 ```bash
 go run cmd/supporter/see/main.go --help
 usage: see-supporter --login=LOGIN --email=EMAIL [<flags>]
@@ -287,8 +300,10 @@ Flags:
   --login=LOGIN  YAML file with API token
   --email=EMAIL  Email address to look up
   ```
+
   Output:
-  ```
+
+  ```json
   go run cmd/supporter/see/main.go --login logins/sandbox.yaml --email aleonard@salsalabs.com
 {
   "SupporterID": "ea8356fc-eb91-4bde-b514-877322bd6996",
