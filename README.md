@@ -70,15 +70,15 @@ provided with the API use YAML files to provide that information.
 Here's a sample for a production Engage instance.
 
 ```yaml
-Host: api.salsalabs.org
-Token: mary-had-little-lamb-its-fleece-was-white-as-snow
+host: api.salsalabs.org
+token: mary-had-little-lamb-its-fleece-was-white-as-snow
 ```
 
 Here's a sample for an instance of Engage that's on Salsa's internal UAT site.
 
 ```yaml
-Host: hq.uat.igniteaction.org
-Token: nowisthetimefor_a_quickbrownfox_to_jumpoveralazydog
+host: hq.uat.igniteaction.org
+token: nowisthetimefor_a_quickbrownfox_to_jumpoveralazydog
 ```
 
 Please read [the Engage documentation](https://help.salsalabs.com/hc/en-us/sections/205407008-API-Engage-Integration) to learn
