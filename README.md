@@ -70,7 +70,7 @@ provided with the API use YAML files to provide that information.
 Here's a sample for a production Engage instance.
 
 ```yaml
-Host: api.salsalabs.com
+Host: api.salsalabs.org
 Token: mary-had-little-lamb-its-fleece-was-white-as-snow
 ```
 
