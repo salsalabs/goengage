@@ -21,11 +21,15 @@ func main() {
 		panic(err)
 	}
 
+	m, err := e.Metrics()
+	if err != nil {
+		panic(err)
+	}
 	rqt := goengage.SupSearchRequest{
 		ModifiedFrom: "2016-09-01T00:00:00.000Z",
 		ModifiedTo:   "2019-09-01T00:00:00.000Z",
 		Offset:       0,
-		Count:        20,
+		Count:        m.MaxBatchSize,
 	}
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
