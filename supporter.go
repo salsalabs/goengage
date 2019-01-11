@@ -69,10 +69,16 @@ type Supporter struct {
 	//LanguageCode      string    `json:"languageCode,omitempty"`
 }
 
-//SupSearchRequest is used to ask for supporters.
+//SupSearchDateRequest is used to ask for supporters.
 type SupSearchRequest struct {
 	ModifiedFrom   string   `json:"modifiedFrom,omitempty"`
 	ModifiedTo     string   `json:"modifiedTo,omitempty"`
+	Offset         int32    `json:"offset,omitempty"`
+	Count          int32    `json:"count,omitempty"`
+}
+
+//SupSearchRequest is used to ask for supporters by ID.
+type SupSearchIDRequest struct {
 	Offset         int32    `json:"offset,omitempty"`
 	Count          int32    `json:"count,omitempty"`
 	Identifiers    []string `json:"identifiers,omitempty"`
