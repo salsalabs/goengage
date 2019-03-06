@@ -26,7 +26,7 @@ type NetOp struct {
 //the NetOp's reply.
 //
 //Note that Engage uses HTTP status codes to denote some error
-//failures.  Search passes those back to the caller as standard
+//failures.  Do passes those back to the caller as standard
 //errors containing the HTTP status code (e.g. "200 OK") and the
 //response body, which usually contains enlightenment about the
 //error.
