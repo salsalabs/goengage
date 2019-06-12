@@ -91,7 +91,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
-			Method:   goengage.SupSearchMethod,
+			Method:   goengage.SearchMethod,
 			Fragment: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,

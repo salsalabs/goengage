@@ -3,9 +3,6 @@ package goengage
 //ActSearch is used to search for activities.
 const ActSearch = "/api/integration/ext/v1/activities/search"
 
-//ActMethod is the method needed to do activity searches
-const ActMethod = "POST"
-
 //Activity is a generic action that someone takes in Engage.
 type Activity struct {
 	ActivityType     string

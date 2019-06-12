@@ -7,6 +7,8 @@ const (
 	ProdHost = "api.salsalabs.org"
 	//ContentType is always Javascript.
 	ContentType = "application/json"
+	//SearchMethod is always "POST" in Engage.
+	SearchMethod = "POST"
 )
 
 //EngEnv is the Engage environment.

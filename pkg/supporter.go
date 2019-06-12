@@ -3,8 +3,6 @@ package goengage
 const (
 	//SupSearch is used to search for supporters.
 	SupSearch = "/api/integration/ext/v1/supporters/search"
-	//SupSearchMethod is the HTTP method used to search.
-	SupSearchMethod = "POST"
 	//SupUpsert is used to add and modify supporters.
 	SupUpsert = "/api/integration/ext/v1/supporters"
 	//SupDelete is used to remove supporters.
@@ -29,7 +27,7 @@ type Contact struct {
 	Errors []Error `json:"errors,omitempty"`
 }
 
-//Address is a geographic locaiton for a supporter.
+//Address is a geographic location for a supporter.
 type Address struct {
 	AddressLine1         string  `json:"addressLine1,omitempty"`
 	AddressLine2         string  `json:"addressLine2,omitempty"`
@@ -72,14 +70,14 @@ type Supporter struct {
 }
 
 //SupSearchDateRequest is used to ask for supporters.
-type SupSearchRequest struct {
+type SupSearchDateRequest struct {
 	ModifiedFrom string `json:"modifiedFrom,omitempty"`
 	ModifiedTo   string `json:"modifiedTo,omitempty"`
 	Offset       int32  `json:"offset,omitempty"`
 	Count        int32  `json:"count,omitempty"`
 }
 
-//SupSearchRequest is used to ask for supporters by ID.
+//SupSearchIDRequest is used to ask for supporters by ID.
 type SupSearchIDRequest struct {
 	Offset         int32    `json:"offset,omitempty"`
 	Count          int32    `json:"count,omitempty"`
