@@ -2,13 +2,15 @@ package metrics
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"github.com/salsalabs/goengage/pkg"
 )
 
 //Command is used to retrieve runtime metrics.
 const Command = "/api/integration/ext/v1/metrics"
+
+//MetricsMethod is the HTTP method used to retrieve metrics.
+const MetricsMethod = "GET"
 
 //MetricData contains the measurable stsuff in Engage.
 type MetricData struct {
@@ -44,7 +46,7 @@ type response struct {
 
 //Metrics reads metrics and returns them.
 func Metrics(e goengage.EngEnv) (*MetricData, error) {
-	body, err := e.Get(http.MethodGet, Command)
+	body, err := e.Get(MetricsMethod, Command)
 	if err != nil {
 		return nil, err
 	}
