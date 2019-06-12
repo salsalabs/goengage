@@ -23,7 +23,7 @@ func main() {
 	}
 
 	a := []string{*email}
-	rqt := goengage.SupSearchRequest{
+	rqt := goengage.SupSearchIDRequest{
 		Identifiers:    a,
 		IdentifierType: "EMAIL_ADDRESS",
 		Offset:         0,
@@ -32,6 +32,7 @@ func main() {
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
+		Method:   goengage.SupSearchMethod,
 		Fragment: goengage.SupSearch,
 		Token:    e.Token,
 		Request:  &rqt,
