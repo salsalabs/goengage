@@ -1,5 +1,11 @@
 package goengage
 
+import (
+	"io/ioutil"
+	"net/http"
+	"net/url"
+)
+
 const (
 	//UatHost is the hostname for Engage instances on the test server.
 	UatHost = "hq.uat.igniteaction.net"
@@ -35,4 +41,22 @@ type Header struct {
 type RequestBase struct {
 	//Header  Header      `json:"header,omitempty"`
 	Payload interface{} `json:"payload"`
+}
+
+//Get executes an access to Engage and returns a buffer.
+func (e EngEnv) Get(method string, command string) ([]byte, error) {
+	u, _ := url.Parse(command)
+	u.Scheme = "https"
+	u.Host = e.Host
+	client := &http.Client{}
+	req, _ := http.NewRequest(method, u.String(), nil)
+	req.Header.Set("authToken", e.Token)
+	var body []byte
+	resp, err := client.Do(req)
+	if err != nil {
+		return body, err
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
+	return body, err
 }
