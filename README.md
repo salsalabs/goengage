@@ -77,7 +77,7 @@ token: mary-had-little-lamb-its-fleece-was-white-as-snow
 Here's a sample for an instance of Engage that's on Salsa's internal UAT site.
 
 ```yaml
-host: hq.uat.igniteaction.org
+host: hq.uat.igniteaction.net
 token: nowisthetimefor_a_quickbrownfox_to_jumpoveralazydog
 ```
 
@@ -90,18 +90,18 @@ This is a partial list of the applications that are distributed with the Engage 
 
 ### `cmd/activity/added_supporters`
 
-This application was written for a client that used the Classic `Source_Details` field.  
+This application was written for a client that used the Classic `Source_Details` field.
 `Source_Details` holds the URL of the page that created a supporter.  Engage does not have
 an equivalent.
 
 This application was written to find activities where a supporter was created.  There's
-not yet a nice little flag to says "This action created a supporter".  As an alternative, 
+not yet a nice little flag to says "This action created a supporter".  As an alternative,
 the app compares the time that the activity was created and the time that the supporter was
 created.  If they are less than a second apart, then the app presumes that the action created
 the supporter.
 
 Supporters that were created by actions are written to disk in CSV format.  The filename
-is hardcoded as `supporter_page.csv`.  
+is hardcoded as `supporter_page.csv`.
 
 Errors are noisy and fatal.
 
@@ -159,7 +159,7 @@ ana.carroll1141@uatauto.ignite.net       2015-12-22     SUBSCRIBE       Follow u
 
 ### `cmd/metrics/main`
 
-This app retrieves the current metrics from Engage.  You can learn 
+This app retrieves the current metrics from Engage.  You can learn
 more about metrics by [clicking here](https://help.salsalabs.com/hc/en-us/articles/224470007-Getting-Started).
 
 Usage:
@@ -361,7 +361,7 @@ Flags:
 
 ## License
 
-See the LICENSE file in this directory. 
+See the LICENSE file in this directory.
 
 ## Questions
 
