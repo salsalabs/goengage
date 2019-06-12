@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/salsalabs/goengage/pkg"
+	"github.com/salsalabs/goengage/pkg/metrics"
+
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -19,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	m, err := e.Metrics()
+	m, err := metrics.Metrics(*e)
 	if err != nil {
 		panic(err)
 	}
