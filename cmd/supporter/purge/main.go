@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/salsalabs/goengage"
+	"github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 

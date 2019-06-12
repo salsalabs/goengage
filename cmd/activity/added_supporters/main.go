@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/salsalabs/goengage"
+	"github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -91,7 +91,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			Response: &resp,
 		}
 		log.Printf("Lookup: %d messages received, asking for %d supporters\n", len(sa), len(a))
-		err := n.Search()
+		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
@@ -170,7 +170,7 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err = n.Search()
+	err = n.Do()
 	if err != nil {
 		panic(err)
 	}
@@ -178,7 +178,7 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	// Do for all items in the results.  Send the SupActivity
 	count := int32(rqt.Count)
 	for count > 0 {
-		err := n.Search()
+		err := n.Do()
 		if err != nil {
 			panic(err)
 		}

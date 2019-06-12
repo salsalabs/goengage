@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/salsalabs/godig"
-	"github.com/salsalabs/goengage"
+	"github.com/salsalabs/goengage/pkg"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

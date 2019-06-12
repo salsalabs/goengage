@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/salsalabs/goengage"
+	"github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -82,7 +82,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		}
 
 		//log.Printf("Lookkup: received %+v\n", sa)
-		rqt := goengage.SupSearchRequest{
+		rqt := goengage.SupSearchIDRequest{
 			Identifiers:    a,
 			IdentifierType: "SUPPORTER_ID",
 			Offset:         0,
@@ -91,12 +91,13 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
+			Method:   "POST",
 			Fragment: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
 		}
-		err := n.Search()
+		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
@@ -142,25 +143,26 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	if err != nil {
 		panic(err)
 	}
-
-	log.Printf("Drive: max size is %d, we're using %d\n", m.MaxBatchSize, 20)
+	size := m.MaxBatchSize
+	log.Printf("Drive: max size is %d, we're using %d\n", m.MaxBatchSize, size)
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        20,
+		Count:        size,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp goengage.ActSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.ActSearch,
+		Method:   "POST",
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err = n.Search()
+	err = n.Do()
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +170,7 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	// Do for all items in the results.  Send the SupActivity
 	count := int32(rqt.Count)
 	for count > 0 {
-		err := n.Search()
+		err := n.Do()
 		if err != nil {
 			panic(err)
 		}

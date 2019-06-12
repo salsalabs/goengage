@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/salsalabs/goengage"
+	"github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -37,7 +37,7 @@ func main() {
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err = n.Search()
+	err = n.Do()
 	if err != nil {
 		panic(err)
 	}
