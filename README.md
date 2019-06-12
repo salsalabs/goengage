@@ -19,7 +19,7 @@ go get ./...
 
 ```go
 import (
-    "github.com/salsalabs/goengage"
+    "github.com/salsalabs/goengage/pkg"
     kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 func main() {
@@ -50,7 +50,7 @@ func main() {
         Response: &resp,
     }
 
-    err = n.Search()
+    err = n.Do()
     if err != nil {
         panic(err)
     }
