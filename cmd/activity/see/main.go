@@ -91,7 +91,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
-			Method:   "POST",
+			Method:   goengage.SupSearchMethod,
 			Fragment: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
@@ -157,7 +157,7 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.ActSearch,
-		Method:   "POST",
+		Method:   goengage.ActMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,

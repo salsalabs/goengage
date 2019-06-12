@@ -76,7 +76,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		}
 		log.Printf("Lookup: have %d supporterIDs\n", len(a))
 		//log.Printf("Lookkup: received %+v\n", sa)
-		rqt := goengage.SupSearchRequest{
+		rqt := goengage.SupSearchIDRequest{
 			Identifiers:    a,
 			IdentifierType: "SUPPORTER_ID",
 			Offset:         0,
@@ -85,6 +85,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		var resp goengage.SupSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
+			Method:   goengage.SupSearchMethod,
 			Fragment: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
@@ -165,6 +166,7 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	var resp goengage.ActSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
+		Method:   goengage.SupSearchMethod,
 		Fragment: goengage.ActSearch,
 		Token:    e.Token,
 		Request:  &rqt,
