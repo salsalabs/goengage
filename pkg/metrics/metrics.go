@@ -1,16 +1,17 @@
 package metrics
 
 import (
-	"encoding/json"
+	"fmt"
 
 	"github.com/salsalabs/goengage/pkg"
 )
 
-//Command is used to retrieve runtime metrics.
-const Command = "/api/integration/ext/v1/metrics"
-
-//MetricsMethod is the HTTP method used to retrieve metrics.
-const MetricsMethod = "GET"
+const (
+	//Command is used to retrieve runtime metrics.
+	Command = "/api/integration/ext/v1/metrics"
+	//MetricsMethod is the HTTP method used to retrieve metrics.
+	MetricsMethod = "GET"
+)
 
 //MetricData contains the measurable stsuff in Engage.
 type MetricData struct {
@@ -33,27 +34,17 @@ type MetricData struct {
 	ActivitySubscriptionManagement int32  `json:"activitySubscriptionManagement"`
 }
 
-//response is returned by Engage when asking for metrics.
-type response struct {
-	ID        string
-	Timestamp string
-	Header    struct {
-		ProcessingTime int32  `json:"processingTime"`
-		ServerID       string `jsin:"serverId"`
-	}
-	Payload MetricData
-}
-
 //Metrics reads metrics and returns them.
 func Metrics(e goengage.EngEnv) (*MetricData, error) {
-	body, err := e.Get(MetricsMethod, Command)
-	if err != nil {
-		return nil, err
+	m := MetricData{}
+	n := goengage.NetOp{
+		Host:     e.Host,
+		Method:   MetricsMethod,
+		Fragment: Command,
+		Token:    e.Token,
+		Response: &m,
 	}
-	var r response
-	err = json.Unmarshal(body, &r)
-	if err != nil {
-		return nil, err
-	}
-	return &r.Payload, err
+	fmt.Printf("NetOp is %+v\n", n)
+	err := n.Do()
+	return &m, err
 }
