@@ -21,7 +21,7 @@ type NetOp struct {
 	Response interface{}
 }
 
-//Generic API request/response handler.  Uses the contents of the
+//Do is the Generic API request/response handler.  Uses the contents of the
 //provided NetOp to send a request.  Parses the response back into
 //the NetOp's reply.
 //
@@ -42,7 +42,7 @@ func (n *NetOp) Do() error {
 	r := bytes.NewReader(b)
 
 	u, _ := url.Parse(n.Fragment)
-	u.Scheme = "https"
+	u.Scheme = URLScheme
 	u.Host = n.Host
 
 	client := &http.Client{}
@@ -57,12 +57,24 @@ func (n *NetOp) Do() error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Do: response code is %v\n", resp.StatusCode)
 	defer resp.Body.Close()
 	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
-	err = json.Unmarshal(b, n.Response)
+	fmt.Printf("Do: buffer is %v\n", string(b))
+	a := APIResponse{
+		Payload: &n.Response,
+	}
+	err = json.Unmarshal(b, &a)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Do: response is %+v\n", n.Response)
 	return err
 }
