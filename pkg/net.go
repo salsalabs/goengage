@@ -21,9 +21,20 @@ type NetOp struct {
 	Response interface{}
 }
 
-//Do is the Generic API request/response handler.  Uses the contents of the
-//provided NetOp to send a request.  Parses the response back into
-//the NetOp's reply.
+//APIResponse is returned by Engage.  Payload is generally JSON and needs
+//to be parsed into a struct to be useful.
+type response struct {
+	ID        string
+	Timestamp string
+	Header    struct {
+		ProcessingTime int32  `json:"processingTime"`
+		ServerID       string `jsin:"serverId"`
+	}
+	Payload interface{}
+}
+
+//Do is the Generic API request/response handler.  Fills in the Response
+//for the provided NetOp object.
 //
 //Note that Engage uses HTTP status codes to denote some error
 //failures.  Do passes those back to the caller as standard
@@ -57,24 +68,18 @@ func (n *NetOp) Do() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Do: response code is %v\n", resp.StatusCode)
 	defer resp.Body.Close()
 	b, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
+		m := fmt.Sprintf("%v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
-	fmt.Printf("Do: buffer is %v\n", string(b))
-	a := APIResponse{
+	a := response{
 		Payload: &n.Response,
 	}
 	err = json.Unmarshal(b, &a)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Do: response is %+v\n", n.Response)
 	return err
 }
