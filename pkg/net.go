@@ -21,8 +21,8 @@ type NetOp struct {
 	Response interface{}
 }
 
-//Generic API request/response handler.  Uses the contents of the
-//provided NetOp to send a request.  Parses the response back into
+//Do is a generic API request/response handler.  Uses the contents of
+//the provided NetOp to send a request.  Parses the response back into
 //the NetOp's reply.
 //
 //Note that Engage uses HTTP status codes to denote some error
@@ -59,6 +59,9 @@ func (n *NetOp) Do() error {
 	}
 	defer resp.Body.Close()
 	b, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
