@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -79,7 +78,6 @@ func AllSegments(e *EngEnv, m *MetricData, c bool) ([]Segment, error) {
 	}
 	var a []Segment
 	for rqt.Count > 0 {
-		fmt.Printf("Reading %d from %d\n", rqt.Count, rqt.Offset)
 		err := n.Do()
 		if err != nil {
 			panic(err)
