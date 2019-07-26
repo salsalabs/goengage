@@ -12,18 +12,14 @@ func main() {
 	var (
 		app   = kingpin.New("see-segments", "A command-line app to search for segments.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
-		fast  = app.Flag("fast", "Don't show number of members").Default("false").Bool()
+		count = app.Flag("count", "Show number of count").Bool()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
 	}
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-	a, err := goengage.AllSegments(e, m, !*fast)
+	a, err := goengage.AllSegments(e, *count)
 	if err != nil {
 		panic(err)
 	}

@@ -104,13 +104,15 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 		var x []Merged
 		for _, s := range resp.Payload.Supporters {
 			email := goengage.FirstEmail(s)
-			if s.Result == "FOUND" {
+			switch s.Result {
+			case "FOUND":
 				mg := Merged{
 					Activity:  m[s.SupporterID],
 					Supporter: s,
 				}
 				x = append(x, mg)
-			} else {
+			case "NOT_FOUND":
+			default:
 				log.Printf("Lookup: %v status %v\n", email, s.Result)
 			}
 		}
@@ -138,13 +140,7 @@ func View(e goengage.EngEnv, in chan []Merged) {
 
 //Drive finds all subscribe activities and pushes them onto a queue.
 func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
-	// Use the metrics to determine buffer size.
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-	size := m.MaxBatchSize
-	log.Printf("Drive: max size is %d, we're using %d\n", m.MaxBatchSize, size)
+	size := e.Metrics.MaxBatchSize
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
@@ -157,26 +153,29 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.ActSearch,
-		Method:   goengage.ActMethod,
+		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err = n.Do()
+	err := n.Do()
 	if err != nil {
 		panic(err)
 	}
 
 	// Do for all items in the results.  Send the SupActivity
-	count := int32(rqt.Count)
+	count := rqt.Count
 	for count > 0 {
 		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
-		count = int32(len(resp.Payload.SupActivities))
+		count = resp.Payload.Count
 		if count > 0 {
-			log.Printf("Drive: read %d activities from offset %d\n", count, rqt.Offset)
+			log.Printf("Drive: read %d from offset %6d, headed to %6d\n",
+				resp.Payload.Count,
+				resp.Payload.Offset,
+				resp.Payload.Total)
 			rqt.Offset = rqt.Offset + count
 			out <- resp.Payload.SupActivities
 		}

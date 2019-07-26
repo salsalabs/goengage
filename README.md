@@ -38,7 +38,7 @@ func main() {
     }
     rqt := goengage.SegSearchRequest{
         Offset:       0,
-        Count:        m.MaxBatchSize,
+        Count:        e.Metrics.MaxBatchSize,
         MemberCounts: !*fast,
     }
     var resp goengage.SegSearchResult

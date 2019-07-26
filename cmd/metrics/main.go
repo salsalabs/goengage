@@ -24,7 +24,7 @@ func main() {
 	fmt.Printf("%-30v %v\n", "Setting", "Value")
 	fmt.Printf("%-30v %v\n", dashes[0:30], dashes[0:25])
 	fmt.Printf("%-30v %v\n", "RateLimit", m.RateLimit)
-	fmt.Printf("%-30v %v\n", "MaxBatchSize", m.MaxBatchSize)
+	fmt.Printf("%-30v %v\n", "MaxBatchSize", e.Metrics.MaxBatchSize)
 	fmt.Printf("%-30v %v\n", "CurrentRateLimit", m.CurrentRateLimit)
 	fmt.Printf("%-30v %v\n", "TotalAPICalls", m.TotalAPICalls)
 	fmt.Printf("%-30v %v\n", "LastAPICall", m.LastAPICall)

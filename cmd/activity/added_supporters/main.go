@@ -74,7 +74,6 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			m[r.SupporterID] = r
 			a = append(a, r.SupporterID)
 		}
-		log.Printf("Lookup: have %d supporterIDs\n", len(a))
 		//log.Printf("Lookkup: received %+v\n", sa)
 		rqt := goengage.SupSearchIDRequest{
 			Identifiers:    a,
@@ -91,22 +90,24 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 			Request:  &rqt,
 			Response: &resp,
 		}
-		log.Printf("Lookup: %d messages received, asking for %d supporters\n", len(sa), len(a))
+		// log.Printf("Lookup: %d messages received, asking for %d supporters\n", len(sa), len(a))
 		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("Lookup: got %d of %d supporters\n", len(resp.Payload.Supporters), len(a))
+		// log.Printf("Lookup: got %d of %d supporters\n", len(resp.Payload.Supporters), len(a))
 		var x []Merged
 		for _, s := range resp.Payload.Supporters {
-			email := goengage.FirstEmail(s)
-			if s.Result == "FOUND" {
+			switch s.Result {
+			case "FOUND":
 				mg := Merged{
 					Activity:  m[s.SupporterID],
 					Supporter: s,
 				}
 				x = append(x, mg)
-			} else {
+			case "NOT_FOUND":
+			default:
+				email := goengage.FirstEmail(s)
 				log.Printf("Lookup: %v status %v\n", email, s.Result)
 			}
 		}
@@ -148,19 +149,13 @@ func View(e goengage.EngEnv, in chan []Merged) {
 
 //Drive finds all subscribe activities and pushes them onto a queue.
 func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
-	// Use the metrics to determine buffer size.
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-
-	//log.Printf("Drive:  max size is %d, we're using %d\n", m.MaxBatchSize, 20)
+	//log.Printf("Drive:  max size is %d, we're using %d\n", e.Metrics.MaxBatchSize, 20)
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
 	rqt := goengage.ActSearchRequest{
 		Offset:       0,
-		Count:        m.MaxBatchSize,
+		Count:        e.Metrics.MaxBatchSize,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp goengage.ActSearchResult
@@ -172,22 +167,25 @@ func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
 		Request:  &rqt,
 		Response: &resp,
 	}
-	err = n.Do()
+	err := n.Do()
 	if err != nil {
 		panic(err)
 	}
 
 	// Do for all items in the results.  Send the SupActivity
-	count := int32(rqt.Count)
+	count := rqt.Count
 	for count > 0 {
 		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
-		count = int32(len(resp.Payload.SupActivities))
+		log.Printf("Drive:  offset %6d, count %2d, total: %6d\n",
+			resp.Payload.Offset,
+			resp.Payload.Count,
+			resp.Payload.Total)
+		//fmt.Printf("SupActivities: %+v\n", resp.Payload.SupActivities)
+		count = resp.Payload.Count
 		if count > 0 {
-			log.Println()
-			log.Printf("Drive:  read %d activities from offset %d\n", count, rqt.Offset)
 			rqt.Offset = rqt.Offset + count
 			out <- resp.Payload.SupActivities
 		}

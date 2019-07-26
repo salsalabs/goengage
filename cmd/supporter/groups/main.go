@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage/pkg"
@@ -28,12 +27,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
 	//Get all groups.
-	a, err := goengage.AllSegments(e, m, *count)
+	a, err := goengage.AllSegments(e, *count)
 	if err != nil {
 		panic(err)
 	}
@@ -46,13 +41,13 @@ func main() {
 			SegmentID:    s.SegmentID,
 			SupporterIDs: sids,
 			Offset:       0,
-			Count:        m.MaxBatchSize,
+			Count:        e.Metrics.MaxBatchSize,
 		}
 		var resp goengage.SegSupporterSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Fragment: goengage.SegSupporterSearch,
-			Method:   http.MethodPost,
+			Method:   goengage.SearchMethod,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,

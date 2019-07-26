@@ -29,13 +29,13 @@ func main() {
 		ModifiedFrom: "2016-09-01T00:00:00.000Z",
 		ModifiedTo:   "2019-09-01T00:00:00.000Z",
 		Offset:       0,
-		Count:        m.MaxBatchSize,
+		Count:        e.Metrics.MaxBatchSize,
 	}
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
-		Method:   http.MethodPost,
+		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
