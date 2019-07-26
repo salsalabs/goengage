@@ -50,9 +50,6 @@ func Credentials(fn string) (*EngEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	e := EngEnv{
-		Token: c.Token,
-		Host:  c.Host,
-	}
+	e := NewEngEnv(c.Host, c.Token)
 	return &e, nil
 }

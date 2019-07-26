@@ -1,5 +1,9 @@
 package goengage
 
+import (
+	"net/http"
+)
+
 const (
 	//UatHost is the hostname for Engage instances on the test server.
 	UatHost = "hq.uat.igniteaction.net"
@@ -13,8 +17,9 @@ const (
 
 //EngEnv is the Engage environment.
 type EngEnv struct {
-	Host  string
-	Token string
+	Host    string
+	Token   string
+	Metrics MetricData
 }
 
 //Error is used to report validation and input errors.
@@ -35,4 +40,37 @@ type Header struct {
 type RequestBase struct {
 	//Header  Header      `json:"header,omitempty"`
 	Payload interface{} `json:"payload"`
+}
+
+//NewEngEnv creates a new EngEnv and initializes the metrics.
+//Panics if updating the metrics returns an error.
+func NewEngEnv(h string, t string) EngEnv {
+	e := EngEnv{
+		Host:  h,
+		Token: t,
+	}
+	err := (&e).UpdateMetrics()
+	if err != nil {
+		panic(err)
+	}
+	return e
+}
+
+//UpdateMetrics reads metrics and returns them.
+func (e *EngEnv) UpdateMetrics() error {
+	var resp MetResponse
+	n := NetOp{
+		Host:     e.Host,
+		Fragment: FragMetrics,
+		Method:   http.MethodGet,
+		Token:    e.Token,
+		Request:  nil,
+		Response: &resp,
+	}
+	err := n.Do()
+	if err != nil {
+		return err
+	}
+	e.Metrics = resp.Payload
+	return nil
 }

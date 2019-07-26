@@ -18,11 +18,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
+	m := e.Metrics
 	dashes := "----------------------------------------------------------"
 	fmt.Println()
 	fmt.Printf("%-30v %v\n", "Setting", "Value")
