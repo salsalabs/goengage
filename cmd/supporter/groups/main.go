@@ -15,14 +15,15 @@ func main() {
 	var (
 		app          = kingpin.New("see-segments", "A command-line app to search for segments.")
 		login        = app.Flag("login", "YAML file with API token").Required().String()
-		supporterKEY = app.Flag("supporterKey", "Engage supporter key for the supporter").Required().String()
-		fast         = app.Flag("fast", "Don't show number of members").Default("false").Bool()
+		supporterKEY = app.Flag("supporter-key", "Engage supporter key for the supporter").Required().String()
+		count        = app.Flag("count", "Show number of members").Bool()
 	)
 	app.Parse(os.Args[1:])
 	if len(*supporterKEY) == 0 {
 		fmt.Println("Error: --supporterKEY is REQUIRED.")
 		os.Exit(1)
 	}
+
 	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
@@ -32,7 +33,7 @@ func main() {
 		panic(err)
 	}
 	//Get all groups.
-	a, err := goengage.AllSegments(e, m, !*fast)
+	a, err := goengage.AllSegments(e, m, *count)
 	if err != nil {
 		panic(err)
 	}
@@ -66,11 +67,16 @@ func main() {
 		}
 	}
 	if len(b) == 0 {
-		fmt.Printf("\nSupporter with key %v is not any any groups.")
+		fmt.Printf("\nSupporter with key %v is not any any groups.", *supporterKEY)
 	} else {
-		fmt.Printf("\nSupporter with key %v in in these groups:\n", supporterKEY)
+		fmt.Printf("\nSupporter with key %v is in these groups:\n\n", *supporterKEY)
 		for _, s := range b {
-			fmt.Printf("%s %-7s %s\n", s.SegmentID, s.Type, s.Name)
+			if *count {
+				fmt.Printf("%s %-7s %4d %s\n", s.SegmentID, s.Type, s.TotalMembers, s.Name)
+
+			} else {
+				fmt.Printf("%s %-7s %s\n", s.SegmentID, s.Type, s.Name)
+			}
 		}
 	}
 }
