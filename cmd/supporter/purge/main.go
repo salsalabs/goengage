@@ -4,30 +4,24 @@ package main
 //if they were added after 12-Dec-2016.
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
 
-	"github.com/salsalabs/goengage/pkg"
+	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 //deleteAfter shows the last valid date for supporters.
-const deleteAfter = "2016-12-31T23:59:59.999Z"
+const deleteAfter = "1900-12-31T23:59:59.999Z"
 
 //stack gets the maximum number of records, then pushes them onto
 //the channel in MaxBatchSize offsets.  Note that the user can override
 //the maximum number...
-func stack(e *goengage.EngEnv, d chan int32, max *int32) {
-	fmt.Printf("stack started\n")
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-
-	rqt := goengage.SupSearchRequest{
+func stack(e *goengage.Environment, d chan int32, max *int32) {
+	fmt.Printf("stack started, max is %d\n", *max)
+	rqt := goengage.SupSearchDateRequest{
 		ModifiedFrom: deleteAfter,
 		Offset:       0,
 		Count:        1,
@@ -36,21 +30,26 @@ func stack(e *goengage.EngEnv, d chan int32, max *int32) {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
-		Method:   http.MethodPost,
+		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
+	}
+	m, err := e.Metrics()
+	if err != nil {
+		panic(err)
 	}
 	err = n.Do()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Printf("Payload: %+v\n", resp.Payload.Total)
 	most := resp.Payload.Total
-	if max != nil {
+	if max != nil && *max > 0 {
 		most = *max
 	}
-	fmt.Printf("stack: pushing increments of %d up to %d\n", m.MaxBatchSize, most)
-	for i := int32(0); i <= most; i += m.MaxBatchSize {
+	fmt.Printf("stack: pushing increments of %d up to %d\n", e.Metrics.MaxBatchSize, most)
+	for i := int32(0); i <= most; i += e.Metrics.MaxBatchSize {
 		d <- i
 	}
 	fmt.Printf("stack: done after %d\n", most)
@@ -58,38 +57,36 @@ func stack(e *goengage.EngEnv, d chan int32, max *int32) {
 }
 
 //pack reads offset from a channel and pushes batches of supporters onto
-//the other channel channel.  Errors are noisy and fatal.
-func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter, done chan bool) {
+//the cack channel.  Errors are noisy and fatal.
+func pack(e *goengage.Environment, d chan int32, c chan []goengage.Supporter, done chan bool) {
 	fmt.Printf("pack started\n")
 	m, err := e.Metrics()
 	if err != nil {
 		panic(err)
 	}
 
-	rqt := goengage.SupSearchRequest{
+	rqt := goengage.SupSearchDateRequest{
 		ModifiedFrom: deleteAfter,
 		Offset:       0,
-		Count:        m.MaxBatchSize,
+		Count:        e.Metrics.MaxBatchSize,
 	}
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
-		Method:   http.MethodPost,
+		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-
 	for {
 		offset, ok := <-d
 		if !ok {
 			break
 		}
 		rqt.Offset = offset
-		rqt.Count = m.MaxBatchSize
-		// fmt.Printf("Reading %d supporters from offset %d\n", rqt.Count, rqt.Offset)
-		err := n.Do()
+		rqt.Count = e.Metrics.MaxBatchSize
+		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
@@ -99,7 +96,7 @@ func pack(e *goengage.EngEnv, d chan int32, c chan []goengage.Supporter, done ch
 }
 
 //cack accepts batches of supporters from the channel and deletes them.
-func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32, done chan bool) {
+func cack(e *goengage.Environment, c chan []goengage.Supporter, b chan int32, done chan bool) {
 	fmt.Printf("cack started\n")
 	dRqt := goengage.SupDeleteRequest{}
 	dResp := goengage.SupDeleteResult{}
@@ -112,6 +109,7 @@ func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32, done ch
 		Response: &dResp,
 	}
 
+	start := time.Now()
 	for {
 		p, ok := <-c
 		if !ok {
@@ -123,15 +121,36 @@ func cack(e *goengage.EngEnv, c chan []goengage.Supporter, b chan int32, done ch
 			a = append(a, d)
 		}
 		dRqt.Supporters = a
-		err := nDel.Do()
+
+		// Wait for the next minute if we're out of slots.
+		d := time.Since(start)
+		m, err := e.Metrics()
 		if err != nil {
 			panic(err)
 		}
 
-		//for _, s := range dResp.Payload.Supporters {
-		//	fmt.Printf("%s %s\n", s.SupporterID, s.Result)
-		//}
-		b <- int32(len(dResp.Payload.Supporters))
+		fmt.Printf("%3v/%v available, %4.2f elapsed\n", m.CurrentRateLimit, m.RateLimit, d.Minutes())
+		if m.CurrentRateLimit < e.Metrics.MaxBatchSize || d.Minutes() > 0.99 {
+			delta := int32(60 - d.Seconds())
+			fmt.Printf("%v Sleeping %v seconds until the next minute\n", time.Now(), delta)
+			time.Sleep(time.Duration(delta) * time.Second)
+			fmt.Printf("%v Sleeped  %v seconds until the next minute\n", time.Now(), delta)
+			start = time.Now()
+		}
+		if len(a) == 0 {
+			fmt.Printf("%v no supporters to delete\n", time.Now())
+		} else {
+			err = nDel.Do()
+			if err != nil {
+				panic(err)
+			}
+			//for _, s := range dResp.Payload.Supporters {
+			//	if s.Result != "DELETED" {
+			//		fmt.Printf("%s %s\n", s.SupporterID, s.Result)
+			//	}
+			//}
+			b <- int32(len(dResp.Payload.Supporters))
+		}
 	}
 	done <- true
 }
@@ -146,7 +165,6 @@ func yack(e chan int32) {
 			return
 		}
 		t += x
-		log.Printf("yack: %d\n", t)
 	}
 }
 
@@ -232,7 +250,7 @@ func main() {
 	})(pDone, c, 5, &wg)
 
 	for i := 0; i < 5; i++ {
-		go (func(c chan []goengage.Supporter, d chan int32, e *goengage.EngEnv, wg *sync.WaitGroup) {
+		go (func(c chan []goengage.Supporter, d chan int32, e *goengage.Environment, wg *sync.WaitGroup) {
 			wg.Add(1)
 			pack(e, d, c, pDone)
 			wg.Done()
@@ -245,14 +263,17 @@ func main() {
 		wg.Done()
 	})(cDone, b, 5, &wg)
 
+	//Only one of these until we figure out how to coordinate a clock
+	//that ticks with Engage.  That will be the only way to manage a
+	//bunch of goroutines that are limited by transactions per minute.
 	for i := 0; i < 5; i++ {
-		go (func(c chan []goengage.Supporter, b chan int32, e *goengage.EngEnv, wg *sync.WaitGroup) {
+		go (func(c chan []goengage.Supporter, b chan int32, e *goengage.Environment, wg *sync.WaitGroup) {
 			wg.Add(1)
 			cack(e, c, b, cDone)
 			wg.Done()
 		})(c, b, e, &wg)
 	}
-	go (func(d chan int32, e *goengage.EngEnv, m *int32, wg *sync.WaitGroup) {
+	go (func(d chan int32, e *goengage.Environment, m *int32, wg *sync.WaitGroup) {
 		wg.Add(1)
 		stack(e, d, max)
 		wg.Done()

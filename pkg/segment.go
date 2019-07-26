@@ -1,9 +1,5 @@
 package goengage
 
-import (
-	"net/http"
-)
-
 //SegSearch is used to search for segments.
 const SegSearch = "/api/integration/ext/v1/segments/search"
 
@@ -61,17 +57,17 @@ type SegSupporterSearchResult struct {
 }
 
 //AllSegments returns all groups.
-func AllSegments(e *EngEnv, m *MetricData, c bool) ([]Segment, error) {
+func AllSegments(e *Environment, c bool) ([]Segment, error) {
 	rqt := SegSearchRequest{
 		Offset:       0,
-		Count:        m.MaxBatchSize,
+		Count:        e.Metrics.MaxBatchSize,
 		MemberCounts: c,
 	}
 	var resp SegSearchResult
 	n := NetOp{
 		Host:     e.Host,
 		Fragment: SegSearch,
-		Method:   http.MethodPost,
+		Method:   SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,

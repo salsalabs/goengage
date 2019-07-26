@@ -37,7 +37,7 @@ func Date(s string) time.Time {
 //Credentials reads a YAML file containing an Engage API host
 //and an Engage API token.  These are then stored into an
 //environment object.
-func Credentials(fn string) (*EngEnv, error) {
+func Credentials(fn string) (*Environment, error) {
 	var c struct {
 		Token string `json:"token"`
 		Host  string `json:"host"`
@@ -50,6 +50,6 @@ func Credentials(fn string) (*EngEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	e := NewEngEnv(c.Host, c.Token)
+	e := NewEnvironment(c.Host, c.Token)
 	return &e, nil
 }

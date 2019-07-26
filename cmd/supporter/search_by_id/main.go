@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"math"
-	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage/pkg"
@@ -56,30 +55,25 @@ func main() {
 	a, err := r.ReadAll()
 	_ = f.Close()
 
-    var records []Input
+	var records []Input
 	inputMap := make(InputMap)
 	for _, r := range a {
-        if r[0] != "InternalID" {
-            i := NewInput(r)
-		    inputMap[i.Email] = i
-            records = append(records, i)
-        }
-	}
-
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
+		if r[0] != "InternalID" {
+			i := NewInput(r)
+			inputMap[i.Email] = i
+			records = append(records, i)
+		}
 	}
 	rqt := goengage.SupSearchIDRequest{
 		IdentifierType: "EXTERNAL_ID",
 		Offset:         0,
-		Count:          m.MaxBatchSize,
+		Count:          e.Metrics.MaxBatchSize,
 	}
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Fragment: goengage.SupSearch,
-		Method:   http.MethodPost,
+		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -88,35 +82,35 @@ func main() {
 	for rqt.Count > 0 {
 		rOffset := int32(rqt.Offset)
 		var identifiers []string
-		for i := int32(0); i < m.MaxBatchSize && rOffset + i < int32(len(records)); i++ {
+		for i := int32(0); i < e.Metrics.MaxBatchSize && rOffset+i < int32(len(records)); i++ {
 			x := rOffset + i
 			identifiers = append(identifiers, records[x].ExternalID)
 		}
-        rqt.Count = int32(math.Min(float64(len(identifiers)), float64(m.MaxBatchSize)))
-        if rqt.Count != 0 {
-            rqt.Identifiers = identifiers
-            fmt.Printf("Searching from offset %d for %d IDs\n", rqt.Offset, len(rqt.Identifiers))
-            err := n.Do()
-            if err != nil {
-                panic(err)
-            }
+		rqt.Count = int32(math.Min(float64(len(identifiers)), float64(e.Metrics.MaxBatchSize)))
+		if rqt.Count != 0 {
+			rqt.Identifiers = identifiers
+			fmt.Printf("Searching from offset %d for %d IDs\n", rqt.Offset, len(rqt.Identifiers))
+			err := n.Do()
+			if err != nil {
+				panic(err)
+			}
 
-            count := int32(len(resp.Payload.Supporters))
-            fmt.Printf("Read %d supporters from offset %d\n", count, rqt.Offset)
-            for _, s := range resp.Payload.Supporters {
-                e := goengage.FirstEmail(s)
-                email := ""
-                if e != nil && len(*e) > 0 {
-                    email = *e
-                }
-                m, ok := inputMap[email]
-                if !ok {
-                    fmt.Printf("Warning: unable to find email %v in the map\n", e)
-                } else {
-                    fmt.Printf("%-20s %-30s -> %s\n", s.ExternalSystemID, email, m.CorrectedEmail)
-                }
-            }
-        }
+			count := int32(len(resp.Payload.Supporters))
+			fmt.Printf("Read %d supporters from offset %d\n", count, rqt.Offset)
+			for _, s := range resp.Payload.Supporters {
+				e := goengage.FirstEmail(s)
+				email := ""
+				if e != nil && len(*e) > 0 {
+					email = *e
+				}
+				m, ok := inputMap[email]
+				if !ok {
+					fmt.Printf("Warning: unable to find email %v in the map\n", e)
+				} else {
+					fmt.Printf("%-20s %-30s -> %s\n", s.ExternalSystemID, email, m.CorrectedEmail)
+				}
+			}
+		}
 		rqt.Offset = rqt.Offset + rqt.Count
 	}
 }

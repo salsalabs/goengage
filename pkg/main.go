@@ -12,11 +12,11 @@ const (
 	//ContentType is always Javascript.
 	ContentType = "application/json"
 	//SearchMethod is always "POST" in Engage.
-	SearchMethod = "POST"
+	SearchMethod = http.MethodPost
 )
 
-//EngEnv is the Engage environment.
-type EngEnv struct {
+//Environment is the Engage environment.
+type Environment struct {
 	Host    string
 	Token   string
 	Metrics MetricData
@@ -42,10 +42,10 @@ type RequestBase struct {
 	Payload interface{} `json:"payload"`
 }
 
-//NewEngEnv creates a new EngEnv and initializes the metrics.
+//NewEnvironment creates a new Environment and initializes the metrics.
 //Panics if updating the metrics returns an error.
-func NewEngEnv(h string, t string) EngEnv {
-	e := EngEnv{
+func NewEnvironment(h string, t string) Environment {
+	e := Environment{
 		Host:  h,
 		Token: t,
 	}
@@ -57,7 +57,7 @@ func NewEngEnv(h string, t string) EngEnv {
 }
 
 //UpdateMetrics reads metrics and returns them.
-func (e *EngEnv) UpdateMetrics() error {
+func (e *Environment) UpdateMetrics() error {
 	var resp MetResponse
 	n := NetOp{
 		Host:     e.Host,

@@ -64,7 +64,7 @@ func Line(m Merged) []string {
 
 //Lookup accepts a slice of SupActivity from a channel, reads the associated supporter
 //records then puts a slice of merged record onto the output channel.
-func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged) {
+func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
@@ -123,7 +123,7 @@ func Lookup(e goengage.EngEnv, in chan []goengage.SupActivity, out chan []Merged
 }
 
 //View accepts a slice of merge records and writes them to the console.
-func View(e goengage.EngEnv, in chan []Merged) {
+func View(e goengage.Environment, in chan []Merged) {
 	log.Println("Merge: start")
 	for {
 		m, ok := <-in
@@ -139,7 +139,7 @@ func View(e goengage.EngEnv, in chan []Merged) {
 }
 
 //Drive finds all subscribe activities and pushes them onto a queue.
-func Drive(e goengage.EngEnv, out chan []goengage.SupActivity) {
+func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
 	size := e.Metrics.MaxBatchSize
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
