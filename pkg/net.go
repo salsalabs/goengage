@@ -31,22 +31,36 @@ type NetOp struct {
 //response body, which usually contains enlightenment about the
 //error.
 func (n *NetOp) Do() error {
-	rqt := RequestBase{
-		//Header:  Header{},
-		Payload: n.Request,
+	//Prep a request if it is provided.  Typically it is, but may not
+	//be needed for some Engage API calls.  Newbie note: r is automatically
+	//nil.
+	var r *bytes.Reader
+	var err error
+	if n.Request != nil {
+		rqt := RequestBase{
+			//Header:  Header{},
+			Payload: n.Request,
+		}
+		b, err := json.Marshal(rqt)
+		if err != nil {
+			return err
+		}
+		r = bytes.NewReader(b)
 	}
-	b, err := json.Marshal(rqt)
-	if err != nil {
-		return err
-	}
-	r := bytes.NewReader(b)
 
 	u, _ := url.Parse(n.Fragment)
 	u.Scheme = "https"
 	u.Host = n.Host
 
 	client := &http.Client{}
-	req, err := http.NewRequest(n.Method, u.String(), r)
+	var req *http.Request
+	if n.Request == nil {
+		//'r' is a concrete instantiation.  Setting it to nil is not the
+		//same as passing a nil, apparently.  Interesting, no?
+		req, err = http.NewRequest(n.Method, u.String(), nil)
+	} else {
+		req, err = http.NewRequest(n.Method, u.String(), r)
+	}
 	if err != nil {
 		return err
 	}
@@ -58,7 +72,7 @@ func (n *NetOp) Do() error {
 		return err
 	}
 	defer resp.Body.Close()
-	b, err = ioutil.ReadAll(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
