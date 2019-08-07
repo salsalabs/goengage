@@ -66,7 +66,7 @@ func AllSegments(e *Environment, c bool) ([]Segment, error) {
 	var resp SegSearchResult
 	n := NetOp{
 		Host:     e.Host,
-		Fragment: SegSearch,
+		Endpoint: SegSearch,
 		Method:   SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,

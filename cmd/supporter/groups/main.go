@@ -46,7 +46,7 @@ func main() {
 		var resp goengage.SegSupporterSearchResult
 		n := goengage.NetOp{
 			Host:     e.Host,
-			Fragment: goengage.SegSupporterSearch,
+			Endpoint: goengage.SegSupporterSearch,
 			Method:   goengage.SearchMethod,
 			Token:    e.Token,
 			Request:  &rqt,

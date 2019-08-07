@@ -41,7 +41,7 @@ func main() {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Fragment: goengage.SupSearch,
+		Endpoint: goengage.SupSearch,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,

@@ -15,7 +15,7 @@ import (
 type NetOp struct {
 	Host     string
 	Method   string
-	Fragment string
+	Endpoint string
 	Token    string
 	Request  interface{}
 	Response interface{}
@@ -48,7 +48,7 @@ func (n *NetOp) Do() error {
 		r = bytes.NewReader(b)
 	}
 
-	u, _ := url.Parse(n.Fragment)
+	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
 	u.Host = n.Host
 

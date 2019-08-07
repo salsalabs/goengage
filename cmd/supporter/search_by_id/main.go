@@ -72,7 +72,7 @@ func main() {
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Fragment: goengage.SupSearch,
+		Endpoint: goengage.SupSearch,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,

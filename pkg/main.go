@@ -31,15 +31,31 @@ type Error struct {
 	FieldName string
 }
 
-//Header contains an optional refID.
-type Header struct {
+//RequestHeader contains an optional refID.
+type RequestHeader struct {
 	RefID string `json:"refId,omitempty"`
 }
 
-//RequestBase is the common structure for a request.
+//RequestBase is the common structure for a request.  YOur request object
+//gets stored in Payload automatically by net.Do().
 type RequestBase struct {
-	//Header  Header      `json:"header,omitempty"`
-	Payload interface{} `json:"payload"`
+	Header  RequestHeader `json:"header,omitempty"`
+	Payload interface{}   `json:"payload"`
+}
+
+//ResponseHeader is the common object returned by calls to Engage.
+//Payloads are defined by the objects receiving the data, since they
+//need the payload.
+type ResponseHeader struct {
+	ProcessingTime string `json:"processingTime,omitempty"`
+	ServerID       string `json:"serverID,omitempty"`
+}
+
+//ResponseBase is the common structure for a request.  YOur request object
+//gets stored in Payload automatically by net.Do().
+type ResponseBase struct {
+	Header  ResponseHeader `json:"header,omitempty"`
+	Payload interface{}    `json:"payload"`
 }
 
 //NewEnvironment creates a new Environment and initializes the metrics.
@@ -61,7 +77,7 @@ func (e *Environment) UpdateMetrics() error {
 	var resp MetResponse
 	n := NetOp{
 		Host:     e.Host,
-		Fragment: FragMetrics,
+		Endpoint: FragMetrics,
 		Method:   http.MethodGet,
 		Token:    e.Token,
 		Request:  nil,

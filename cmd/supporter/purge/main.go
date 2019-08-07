@@ -29,7 +29,7 @@ func stack(e *goengage.Environment, d chan int32, max *int32) {
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Fragment: goengage.SupSearch,
+		Endpoint: goengage.SupSearch,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
@@ -73,7 +73,7 @@ func pack(e *goengage.Environment, d chan int32, c chan []goengage.Supporter, do
 	var resp goengage.SupSearchResult
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Fragment: goengage.SupSearch,
+		Endpoint: goengage.SupSearch,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
@@ -102,7 +102,7 @@ func cack(e *goengage.Environment, c chan []goengage.Supporter, b chan int32, do
 	dResp := goengage.SupDeleteResult{}
 	nDel := goengage.NetOp{
 		Host:     e.Host,
-		Fragment: goengage.SupDelete,
+		Endpoint: goengage.SupDelete,
 		Method:   http.MethodDelete,
 		Token:    e.Token,
 		Request:  &dRqt,

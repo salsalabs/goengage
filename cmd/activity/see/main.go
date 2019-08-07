@@ -16,7 +16,7 @@ import (
 
 //Merged is a supporter and the acivity used to subscribe the supporter.
 type Merged struct {
-	Activity  goengage.SupActivity
+	Activity  goengage.Activity
 	Supporter goengage.Supporter
 }
 
@@ -38,6 +38,7 @@ const OutHeads = "SupporterID,CreatedDate,Email,ActivityType,ActivityFormID,Acti
 //Line accepts a merge record and returns an Output Record.
 //Note that the fields are in the same order as OutHeads.
 func Line(m Merged) []string {
+	fmt.Printf("Line: m is %v\n", m)
 	email := "None"
 	e := goengage.FirstEmail(m.Supporter)
 	if e != nil {
@@ -58,13 +59,13 @@ func Line(m Merged) []string {
 	t2 := goengage.Date(m.Supporter.CreatedDate)
 	diff := t1.Sub(t2)
 	a = append(a, diff.String())
-
+	fmt.Printf("%+v\n", a)
 	return a
 }
 
-//Lookup accepts a slice of SupActivity from a channel, reads the associated supporter
-//records then puts a slice of merged record onto the output channel.
-func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []Merged) {
+//Lookup accepts a slice of Activity from a channel, reads the associated
+//supporter records then puts a slice of merged record onto the output channel.
+func Lookup(e goengage.Environment, in chan []goengage.Activity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
@@ -74,7 +75,7 @@ func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []M
 			return
 		}
 		//Make a map of supporter ID and supActivities.
-		m := make(map[string]goengage.SupActivity)
+		m := make(map[string]goengage.Activity)
 		var a []string
 		for _, r := range sa {
 			m[r.SupporterID] = r
@@ -92,7 +93,7 @@ func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []M
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Fragment: goengage.SupSearch,
+			Endpoint: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
@@ -117,6 +118,7 @@ func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []M
 			}
 		}
 		if len(x) > 0 {
+			fmt.Printf("%+v\n", x)
 			out <- x
 		}
 	}
@@ -139,20 +141,20 @@ func View(e goengage.Environment, in chan []Merged) {
 }
 
 //Drive finds all subscribe activities and pushes them onto a queue.
-func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
+func Drive(e goengage.Environment, out chan []goengage.Activity) {
 	size := e.Metrics.MaxBatchSize
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
-	rqt := goengage.ActSearchRequest{
+	rqt := goengage.ActivityRequest{
 		Offset:       0,
 		Count:        size,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
-	var resp goengage.ActSearchResult
+	var resp goengage.ActivityResponse
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Fragment: goengage.ActSearch,
+		Endpoint: goengage.ActSearch,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
@@ -163,7 +165,7 @@ func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
 		panic(err)
 	}
 
-	// Do for all items in the results.  Send the SupActivity
+	// Do for all items in the results.  Send the Activity
 	count := rqt.Count
 	for count > 0 {
 		err := n.Do()
@@ -176,8 +178,9 @@ func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
 				resp.Payload.Count,
 				resp.Payload.Offset,
 				resp.Payload.Total)
+			log.Printf("Drive: %+v", resp.Payload.Activities)
 			rqt.Offset = rqt.Offset + count
-			out <- resp.Payload.SupActivities
+			out <- resp.Payload.Activities
 		}
 	}
 	close(out)
@@ -196,7 +199,7 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	c1 := make(chan []goengage.SupActivity)
+	c1 := make(chan []goengage.Activity)
 	c2 := make(chan []Merged)
 
 	go (func(wg *sync.WaitGroup) {

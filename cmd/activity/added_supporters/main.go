@@ -19,7 +19,7 @@ import (
 
 //Merged is a supporter and the acivity used to subscribe the supporter.
 type Merged struct {
-	Activity  goengage.SupActivity
+	Activity  goengage.Activity
 	Supporter goengage.Supporter
 }
 
@@ -56,9 +56,9 @@ func Line(m Merged) []string {
 	return a
 }
 
-//Lookup accepts a slice of SupActivity from a channel, reads the associated
+//Lookup accepts a slice of Activity from a channel, reads the associated
 //supporter records, then puts a slice of merged record onto the output channel.
-func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []Merged) {
+func Lookup(e goengage.Environment, in chan []goengage.Activity, out chan []Merged) {
 	log.Println("Lookup: start")
 	for {
 		sa, ok := <-in
@@ -68,7 +68,7 @@ func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []M
 			return
 		}
 		//Make a map of supporter ID and supActivities.
-		m := make(map[string]goengage.SupActivity)
+		m := make(map[string]goengage.Activity)
 		var a []string
 		for _, r := range sa {
 			m[r.SupporterID] = r
@@ -85,7 +85,7 @@ func Lookup(e goengage.Environment, in chan []goengage.SupActivity, out chan []M
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Fragment: goengage.SupSearch,
+			Endpoint: goengage.SupSearch,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
@@ -148,12 +148,12 @@ func View(e goengage.Environment, in chan []Merged) {
 }
 
 //Drive finds all subscribe activities and pushes them onto a queue.
-func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
+func Drive(e goengage.Environment, out chan []goengage.Activity) {
 	//log.Printf("Drive:  max size is %d, we're using %d\n", e.Metrics.MaxBatchSize, 20)
 
 	// Search for all subscribe activities.  Retiurns a supporter ID
 	// and activity information.
-	rqt := goengage.ActSearchRequest{
+	rqt := goengage.ActivityRequest{
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
@@ -162,7 +162,7 @@ func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Fragment: goengage.ActSearch,
+		Endpoint: goengage.ActSearch,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -172,7 +172,7 @@ func Drive(e goengage.Environment, out chan []goengage.SupActivity) {
 		panic(err)
 	}
 
-	// Do for all items in the results.  Send the SupActivity
+	// Do for all items in the results.  Send the Activity
 	count := rqt.Count
 	for count > 0 {
 		err := n.Do()
@@ -219,7 +219,7 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
-	c1 := make(chan []goengage.SupActivity)
+	c1 := make(chan []goengage.Activity)
 	c2 := make(chan []Merged)
 
 	go (func(wg *sync.WaitGroup) {
