@@ -130,8 +130,8 @@ type ActivityRequest struct {
 	Type            string   `json:"type,omitempty"`
 	Offset          int32    `json:"offset,omitempty"`
 	Count           int32    `json:"count,omitempty"`
-	ActivityIDs     []string `json:"activityIDs,omitEmpty"`
-	ActivityFormIDs []string `json:"activityFormIDs,omitEmpty"`
+	ActivityIDs     []string `json:"activityIds,omitempty"`
+	ActivityFormIDs []string `json:"activityFormIds,omitempty"`
 	ModifiedFrom    string   `json:"modifiedFrom,omitempty"`
 	ModifiedTo      string   `json:"modifiedTo,omitempty"`
 }
