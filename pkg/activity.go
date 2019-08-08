@@ -127,9 +127,9 @@ const (
 //date range.  Choose one and provide the necessary data.  The remainder
 //will be ignored when the request is sent to Engage.
 type ActivityRequest struct {
-	Type            string   `json:"type,omitempty"`
-	Offset          int32    `json:"offset,omitempty"`
-	Count           int32    `json:"count,omitempty"`
+	Type            string   `json:"type"`
+	Offset          int32    `json:"offset"`
+	Count           int32    `json:"count"`
 	ActivityIDs     []string `json:"activityIds,omitempty"`
 	ActivityFormIDs []string `json:"activityFormIds,omitempty"`
 	ModifiedFrom    string   `json:"modifiedFrom,omitempty"`
