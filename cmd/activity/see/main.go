@@ -25,7 +25,7 @@ func main() {
 		Type:         "",
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
-		ModifiedFrom: "2010-01-01T00:00:00.000",
+		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 		ModifiedTo:   "2020-12-31T23:59:59.000Z",
 	}
 	var resp goengage.ActivityResponse
