@@ -34,14 +34,3 @@ type MetricData struct {
 	SupporterRead                  int32  `json:"supporterRead"`
 	SupporterUpdate                int32  `json:"supporterUpdate"`
 }
-
-//MetResponse is returned by Engage when asking for metrics.
-type MetResponse struct {
-	ID        string
-	Timestamp string
-	Header    struct {
-		ProcessingTime int32  `json:"processingTime"`
-		ServerID       string `jsin:"serverId"`
-	}
-	Payload MetricData
-}

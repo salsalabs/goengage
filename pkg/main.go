@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -23,7 +22,7 @@ type Environment struct {
 	Metrics MetricData
 }
 
-//Error is used to report validation and input errors.
+//Error is used to report Engage errors.
 type Error struct {
 	ID        string `json:"id,omitempty"`
 	Code      int    `json:"code,omitempty"`
@@ -87,7 +86,6 @@ func (e *Environment) UpdateMetrics() error {
 		Request:  nil,
 		Response: &resp,
 	}
-	fmt.Printf("Request: %+v\n", n)
 	err := n.Do()
 	if err != nil {
 		return err

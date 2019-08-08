@@ -76,7 +76,6 @@ func (n *NetOp) Do() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Body: %v\n", string(b))
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
@@ -85,12 +84,9 @@ func (n *NetOp) Do() error {
 		Payload: n.Response,
 	}
 	err = json.Unmarshal(b, &x)
-	fmt.Printf("Unmarshalled response: %+v\n", x)
-	fmt.Printf("Errors: %v\n", x.Errors)
 	if len(x.Errors) > 0 {
 		e := x.Errors[0]
-		fmt.Printf("Engage error: %+v\n", e)
-		m := fmt.Sprintf("Engage error %+v\n", e)
+		m := fmt.Sprintf("Engage error %d %+v\n", e.Code, e.Message)
 		return errors.New(m)
 	}
 	return err
