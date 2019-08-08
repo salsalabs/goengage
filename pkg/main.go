@@ -1,6 +1,7 @@
 package goengage
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -24,11 +25,11 @@ type Environment struct {
 
 //Error is used to report validation and input errors.
 type Error struct {
-	ID        string
-	Code      int
-	Message   string
-	Details   string
-	FieldName string
+	ID        string `json:"id,omitempty"`
+	Code      int    `json:"code,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Details   string `json:"details,omitempty"`
+	FieldName string `json:"fieldName,omitempty"`
 }
 
 //RequestHeader contains an optional refID.
@@ -36,9 +37,9 @@ type RequestHeader struct {
 	RefID string `json:"refId,omitempty"`
 }
 
-//RequestBase is the common structure for a request.  YOur request object
+//Request is the common structure for a request.  YOur request object
 //gets stored in Payload automatically by net.Do().
-type RequestBase struct {
+type Request struct {
 	Header  RequestHeader `json:"header,omitempty"`
 	Payload interface{}   `json:"payload"`
 }
@@ -47,15 +48,18 @@ type RequestBase struct {
 //Payloads are defined by the objects receiving the data, since they
 //need the payload.
 type ResponseHeader struct {
-	ProcessingTime string `json:"processingTime,omitempty"`
+	ProcessingTime int    `json:"processingTime,omitempty"`
 	ServerID       string `json:"serverID,omitempty"`
 }
 
-//ResponseBase is the common structure for a request.  YOur request object
+//Response is the common structure for a request.  YOur request object
 //gets stored in Payload automatically by net.Do().
-type ResponseBase struct {
-	Header  ResponseHeader `json:"header,omitempty"`
-	Payload interface{}    `json:"payload"`
+type Response struct {
+	ID        string         `json:"id,omitempty"`
+	Timestamp string         `json:"timestamp"`
+	Header    ResponseHeader `json:"header,omitempty"`
+	Errors    []Error        `json:"errors,omitempty"`
+	Payload   interface{}    `json:"payload,omitempty"`
 }
 
 //NewEnvironment creates a new Environment and initializes the metrics.
@@ -74,19 +78,20 @@ func NewEnvironment(h string, t string) Environment {
 
 //UpdateMetrics reads metrics and returns them.
 func (e *Environment) UpdateMetrics() error {
-	var resp MetResponse
+	var resp MetricData
 	n := NetOp{
 		Host:     e.Host,
-		Endpoint: FragMetrics,
+		Endpoint: MetricsCommand,
 		Method:   http.MethodGet,
 		Token:    e.Token,
 		Request:  nil,
 		Response: &resp,
 	}
+	fmt.Printf("Request: %+v\n", n)
 	err := n.Do()
 	if err != nil {
 		return err
 	}
-	e.Metrics = resp.Payload
+	e.Metrics = resp
 	return nil
 }

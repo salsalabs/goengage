@@ -90,7 +90,7 @@ const (
 const (
 	DonationOnly       = "DONATION_ONLY"
 	DonationAndTickets = "DONATION_AND_TICKETS"
-	TicketsOnly        = "TICKETS_ONLY	"
+	TicketsOnly        = "TICKETS_ONLY"
 )
 
 //Event ticket status
@@ -121,48 +121,38 @@ const (
 	ValidAndRefunded     = "VALID_AND_REFUNDED"
 )
 
-//ActivityIDs (one of the request options)
-type ActivityIDs []string
-
 //ActivityRequest is used to retrieve activities from Engage.
 //Note that ActivityRequest can be used to retrieve activities based
 //on three types of criteria: activity IDs, activity form IDs, modified
 //date range.  Choose one and provide the necessary data.  The remainder
 //will be ignored when the request is sent to Engage.
 type ActivityRequest struct {
+	Type            string   `json:"type,omitempty"`
+	Offset          int32    `json:"offset,omitempty"`
+	Count           int32    `json:"count,omitempty"`
 	ActivityIDs     []string `json:"activityIDs,omitEmpty"`
 	ActivityFormIDs []string `json:"activityFormIDs,omitEmpty"`
 	ModifiedFrom    string   `json:"modifiedFrom,omitempty"`
 	ModifiedTo      string   `json:"modifiedTo,omitempty"`
-	Offset          int32    `json:"offset,omitempty"`
-	Count           int32    `json:"count,omitempty"`
-	Type            string   `json:"type,omitempty"`
 }
 
-//ActivityResponse is the data returned by every activity request.  Typically,
-//the base data is returned with activity specific data after it.  That means
-//that you can use ActivityResponse to accept data from any activity call.
-//JSON"s marshalling will not equip any object element that is not in The
-//reply from Engage.
-type ActivityResponse struct {
-	ResponseHeader
-	ActivityPayload
-}
-
-//ActivityPayload is returned in an activity response.  It contains
+//ActivityResponse is returned in an activity response.  It contains
 //a list of selected activities as well as the current position in the
 //database.
-type ActivityPayload struct {
+type ActivityResponse struct {
 	Payload struct {
-		Total      int32    `json:"total,omitempty"`
-		Offset     int32    `json:"offset,omitempty"`
-		Count      int32    `json:"count,omitempty"`
+		Total      int32      `json:"total,omitempty"`
+		Offset     int32      `json:"offset,omitempty"`
+		Count      int32      `json:"count,omitempty"`
 		Activities []Activity `json:"activities,omitempty"`
 	} `json:"payload,omitempty"`
 }
 
-//Activity is one activity of the list returned in an activity response.
-type Activity struct {
+//ActivityBase is the set of common fields returned for all activities.
+//Some activities (like SUBSCRIBE or SUBSCRIPTION_MANAGEMENT) only return
+//ActivityBase.  Other activities, like donations, events and P2P, return
+//data appended to the base.
+type ActivityBase struct {
 	ActivityID       string `json:"activityID,omitempty"`
 	ActivityFormName string `json:"activityFormName,omitempty"`
 	ActivityFormID   string `json:"activityFormID,omitempty"`
@@ -173,12 +163,54 @@ type Activity struct {
 	//CustomFieldValues []something
 }
 
+//Fundraising is the additional information returned in an Activity for
+//fundraising activities.
+type Fundraising struct {
+	DonationID           string        `json:"donationId,omitempty"`
+	TotalReceivedAmount  float64       `json:"totalReceivedAmount,omitempty"`
+	OneTimeAmount        float64       `json:"oneTimeAmount,omitempty"`
+	DonationType         string        `json:"donationType,omitempty"`
+	AccountType          string        `json:"accountType,omitempty"`
+	AccountNumber        string        `json:"accountNumber,omitempty"`
+	AccountExpiration    string        `json:"accountExpiration,omitempty"`
+	AccountProvider      string        `json:"accountProvider,omitempty"`
+	PaymentProcessorName string        `json:"paymentProcessorName,omitempty"`
+	FundName             string        `json:"fundName,omitempty"`
+	FundGLCode           string        `json:"fundGLCode,omitempty"`
+	Designation          string        `json:"designation,omitempty"`
+	DedicationType       string        `json:"dedicationType,omitempty"`
+	Dedication           string        `json:"dedication,omitempty"`
+	Notify               string        `json:"notify,omitempty"`
+	Transactions         []Transaction `json:"transactions,omitempty"`
+}
+
+//Transaction is a single operation involving money.
+type Transaction struct {
+	TransactionID            string  `json:"transactionId"`
+	Type                     string  `json:"type"`
+	Reason                   string  `json:"reason"`
+	Date                     string  `json:"date"`
+	Amount                   float64 `json:"amount"`
+	DeductibleAmount         float64 `json:"deductibleAmount"`
+	FeesPaid                 float64 `json:"feesPaid"`
+	GatewayTransactionID     string  `json:"gatewayTransactionId"`
+	GatewayAuthorizationCode string  `json:"gatewayAuthorizationCode"`
+}
+
+//Activity is the wrapper for all retrieved activities.  This techinique
+//works because the JSON decclarations are "omitempty".  Go simply ignores
+//any empty fields during JSON Unmarshaling.
+type Activity struct {
+	ActivityBase
+	Fundraising
+}
+
 //ActSearchResult is returned when supporters are found by a search.
 type ActSearchResult struct {
 	Payload struct {
-		Count         int32         `json:"count,omitempty"`
-		Offset        int32         `json:"offset,omitempty"`
-		Total         int32         `json:"total,omitempty"`
+		Count         int32      `json:"count,omitempty"`
+		Offset        int32      `json:"offset,omitempty"`
+		Total         int32      `json:"total,omitempty"`
 		SupActivities []Activity `json:"Activities,omitempty"`
 	} `json:"payload,omitempty"`
 }

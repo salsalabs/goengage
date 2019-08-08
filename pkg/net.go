@@ -37,8 +37,8 @@ func (n *NetOp) Do() error {
 	var r *bytes.Reader
 	var err error
 	if n.Request != nil {
-		rqt := RequestBase{
-			//Header:  Header{},
+		rqt := Request{
+			Header:  RequestHeader{},
 			Payload: n.Request,
 		}
 		b, err := json.Marshal(rqt)
@@ -76,10 +76,22 @@ func (n *NetOp) Do() error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Body: %v\n", string(b))
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
-	err = json.Unmarshal(b, n.Response)
+	var x = Response{
+		Payload: n.Response,
+	}
+	err = json.Unmarshal(b, &x)
+	fmt.Printf("Unmarshalled response: %+v\n", x)
+	fmt.Printf("Errors: %v\n", x.Errors)
+	if len(x.Errors) > 0 {
+		e := x.Errors[0]
+		fmt.Printf("Engage error: %+v\n", e)
+		m := fmt.Sprintf("Engage error %+v\n", e)
+		return errors.New(m)
+	}
 	return err
 }
