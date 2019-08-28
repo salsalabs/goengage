@@ -28,12 +28,10 @@ type SegSearchRequest struct {
 
 //SegSearchResult is returned when supporters are found by a search.
 type SegSearchResult struct {
-	Payload struct {
-		Count    int32     `json:"count,omitempty"`
-		Offset   int32     `json:"offset,omitempty"`
-		Total    int32     `json:"total,omitempty"`
-		Segments []Segment `json:"segments,omitempty"`
-	} `json:"payload,omitempty"`
+	Count    int32     `json:"count,omitempty"`
+	Offset   int32     `json:"offset,omitempty"`
+	Total    int32     `json:"total,omitempty"`
+	Segments []Segment `json:"segments,omitempty"`
 }
 
 //SegSupporterSearchRequest is used to find supporters in a segment.
@@ -78,10 +76,10 @@ func AllSegments(e *Environment, c bool) ([]Segment, error) {
 		if err != nil {
 			panic(err)
 		}
-		for _, s := range resp.Payload.Segments {
+		for _, s := range resp.Segments {
 			a = append(a, s)
 		}
-		count := len(resp.Payload.Segments)
+		count := len(resp.Segments)
 		rqt.Count = int32(count)
 		rqt.Offset = rqt.Offset + int32(count)
 	}
