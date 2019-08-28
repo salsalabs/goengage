@@ -20,39 +20,39 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	rqt := goengage.ActivityRequest{
-		Type:         "",
-		Offset:       0,
-		Count:        e.Metrics.MaxBatchSize,
-		ModifiedFrom: "2010-01-01T00:00:00.000Z",
-		ModifiedTo:   "2020-12-31T23:59:59.000Z",
-	}
-	var resp goengage.ActivityResponse
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: goengage.ActSearch,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
 	types := []string{
-		goengage.SubscriptionManagementType,
-		goengage.SubscribeType,
-		goengage.FundraiseType,
+		//goengage.SubscriptionManagementType,
+		//goengage.SubscribeType,
+		//goengage.FundraiseType,
 		goengage.PetitionType,
-		goengage.TargetedLetterType,
-		goengage.TicketedEventType,
-		goengage.P2PEventType,
+		//goengage.TargetedLetterType,
+		//goengage.TicketedEventType,
+		//goengage.P2PEventType,
 	}
+
 	for _, r := range types {
-		rqt.Type = r
-		fmt.Printf("\n%v\n", r)
+		rqt := goengage.ActivityRequest{
+			Type:         r,
+			Offset:       0,
+			Count:        e.Metrics.MaxBatchSize,
+			ModifiedFrom: "2010-01-01T00:00:00.000Z",
+			//ModifiedTo:   "2020-12-31T23:59:59.000Z",
+		}
+		var resp goengage.ActivityResponse
+		n := goengage.NetOp{
+			Host:     e.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: goengage.ActSearch,
+			Token:    e.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		fmt.Printf("\nActivity Type: %v\n", r)
+		fmt.Printf("\nRequest: %+v\n", n)
 		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%+v\n", resp)
+		fmt.Printf("Response: %+v\n", resp)
 	}
 }

@@ -50,8 +50,6 @@ func (n *NetOp) Do() error {
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
 	u.Host = n.Host
-
-	client := &http.Client{}
 	var req *http.Request
 	if n.Request == nil {
 		//'r' is a concrete instantiation.  Setting it to nil is not the
@@ -66,6 +64,7 @@ func (n *NetOp) Do() error {
 	req.Header.Set("authToken", n.Token)
 	req.Header.Set("Content-Type", ContentType)
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
