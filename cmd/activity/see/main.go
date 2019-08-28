@@ -3,6 +3,7 @@ package main
 //Application scan the activities database from top to bottom and write them
 //to the console.
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -21,22 +22,20 @@ func main() {
 		panic(err)
 	}
 	types := []string{
-		//goengage.SubscriptionManagementType,
-		//goengage.SubscribeType,
-		//goengage.FundraiseType,
+		goengage.SubscriptionManagementType,
+		goengage.SubscribeType,
+		goengage.FundraiseType,
 		goengage.PetitionType,
-		//goengage.TargetedLetterType,
-		//goengage.TicketedEventType,
-		//goengage.P2PEventType,
+		goengage.TargetedLetterType,
+		goengage.TicketedEventType,
+		goengage.P2PEventType,
 	}
-
 	for _, r := range types {
 		rqt := goengage.ActivityRequest{
 			Type:         r,
 			Offset:       0,
 			Count:        e.Metrics.MaxBatchSize,
 			ModifiedFrom: "2010-01-01T00:00:00.000Z",
-			//ModifiedTo:   "2020-12-31T23:59:59.000Z",
 		}
 		var resp goengage.ActivityResponse
 		n := goengage.NetOp{
@@ -47,12 +46,13 @@ func main() {
 			Request:  &rqt,
 			Response: &resp,
 		}
-		fmt.Printf("\nActivity Type: %v\n", r)
-		fmt.Printf("\nRequest: %+v\n", n)
 		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Response: %+v\n", resp)
+		b, _ := json.MarshalIndent(rqt, "", "    ")
+		fmt.Printf("Request: %+v\n", string(b))
+		b, _ = json.MarshalIndent(resp, "", "    ")
+		fmt.Printf("Response: %+v\n", string(b))
 	}
 }
