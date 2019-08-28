@@ -136,16 +136,14 @@ type ActivityRequest struct {
 	ModifiedTo      string   `json:"modifiedTo,omitempty"`
 }
 
-//ActivityResponse is returned in an activity response.  It contains
-//a list of selected activities as well as the current position in the
-//database.
+//ActivityResponse is the payload returned by a search for activities. It
+//contains a list of selected activities as well as the current position in
+//the database.
 type ActivityResponse struct {
-	Payload struct {
-		Total      int32      `json:"total,omitempty"`
-		Offset     int32      `json:"offset,omitempty"`
-		Count      int32      `json:"count,omitempty"`
-		Activities []Activity `json:"activities,omitempty"`
-	} `json:"payload,omitempty"`
+	Total      int32      `json:"total,omitempty"`
+	Offset     int32      `json:"offset,omitempty"`
+	Count      int32      `json:"count,omitempty"`
+	Activities []Activity `json:"activities,omitempty"`
 }
 
 //ActivityBase is the set of common fields returned for all activities.
@@ -201,8 +199,8 @@ type Transaction struct {
 type Petition struct {
 	Comment                  string `json:"comment"`
 	ModerationState          string `json:"moderationState"`
-	DisplaySignaturePublicly string `json:"displaySignaturePublicly"`
-	DisplayCommentPublicly   string `json:"displayCommentPublicly"`
+	DisplaySignaturePublicly bool   `json:"displaySignaturePublicly"`
+	DisplayCommentPublicly   bool   `json:"displayCommentPublicly"`
 }
 
 //Activity is the wrapper for all retrieved activities.  This techinique
@@ -221,8 +219,8 @@ type Activity struct {
 	LastModified             string `json:"lastModified,omitempty"`
 	Comment                  string `json:"comment"`
 	ModerationState          string `json:"moderationState"`
-	DisplaySignaturePublicly string `json:"displaySignaturePublicly"`
-	DisplayCommentPublicly   string `json:"displayCommentPublicly"`
+	DisplaySignaturePublicly bool   `json:"displaySignaturePublicly"`
+	DisplayCommentPublicly   bool   `json:"displayCommentPublicly"`
 }
 
 //ActSearchResult is returned when supporters are found by a search.
