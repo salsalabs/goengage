@@ -153,10 +153,10 @@ type ActivityResponse struct {
 //ActivityBase.  Other activities, like donations, events and P2P, return
 //data appended to the base.
 type ActivityBase struct {
-	ActivityID       string `json:"activityID,omitempty"`
+	ActivityID       string `json:"activityId,omitempty"`
 	ActivityFormName string `json:"activityFormName,omitempty"`
-	ActivityFormID   string `json:"activityFormID,omitempty"`
-	SupporterID      string `json:"supporterID,omitempty"`
+	ActivityFormID   string `json:"activityFormId,omitempty"`
+	SupporterID      string `json:"supporterId,omitempty"`
 	ActivityDate     string `json:"activityDate,omitempty"`
 	ActivityType     string `json:"activityType,omitempty"`
 	LastModified     string `json:"lastModified,omitempty"`
@@ -197,12 +197,32 @@ type Transaction struct {
 	GatewayAuthorizationCode string  `json:"gatewayAuthorizationCode"`
 }
 
+//Petition wraps a petition activity.
+type Petition struct {
+	Comment                  string `json:"comment"`
+	ModerationState          string `json:"moderationState"`
+	DisplaySignaturePublicly string `json:"displaySignaturePublicly"`
+	DisplayCommentPublicly   string `json:"displayCommentPublicly"`
+}
+
 //Activity is the wrapper for all retrieved activities.  This techinique
 //works because the JSON decclarations are "omitempty".  Go simply ignores
 //any empty fields during JSON Unmarshaling.
 type Activity struct {
-	ActivityBase
-	Fundraising
+	//	ActivityBase
+	//	Fundraising
+	//	Petition
+	ActivityID               string `json:"activityId,omitempty"`
+	ActivityFormName         string `json:"activityFormName,omitempty"`
+	ActivityFormID           string `json:"activityFormId,omitempty"`
+	SupporterID              string `json:"supporterId,omitempty"`
+	ActivityDate             string `json:"activityDate,omitempty"`
+	ActivityType             string `json:"activityType,omitempty"`
+	LastModified             string `json:"lastModified,omitempty"`
+	Comment                  string `json:"comment"`
+	ModerationState          string `json:"moderationState"`
+	DisplaySignaturePublicly string `json:"displaySignaturePublicly"`
+	DisplayCommentPublicly   string `json:"displayCommentPublicly"`
 }
 
 //ActSearchResult is returned when supporters are found by a search.
