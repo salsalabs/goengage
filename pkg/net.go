@@ -38,7 +38,6 @@ func (n *NetOp) Do() error {
 	var err error
 	if n.Request != nil {
 		rqt := Request{
-			Header:  RequestHeader{},
 			Payload: n.Request,
 		}
 		b, err := json.Marshal(rqt)
@@ -84,6 +83,9 @@ func (n *NetOp) Do() error {
 		Payload: n.Response,
 	}
 	err = json.Unmarshal(b, &x)
+	if err != nil {
+		return err
+	}
 	if len(x.Errors) > 0 {
 		e := x.Errors[0]
 		m := fmt.Sprintf("Engage error %d %+v\n", e.Code, e.Message)
