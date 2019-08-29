@@ -19,7 +19,7 @@ func main() {
 	)
 	app.Parse(os.Args[1:])
 	if len(*supporterKEY) == 0 {
-		fmt.Println("Error: --supporterKEY is REQUIRED.")
+		fmt.Println("Error: --supporter-key is REQUIRED.")
 		os.Exit(1)
 	}
 
