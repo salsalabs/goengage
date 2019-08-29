@@ -26,13 +26,9 @@ func main() {
 	}
 	w := csv.NewWriter(f)
 
-	a, err := goengage.AllSegmentCensus(e, true)
+	a, err := goengage.AllSegmentCensus(e)
 	if err != nil {
 		panic(err)
-	}
-	for _, s := range a {
-		sName := s.Segment.Name
-		fmt.Println(sName)
 	}
 	for _, s := range a {
 		sName := s.Segment.Name
@@ -50,9 +46,9 @@ func main() {
 				if err != nil {
 					panic(err)
 				}
-				fmt.Printf("%v,%v\n", sName, email)
 			}
 		}
+		w.Flush()
 	}
 	w.Flush()
 	f.Close()
