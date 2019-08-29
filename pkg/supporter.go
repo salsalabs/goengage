@@ -9,6 +9,17 @@ const (
 	SupDelete = "/api/integration/ext/v1/supporters"
 )
 
+//Contact types.
+const (
+	ContactTypeEmail    = "EMAIL"
+	ContactTypeHome     = "HOME_PHONE"
+	ContactTypeCell     = "CELL_PHONE"
+	ContactTypeWork     = "WORK_PHONE"
+	ContactTypeFacebook = "FACEBOOK_ID"
+	ContactTypeTwitter  = "TWITTER_ID"
+	ContactTypeLinkedin = "LINKEDIN_ID"
+)
+
 //Custom is a custom field in Engage.
 type Custom struct {
 	FieldID    string `json:"fieldID:omitempty"`
@@ -141,10 +152,8 @@ type SupDeleteResult struct {
 
 //SupSearchResult is returned when supporters are found by a search.
 type SupSearchResult struct {
-	Payload struct {
-		Count      int32       `json:"count"`
-		Offset     int32       `json:"offset"`
-		Total      int32       `json:"total"`
-		Supporters []Supporter `json:"supporters"`
-	} `json:"payload"`
+	Count      int32       `json:"count"`
+	Offset     int32       `json:"offset"`
+	Total      int32       `json:"total"`
+	Supporters []Supporter `json:"supporters"`
 }
