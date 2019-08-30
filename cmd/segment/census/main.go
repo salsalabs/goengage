@@ -34,14 +34,9 @@ func store(c chan goengage.Census, fn string) error {
 		}
 		sName := s.Segment.Name
 		for _, u := range s.Supporters {
-			email := "?"
-			if len(u.Contacts) > 0 {
-				for _, c := range u.Contacts {
-					if c.Type == goengage.ContactTypeEmail {
-						email = c.Value
-					}
-				}
-				r := []string{sName, email}
+			email := goengage.FirstEmail(u)
+			if email != nil {
+				r := []string{sName, *email}
 				err := w.Write(r)
 				if err != nil {
 					return err
