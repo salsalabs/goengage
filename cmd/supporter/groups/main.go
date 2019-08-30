@@ -5,10 +5,59 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 
-	"github.com/salsalabs/goengage/pkg"
+	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
+
+//show the groups for a supporter.  You provide the primary key for the supporter.
+func show(e *goengage.Environment, c chan goengage.Segment, k string) error {
+	count := 0
+
+	// Filter groups to keep the ones that have the supporter.
+	for true {
+		s, ok := <-c
+		if !ok {
+			break
+		}
+		sids := []string{k}
+
+		rqt := goengage.SegSupporterSearchRequest{
+			SegmentID:    s.SegmentID,
+			SupporterIDs: sids,
+			Offset:       0,
+			Count:        e.Metrics.MaxBatchSize,
+		}
+		var resp goengage.SegSupporterSearchResult
+		n := goengage.NetOp{
+			Host:     e.Host,
+			Endpoint: goengage.SegSupporterSearch,
+			Method:   goengage.SearchMethod,
+			Token:    e.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		err := n.Do()
+		if err != nil {
+			return err
+		}
+		if len(resp.Supporters) > 0 {
+			firstSupporter := resp.Supporters[0]
+			if firstSupporter.Result == "FOUND" {
+				if count == 0 {
+					fmt.Printf("\nSupporter with key %v is in these groups:\n\n", k)
+				}
+				fmt.Printf("%s %-7s %s\n", s.SegmentID, s.Type, s.Name)
+				count++
+			}
+		}
+	}
+	if count == 0 {
+		fmt.Printf("\nSupporter with key %v is not any any groups.\n", k)
+	}
+	return nil
+}
 
 func main() {
 	var (
@@ -27,51 +76,35 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	//Get all groups.
-	a, err := goengage.AllSegments(e, *count)
-	if err != nil {
-		panic(err)
-	}
-	// Filter groups to keep the ones that have the supporter.
-	var b []goengage.Segment
-	for _, s := range a {
-		sids := []string{*supporterKEY}
 
-		rqt := goengage.SegSupporterSearchRequest{
-			SegmentID:    s.SegmentID,
-			SupporterIDs: sids,
-			Offset:       0,
-			Count:        e.Metrics.MaxBatchSize,
-		}
-		var resp goengage.SegSupporterSearchResult
-		n := goengage.NetOp{
-			Host:     e.Host,
-			Endpoint: goengage.SegSupporterSearch,
-			Method:   goengage.SearchMethod,
-			Token:    e.Token,
-			Request:  &rqt,
-			Response: &resp,
-		}
-		err = n.Do()
+	c := make(chan goengage.Segment)
+	var wg sync.WaitGroup
+
+	//Display segments that contain the supporter.  Panicking on error until we find an
+	//elegant way to handle errors in a goroutine.
+	go (func(e *goengage.Environment, c chan goengage.Segment, k string, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		err := show(e, c, k)
 		if err != nil {
 			panic(err)
 		}
-		firstSupporter := resp.Payload.Supporters[0]
-		if firstSupporter.Result == "FOUND" {
-			b = append(b, s)
-		}
-	}
-	if len(b) == 0 {
-		fmt.Printf("\nSupporter with key %v is not any any groups.", *supporterKEY)
-	} else {
-		fmt.Printf("\nSupporter with key %v is in these groups:\n\n", *supporterKEY)
-		for _, s := range b {
-			if *count {
-				fmt.Printf("%s %-7s %4d %s\n", s.SegmentID, s.Type, s.TotalMembers, s.Name)
+	})(e, c, *supporterKEY, &wg)
+	fmt.Printf("Started show...")
 
-			} else {
-				fmt.Printf("%s %-7s %s\n", s.SegmentID, s.Type, s.Name)
-			}
+	//Drive segments to the filter for a supporter.  Panicking on error until we find an
+	//elegant way to handle errors in a goroutine.
+	go (func(e *goengage.Environment, c chan goengage.Segment, count bool, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		err := goengage.AllSegments(e, count, c)
+		if err != nil {
+			panic(err)
 		}
-	}
+	})(e, c, *count, &wg)
+	fmt.Println("Started AllSegments...")
+
+	fmt.Println("Waiting patiently...")
+	wg.Wait()
+	fmt.Println("Done!")
 }

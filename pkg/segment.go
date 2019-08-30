@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -117,7 +116,6 @@ func AllSegments(e *Environment, c bool, x chan Segment) error {
 
 //SegmentCensus returns the supporters in a group.
 func SegmentCensus(e *Environment, s Segment) ([]Supporter, error) {
-	fmt.Printf("SegmentCensus: retrieving %d members for %v\n", s.TotalMembers, s.Name)
 	var a []Supporter
 	rqt := SegSupporterSearchRequest{
 		SegmentID: s.SegmentID,
@@ -150,40 +148,49 @@ func SegmentCensus(e *Environment, s Segment) ([]Supporter, error) {
 	return a, nil
 }
 
-//AllSegmentCensus returns a Census object for all segments.  The Census
-//object describes a segment and all of its supporters.
-func AllSegmentCensus(e *Environment) ([]Census, error) {
-	var a []Census
+//AllSegmentCensus creates a Census object for every segment, then pushes
+//it onto the census channel.  The census channel is closed when all segments
+//have been procssed.
+//
+//Internally, there are goroutines that retrieves segments and pushes census records.
+//
+//Panicking on errors until we find an elegant way to handle them in goroutines.
+//
+//Note!  This function currently discriminates against the DEFAULT segments. TODO: Add filter function.
+func AllSegmentCensus(e *Environment, d chan Census) {
 	c := make(chan Segment)
 	var wg sync.WaitGroup
 
-	// Receiver accounulates a list of Census objects. Goroutine
-	// to handle channel of Setments.
-	go (func(c chan Segment, a []Census, wg *sync.WaitGroup) {
+	//Receiver creates a Census object and pushes it to the output channel.
+	//Census channel is closed after the last segment is processed.
+	//
+	go (func(c chan Segment, d chan Census, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		for true {
 			s, ok := <-c
 			if !ok {
-				return
+				break
 			}
 			if s.Type != SegmentTypeDefault {
-				fmt.Printf("AllSegmentCensus: searching '%v'\n", s.Name)
 				supporters, err := SegmentCensus(e, s)
 				if err != nil {
-					return
+					panic(err)
 				}
-				spop := Census{
+				census := Census{
 					Segment:    s,
 					Supporters: supporters,
 				}
-				a = append(a, spop)
+				d <- census
 			}
 		}
-	})(c, a, &wg)
+		close(d)
+	})(c, d, &wg)
 
-	//Sender sends all segments.  Panicking on an error until we find
-	//a more elegant way to handle errors in a goroutine.
+	//Sender sends all segments to the Census maker.
+	//
+	//Panicking on errors until we find an elegant way to handle them
+	//in goroutines.
 	go (func(c chan Segment, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
@@ -193,5 +200,4 @@ func AllSegmentCensus(e *Environment) ([]Census, error) {
 		}
 	})(c, &wg)
 	wg.Wait()
-	return a, nil
 }
