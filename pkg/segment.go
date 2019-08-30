@@ -1,6 +1,9 @@
 package goengage
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 //SegSearch is used to search for segments.
 const SegSearch = "/api/integration/ext/v1/segments/search"
@@ -66,14 +69,22 @@ type SegSupporterSearchResult struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//Census describes a segment and the supproters that are members.
+//Census describes a segment and the supproters that are members.  This is
+//an aggregate structure used by SegmentCensus.
 type Census struct {
 	Segment
 	Supporters []Supporter
 }
 
-//AllSegments returns all groups.
-func AllSegments(e *Environment, c bool) ([]Segment, error) {
+//AllSegments retrieves all segments (groups) from an Engage instance.  Each
+//segment is pushed onto the provided channel.  The channel is closed when the
+//last segment is pushed.
+//
+//The boolean argument is true (CountYes) if the segment records should contain
+//the number of supporters in the group.  Note tht counting supporters is very
+//expensive in terms of clock time.  *Very* expensive.  Use CountNo unless you
+//must have the number of supporters.
+func AllSegments(e *Environment, c bool, x chan Segment) error {
 	rqt := SegSearchRequest{
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
@@ -88,20 +99,20 @@ func AllSegments(e *Environment, c bool) ([]Segment, error) {
 		Request:  &rqt,
 		Response: &resp,
 	}
-	var a []Segment
 	for rqt.Count > 0 {
 		err := n.Do()
 		if err != nil {
-			panic(err)
+			return err
 		}
 		for _, s := range resp.Segments {
-			a = append(a, s)
+			x <- s
 		}
 		count := len(resp.Segments)
 		rqt.Count = int32(count)
 		rqt.Offset = rqt.Offset + int32(count)
 	}
-	return a, nil
+	close(x)
+	return nil
 }
 
 //SegmentCensus returns the supporters in a group.
@@ -143,23 +154,44 @@ func SegmentCensus(e *Environment, s Segment) ([]Supporter, error) {
 //object describes a segment and all of its supporters.
 func AllSegmentCensus(e *Environment) ([]Census, error) {
 	var a []Census
-	segments, err := AllSegments(e, CountNo)
-	if err != nil {
-		return a, err
-	}
-	fmt.Printf("AllSegmentCensus found %d segments\n", len(segments))
-	for _, s := range segments {
-		if s.Type != SegmentTypeDefault {
-			supporters, err := SegmentCensus(e, s)
-			if err != nil {
-				return a, err
+	c := make(chan Segment)
+	var wg sync.WaitGroup
+
+	// Receiver accounulates a list of Census objects. Goroutine
+	// to handle channel of Setments.
+	go (func(c chan Segment, a []Census, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		for true {
+			s, ok := <-c
+			if !ok {
+				return
 			}
-			spop := Census{
-				Segment:    s,
-				Supporters: supporters,
+			if s.Type != SegmentTypeDefault {
+				fmt.Printf("AllSegmentCensus: searching '%v'\n", s.Name)
+				supporters, err := SegmentCensus(e, s)
+				if err != nil {
+					return
+				}
+				spop := Census{
+					Segment:    s,
+					Supporters: supporters,
+				}
+				a = append(a, spop)
 			}
-			a = append(a, spop)
 		}
-	}
+	})(c, a, &wg)
+
+	//Sender sends all segments.  Panicking on an error until we find
+	//a more elegant way to handle errors in a goroutine.
+	go (func(c chan Segment, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		err := AllSegments(e, CountNo, c)
+		if err != nil {
+			panic(err)
+		}
+	})(c, &wg)
+	wg.Wait()
 	return a, nil
 }
