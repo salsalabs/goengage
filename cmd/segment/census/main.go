@@ -15,7 +15,7 @@ import (
 
 //store accepts Census objects from a channel and writes them to a CSV writer.
 //The writer is managed internally.  You provide a filename.
-func store(c chan goengage.Census, fn string) error {
+func store(c chan goengage.Census, fn string, ids bool) error {
 	//CSV output goes here.
 	f, err := os.Create(fn)
 	if err != nil {
@@ -23,6 +23,9 @@ func store(c chan goengage.Census, fn string) error {
 	}
 	w := csv.NewWriter(f)
 	r := []string{"GroupName", "Email"}
+	if ids {
+		r = []string{"GroupID", "GroupName", "SupporterID", "Email"}
+	}
 	err = w.Write(r)
 	if err != nil {
 		return err
@@ -37,6 +40,9 @@ func store(c chan goengage.Census, fn string) error {
 			email := goengage.FirstEmail(u)
 			if email != nil {
 				r := []string{sName, *email}
+				if ids {
+					r = []string{sName, *email, s.SegmentID, u.SupporterID}
+				}
 				err := w.Write(r)
 				if err != nil {
 					return err
@@ -55,6 +61,7 @@ func main() {
 	var (
 		app   = kingpin.New("see-segment-census", "A command-line app to display segment names and supporters.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
+		ids   = app.Flag("ids", "Segment and supporterIDs in output").Bool()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
@@ -67,14 +74,14 @@ func main() {
 	fn := "group_census.csv"
 	var wg sync.WaitGroup
 
-	go (func(c chan goengage.Census, fn string, wg *sync.WaitGroup) {
+	go (func(c chan goengage.Census, fn string, wg *sync.WaitGroup, ids bool) {
 		wg.Add(1)
 		defer wg.Done()
-		err := store(c, fn)
+		err := store(c, fn, ids)
 		if err != nil {
 			panic(err)
 		}
-	})(c, fn, &wg)
+	})(c, fn, &wg, *ids)
 	fmt.Println("Started store...")
 
 	go (func(e *goengage.Environment, c chan goengage.Census, wg *sync.WaitGroup) {
