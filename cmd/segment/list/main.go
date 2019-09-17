@@ -42,7 +42,7 @@ func main() {
 	var (
 		app   = kingpin.New("see-segments", "A command-line app to search for segments.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
-		count = app.Flag("count", "Show number of count").Bool()
+		count = app.Flag("count", "Show number of supporters (expensive)").Bool()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
@@ -54,18 +54,17 @@ func main() {
 
 	go (func(c chan goengage.Segment, wg *sync.WaitGroup) {
 		wg.Add(1)
-		defer wg.Done()
 		show(c)
+		wg.Done()
 	})(c, &wg)
 
 	go (func(c chan goengage.Segment, wg *sync.WaitGroup, count bool) {
 		wg.Add(1)
-		defer wg.Done()
 		err := goengage.AllSegments(e, count, c)
 		if err != nil {
 			panic(err)
 		}
-
+		wg.Done()
 	})(c, &wg, *count)
 	wg.Wait()
 }
