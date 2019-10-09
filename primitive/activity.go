@@ -16,7 +16,7 @@ const (
 	P2PEventType               = "P2P_EVENT"
 )
 
-//Donation type
+//DonationType type
 const (
 	OneTime   = "ONE_TIME"
 	Recurring = "RECURRING"
@@ -43,8 +43,8 @@ const (
 
 //Event Reason
 const (
-	Donation    = "DONATION"
-	EventTicket = "EVENT_TICKET"
+	EventDonation = "DONATION"
+	EventTicket   = "EVENT_TICKET"
 )
 
 //Transaction type

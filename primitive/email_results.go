@@ -2,13 +2,6 @@ package goengage
 
 import "time"
 
-const (
-	//Email is used for searching for blasts.
-	Email = "Email"
-	//CommSeries is used for searching email series.
-	CommSeries = "CommSeries"
-)
-
 //EmailResultsRequest is used to request email blast activity
 //records for a blast.
 //
