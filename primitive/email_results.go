@@ -17,72 +17,93 @@ type EmailResultsRequest struct {
 
 //EmailResponse is returned when the request type is "Email".
 type EmailResponse struct {
-	ID        string    `json:"id,omitempty"`
-	Timestamp time.Time `json:"timestamp,omitempty"`
-	Header    struct {
-		ProcessingTime int    `json:"processingTime,omitempty"`
-		ServerID       string `json:"serverId,omitempty"`
-	} `json:"header,omitempty"`
-	Payload struct {
-		Total           int `json:"total,omitempty"`
-		Offset          int `json:"offset,omitempty"`
-		EmailActivities []struct {
-			ID          string    `json:"id,omitempty"`
-			Topic       string    `json:"topic,omitempty"`
-			Name        string    `json:"name,omitempty"`
-			Description string    `json:"description,omitempty"`
-			PublishDate time.Time `json:"publishDate,omitempty"`
-			Components  []struct {
-				ContentID     string `json:"contentId,omitempty"`
-				MessageNumber string `json:"messageNumber,omitempty"`
-			} `json:"components,omitempty"`
-		} `json:"emailActivities,omitempty"`
-		Count int `json:"count,omitempty"`
-	} `json:"payload,omitempty"`
+	ID        string               `json:"id"`
+	Timestamp time.Time            `json:"timestamp"`
+	Header    Header               `json:"header"`
+	Payload   EmailResponsePayload `json:"payload"`
+}
+
+//Component is something...
+type Component struct {
+	ContentID     string `json:"contentId"`
+	MessageNumber string `json:"messageNumber"`
+}
+
+//EmailActivity describes the contents of the email.
+type EmailActivity struct {
+	ID          string      `json:"id"`
+	Topic       string      `json:"topic"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	PublishDate time.Time   `json:"publishDate"`
+	Components  []Component `json:"components"`
+}
+
+//EmailResponsePayload holds the content for an email blast search.
+type EmailResponsePayload struct {
+	Total           int             `json:"total"`
+	Offset          int             `json:"offset"`
+	EmailActivities []EmailActivity `json:"emailActivities"`
+	Count           int             `json:"count"`
 }
 
 //SeriesResponse response is returned when the request type is "CommSeries".
 type SeriesResponse struct {
-	ID        string    `json:"id,omitempty"`
-	Timestamp time.Time `json:"timestamp,omitempty"`
-	Header    struct {
-		ProcessingTime int    `json:"processingTime,omitempty"`
-		ServerID       string `json:"serverId,omitempty"`
-	} `json:"header,omitempty"`
-	Payload struct {
-		IndividualEmailActivityData []struct {
-			ID             string `json:"id,omitempty"`
-			Cursor         string `json:"cursor,omitempty"`
-			Name           string `json:"name,omitempty"`
-			RecipientsData struct {
-				Recipients []struct {
-					SupporterID          string    `json:"supporterId,omitempty"`
-					SupporterEmail       string    `json:"supporterEmail,omitempty"`
-					FirstName            string    `json:"firstName,omitempty"`
-					LastName             string    `json:"lastName,omitempty"`
-					Country              string    `json:"country,omitempty"`
-					State                string    `json:"state,omitempty"`
-					City                 string    `json:"city,omitempty"`
-					TimeSent             time.Time `json:"timeSent,omitempty"`
-					SplitName            string    `json:"splitName,omitempty"`
-					Status               string    `json:"status,omitempty"`
-					Opened               bool      `json:"opened,omitempty"`
-					Clicked              bool      `json:"clicked,omitempty"`
-					Converted            bool      `json:"converted,omitempty"`
-					Unsubscribed         bool      `json:"unsubscribed,omitempty"`
-					FirstOpenDate        time.Time `json:"firstOpenDate,omitempty,omitempty"`
-					NumberOfLinksClicked string    `json:"numberOfLinksClicked,omitempty"`
-					ConversionData       []struct {
-						ConversionDate time.Time `json:"conversionDate,omitempty"`
-						ActivityType   string    `json:"activityType,omitempty"`
-						ActivityName   string    `json:"activityName,omitempty"`
-						ActivityID     string    `json:"activityId,omitempty"`
-						Amount         string    `json:"amount,omitempty"`
-						DonationType   string    `json:"donationType,omitempty"`
-					} `json:"conversionData,omitempty,omitempty"`
-				} `json:"recipients,omitempty"`
-				Total int `json:"total,omitempty"`
-			} `json:"recipientsData,omitempty"`
-		} `json:"individualEmailActivityData,omitempty"`
-	} `json:"payload,omitempty"`
+	ID        string                `json:"id"`
+	Timestamp time.Time             `json:"timestamp"`
+	Header    Header                `json:"header"`
+	Payload   SeriesResponsePayload `json:"payload"`
+}
+
+//Conversion hold information about any donatoins made as a result of an
+//email blast.
+type Conversion struct {
+	ConversionDate time.Time `json:"conversionDate"`
+	ActivityType   string    `json:"activityType"`
+	ActivityName   string    `json:"activityName"`
+	ActivityID     string    `json:"activityId"`
+	Amount         string    `json:"amount"`
+	DonationType   string    `json:"donationType"`
+}
+
+//Recipient contains information about an email blast message sent to a
+//supporter.
+type Recipient struct {
+	SupporterID          string       `json:"supporterId"`
+	SupporterEmail       string       `json:"supporterEmail"`
+	FirstName            string       `json:"firstName"`
+	LastName             string       `json:"lastName"`
+	Country              string       `json:"country"`
+	State                string       `json:"state"`
+	City                 string       `json:"city"`
+	TimeSent             time.Time    `json:"timeSent"`
+	SplitName            string       `json:"splitName"`
+	Status               string       `json:"status"`
+	Opened               bool         `json:"opened"`
+	Clicked              bool         `json:"clicked"`
+	Converted            bool         `json:"converted"`
+	Unsubscribed         bool         `json:"unsubscribed"`
+	FirstOpenDate        time.Time    `json:"firstOpenDate,omitempty"`
+	NumberOfLinksClicked string       `json:"numberOfLinksClicked"`
+	Conversions          []Conversion `json:"conversionData,omitempty"`
+}
+
+//RecipientsData contains the list of recpients.
+type RecipientsData struct {
+	Recipients []Recipient `json:"recipients"`
+	Total      int         `json:"total"`
+}
+
+//IndividualEmailActivityData contains information about something.  Not
+//sure, exactly...
+type IndividualEmailActivityData struct {
+	ID             string         `json:"id"`
+	Cursor         string         `json:"cursor"`
+	Name           string         `json:"name"`
+	RecipientsData RecipientsData `json:"recipientsData"`
+}
+
+//SeriesResponsePayload holds the data returned by a series search.
+type SeriesResponsePayload struct {
+	IndividualEmailActivityData []IndividualEmailActivityData `json:"individualEmailActivityData"`
 }

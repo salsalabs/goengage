@@ -59,16 +59,16 @@ type SegmentDeleteResponse struct {
 	Payload   SegmentDeletePayload `json:"payload"`
 }
 
-//DeleteResult describes the result from a single segment delete.
-type DeleteResult struct {
+//SegmentDeleteResult describes the result from a single segment delete.
+type SegmentDeleteResult struct {
 	SegmentID string `json:"segmentId"`
 	Result    string `json:"result"`
 }
 
 //SegmentDeletePayload is a wrapper about for details about deleting segments.
 type SegmentDeletePayload struct {
-	Segments []DeleteResult `json:"segments"`
-	Count    int            `json:"count"`
+	Segments []SegmentDeleteResult `json:"segments"`
+	Count    int                   `json:"count"`
 }
 
 //SegmentSearchRequest contains parameters for searching for segments.  Please
@@ -88,21 +88,25 @@ type SegmentSearchRequest struct {
 	} `json:"payload"`
 }
 
+//SegmentSearchResult contains the results of a search for a segment.
+//Different from a Segment by the fact that it contains extra fields.
+type SegmentSearchResult struct {
+	SegmentID        string `json:"segmentId,omitempty"`
+	Name             string `json:"name,omitempty"`
+	Description      string `json:"description,omitempty"`
+	Type             string `json:"type,omitempty"`
+	TotalMembers     int    `json:"totalMembers,omitempty"`
+	Result           string `json:"result"`
+	ExternalSystemID string `json:"externalSystemId"`
+}
+
 //SegmentSearchResponse contains the results returned by searching for segments.
 type SegmentSearchResponse struct {
 	Payload struct {
-		Count    int `json:"count"`
-		Offset   int `json:"offset"`
-		Total    int `json:"total"`
-		Segments []struct {
-			SegmentID        string `json:"segmentId,omitempty"`
-			Name             string `json:"name,omitempty"`
-			Description      string `json:"description,omitempty"`
-			Type             string `json:"type,omitempty"`
-			TotalMembers     int    `json:"totalMembers,omitempty"`
-			Result           string `json:"result"`
-			ExternalSystemID string `json:"externalSystemId"`
-		} `json:"segments"`
+		Count    int                   `json:"count"`
+		Offset   int                   `json:"offset"`
+		Total    int                   `json:"total"`
+		Segments []SegmentSearchResult `json:"segments"`
 	} `json:"payload"`
 }
 
