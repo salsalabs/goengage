@@ -23,3 +23,6 @@ logins/*
 *.txt
 *.json
 
+# Apple files
+.DS_Store
+*/.DS_Store
