@@ -8,11 +8,11 @@ import "time"
 // See https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
 type EmailResultsRequest struct {
 	Payload struct {
-		Cursor    string `json:"cursor,omitempty,omitempty"`
+		Cursor    string `json:"cursor,omitempty"`
 		Type      string `json:"type,omitempty"`
 		ID        string `json:"id,omitempty"`
-		ContentID string `json:"contentId,omitempty,omitempty"`
-	} `json:"payload,omitempty,omitempty"`
+		ContentID string `json:"contentId,omitempty"`
+	} `json:"payload,omitempty"`
 }
 
 //EmailResponse is returned when the request type is "Email".

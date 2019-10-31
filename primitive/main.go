@@ -61,9 +61,9 @@ type Header struct {
 	ServerID       string `json:"serverId"`
 }
 
-//CustomFieldValues contains information about a custom field.  Note that
-//a supporter will only have custom fields if the values have been
-//set for the supporter.
+//CustomFieldValue contains information about a custom field.  Note that
+//a supporter/activity will only have custom fields if the values have been
+//set in the supporter/activity record.
 type CustomFieldValue struct {
 	FieldID    string    `json:"fieldId"`
 	Name       string    `json:"name"`
