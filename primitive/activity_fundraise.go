@@ -37,6 +37,7 @@ type FundraiseActivity struct {
 	DonationID             string        `json:"donationId,omitempty"`
 	TotalReceivedAmount    float64       `json:"totalReceivedAmount,omitempty"`
 	RecurringAmount        float64       `json:"recurringAmount,omitempty"`
+	OneTimeAmount          float64       `json:"oneTimeAmount,omitempty"`
 	DonationType           string        `json:"donationType,omitempty"`
 	RecurringInterval      string        `json:"recurringInterval,omitempty"`
 	RecurringCount         int           `json:"recurringCount,omitempty"`
