@@ -24,30 +24,37 @@ type Transaction struct {
 
 //FundraiseActivity holds a single fundraising activity.  A fundraising
 //activity is actually a base activity with fundraising-specific fields.
+//Note:  FundraiseActivity also contains recurring fields.  Those will be
+//automatically populated when the ActivityType is "Recurring".
 type FundraiseActivity struct {
-	ActivityID           string        `json:"activityId,omitempty"`
-	ActivityFormName     string        `json:"activityFormName,omitempty"`
-	ActivityFormID       string        `json:"activityFormId,omitempty"`
-	SupporterID          string        `json:"supporterId,omitempty"`
-	ActivityDate         time.Time     `json:"activityDate,omitempty"`
-	ActivityType         string        `json:"activityType,omitempty"`
-	LastModified         time.Time     `json:"lastModified,omitempty"`
-	DonationID           string        `json:"donationId,omitempty"`
-	TotalReceivedAmount  float64       `json:"totalReceivedAmount,omitempty"`
-	OneTimeAmount        float64       `json:"oneTimeAmount,omitempty"`
-	DonationType         string        `json:"donationType,omitempty"`
-	AccountType          string        `json:"accountType,omitempty"`
-	AccountNumber        string        `json:"accountNumber,omitempty"`
-	AccountExpiration    time.Time     `json:"accountExpiration,omitempty"`
-	AccountProvider      string        `json:"accountProvider,omitempty"`
-	PaymentProcessorName string        `json:"paymentProcessorName,omitempty"`
-	FundName             string        `json:"fundName,omitempty"`
-	FundGLCode           string        `json:"fundGLCode,omitempty"`
-	Designation          string        `json:"designation,omitempty"`
-	DedicationType       string        `json:"dedicationType,omitempty"`
-	Dedication           string        `json:"dedication,omitempty"`
-	Notify               string        `json:"notify,omitempty"`
-	Transactions         []Transaction `json:"transactions,omitempty"`
+	ActivityID             string        `json:"activityId,omitempty"`
+	ActivityFormName       string        `json:"activityFormName,omitempty"`
+	ActivityFormID         string        `json:"activityFormId,omitempty"`
+	SupporterID            string        `json:"supporterId,omitempty"`
+	ActivityDate           time.Time     `json:"activityDate,omitempty"`
+	ActivityType           string        `json:"activityType,omitempty"`
+	LastModified           time.Time     `json:"lastModified,omitempty"`
+	DonationID             string        `json:"donationId,omitempty"`
+	TotalReceivedAmount    float64       `json:"totalReceivedAmount,omitempty"`
+	RecurringAmount        float64       `json:"recurringAmount,omitempty"`
+	DonationType           string        `json:"donationType,omitempty"`
+	RecurringInterval      string        `json:"recurringInterval,omitempty"`
+	RecurringCount         int           `json:"recurringCount,omitempty"`
+	RecurringTransactionID string        `json:"recurringTransactionId,omitempty"`
+	RecurringStart         time.Time     `json:"recurringStart,omitempty"`
+	RecurringEnd           time.Time     `json:"recurringEnd,omitempty"`
+	AccountType            string        `json:"accountType,omitempty"`
+	AccountNumber          string        `json:"accountNumber,omitempty"`
+	AccountExpiration      time.Time     `json:"accountExpiration,omitempty"`
+	AccountProvider        string        `json:"accountProvider,omitempty"`
+	PaymentProcessorName   string        `json:"paymentProcessorName,omitempty"`
+	FundName               string        `json:"fundName,omitempty"`
+	FundGLCode             string        `json:"fundGLCode,omitempty"`
+	Designation            string        `json:"designation,omitempty"`
+	DedicationType         string        `json:"dedicationType,omitempty"`
+	Dedication             string        `json:"dedication,omitempty"`
+	Notify                 string        `json:"notify,omitempty"`
+	Transactions           []Transaction `json:"transactions,omitempty"`
 }
 
 //FundraiseResponsePayload holds the activities for a ONE_TIME search.
