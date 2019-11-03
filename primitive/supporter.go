@@ -2,6 +2,24 @@ package goengage
 
 import "time"
 
+//Engage endpoints for supporters.
+const (
+	SupporterSearch = "/api/integration/ext/v1/supporters/search"
+	SupporterUpsert = "/api/integration/ext/v1/supporters"
+	SupporterDelete = "/api/integration/ext/v1/supporters"
+)
+
+//Contact types.
+const (
+	ContactEmail    = "EMAIL"
+	ContactHome     = "HOME_PHONE"
+	ContactCell     = "CELL_PHONE"
+	ContactWork     = "WORK_PHONE"
+	ContactFacebook = "FACEBOOK_ID"
+	ContactTwitter  = "TWITTER_ID"
+	ContactLinkedin = "LINKEDIN_ID"
+)
+
 //SupporterSearchRequest provides the criteria to match when searching
 //for supporters.  Providing no criterria will return all supporters.
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
