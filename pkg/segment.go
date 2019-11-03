@@ -1,14 +1,14 @@
 package goengage
 
-import (
-	"sync"
+import "time"
+
+//Constants for Engage endpoints.
+const (
+	SegmentSearch          = "/api/integration/ext/v1/segments/search"
+	SegmentSupporterSearch = "/api/integration/ext/v1/segments/Supporters/search"
+	SemgentUpsert          = "/api/integration/ext/v1/supporters"
+	SegmentDelete          = "/api/integration/ext/v1/supporters"
 )
-
-//SegSearch is used to search for segments.
-const SegSearch = "/api/integration/ext/v1/segments/search"
-
-//SegSupporterSearch is used to search segments for supporters.
-const SegSupporterSearch = "/api/integration/ext/v1/segments/members/search"
 
 //Constants to drive counting, or not counting, supporters on a segment read.
 //Counting is expensive, sometimes prohibitively so.
@@ -23,181 +23,199 @@ const (
 	SegmentTypeCustom  = "CUSTOM"
 )
 
-//Segment is a named group of supporters.
+//SegmentUpsertRequest is used to add or modify segments.
+type SegmentUpsertRequest struct {
+	Payload struct {
+		Segments []struct {
+			SegmentID        string `json:"segmentId,omitempty"`
+			Name             string `json:"name"`
+			Description      string `json:"description"`
+			ExternalSystemID string `json:"externalSystemId,omitempty"`
+		} `json:"segments"`
+	} `json:"payload"`
+}
+
+//SegmentUpsertResponse returns the results from a SegmentUpsertRequest.
+type SegmentUpsertResponse struct {
+	Payload SegmentUpsertPayload `json:"payload"`
+}
+
+//Segment contains the results of an upsert.
 type Segment struct {
-	SegmentID        string
-	Name             string
-	Description      string
-	Type             string
-	TotalMembers     int32
-	Result           string
-	ExternalSystemID string
+	SegmentID        string  `json:"segmentId,omitempty"`
+	Name             string  `json:"name"`
+	Description      string  `json:"description"`
+	ExternalSystemID string  `json:"externalSystemId"`
+	Result           string  `json:"result"`
+	Errors           []Error `json:"errors,omitempty"`
 }
 
-//SegSearchRequest is used to ask for supporters.
-type SegSearchRequest struct {
-	Identifiers    []string `json:"identifiers,omitempty"`
-	IdentifierType string   `json:"identifierType,omitempty"`
-	Offset         int32    `json:"offset,omitempty"`
-	Count          int32    `json:"count,omitempty"`
-	MemberCounts   bool     `json:"includeMemberCounts,omitempty"`
+//SegmentUpsertPayload wraps the response for a segment upsert.
+type SegmentUpsertPayload struct {
+	Segments []Segment `json:"segments"`
 }
 
-//SegSearchResult is returned when supporters are found by a search.
-type SegSearchResult struct {
-	Count    int32     `json:"count,omitempty"`
-	Offset   int32     `json:"offset,omitempty"`
-	Total    int32     `json:"total,omitempty"`
-	Segments []Segment `json:"segments,omitempty"`
+//SegmentDeleteRequest is used to remove a group.
+type SegmentDeleteRequest struct {
+	Payload struct {
+		Segments []struct {
+			SegmentID string `json:"segmentId"`
+		} `json:"segments"`
+	} `json:"payload"`
 }
 
-//SegSupporterSearchRequest is used to find supporters in a segment.
-//Be sure to pass the correct IdentifierType.
-type SegSupporterSearchRequest struct {
+//SegmentDeleteResponse contains the results from deleting one or more segments.
+type SegmentDeleteResponse struct {
+	ID        string               `json:"id"`
+	Timestamp time.Time            `json:"timestamp"`
+	Header    Header               `json:"header"`
+	Payload   SegmentDeletePayload `json:"payload"`
+}
+
+//SegmentDeleteResult describes the result from a single segment delete.
+type SegmentDeleteResult struct {
+	SegmentID string `json:"segmentId"`
+	Result    string `json:"result"`
+}
+
+//SegmentDeletePayload is a wrapper about for details about deleting segments.
+type SegmentDeletePayload struct {
+	Segments []SegmentDeleteResult `json:"segments"`
+	Count    int                   `json:"count"`
+}
+
+//SegmentSearchRequest contains parameters for searching for segments.  Please
+//see the documentation for details.  Note that true in "includeSupporterCounts"
+//really, *really* slows this call down.  A bunch.
+type SegmentSearchRequest struct {
+	Header struct {
+		RefID string `json:"refId"`
+	} `json:"header"`
+	Payload struct {
+		Offset                 int      `json:"offset"`
+		Count                  int      `json:"count"`
+		Identifiers            []string `json:"identifiers"`
+		IdentifierType         string   `json:"identifierType"`
+		IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
+		JoinedSince            string   `json:"joinedSince"`
+	} `json:"payload"`
+}
+
+//SegmentSearchResult contains the results of a search for a segment.
+//Different from a Segment by the fact that it contains extra fields.
+type SegmentSearchResult struct {
+	SegmentID        string `json:"segmentId,omitempty"`
+	Name             string `json:"name,omitempty"`
+	Description      string `json:"description,omitempty"`
+	Type             string `json:"type,omitempty"`
+	TotalSupporters  int    `json:"totalSupporters,omitempty"`
+	Result           string `json:"result"`
+	ExternalSystemID string `json:"externalSystemId"`
+}
+
+//SegmentSearchResponse contains the results returned by searching for segments.
+type SegmentSearchResponse struct {
+	Payload struct {
+		Count    int                   `json:"count"`
+		Offset   int                   `json:"offset"`
+		Total    int                   `json:"total"`
+		Segments []SegmentSearchResult `json:"segments"`
+	} `json:"payload"`
+}
+
+//AssignSupportersRequest provides the segment and list of supporter IDs
+//that need to be added.
+type AssignSupportersRequest struct {
+	Payload AssignSupportersPayload `json:"payload"`
+}
+
+//AssignSupportersPayload carries the request details.
+type AssignSupportersPayload struct {
 	SegmentID    string   `json:"segmentId"`
-	SupporterIDs []string `json:"supporterIds"`
-	Offset       int32    `json:"offset,omitempty"`
-	Count        int32    `json:"count,omitempty"`
+	SupporterIds []string `json:"supporterIds"`
 }
 
-//SegSupporterSearchResult is returned when supporters are found by a search.
-type SegSupporterSearchResult struct {
-	Count      int32       `json:"count,omitempty"`
-	Offset     int32       `json:"offset,omitempty"`
-	Total      int32       `json:"total,omitempty"`
-	Supporters []Supporter `json:"supporters,omitempty"`
+//AssignSupportersResponse carries the results of adding supporters to a segment.
+type AssignSupportersResponse struct {
+	Payload AssignSupportersResultPayload `json:"payload"`
 }
 
-//Census describes a segment and the supproters that are members.  This is
-//an aggregate structure used by SegmentCensus.
-type Census struct {
-	Segment
-	Supporters []Supporter
+//AssignSupportersResult contains the results of adding supporters to a segment.
+type AssignSupportersResult struct {
+	SupporterID string `json:"supporterId"`
+	Result      string `json:"result"`
 }
 
-//AllSegments retrieves all segments (groups) from an Engage instance.  Each
-//segment is pushed onto the provided channel.  The channel is closed when the
-//last segment is pushed.
-//
-//The boolean argument is true (CountYes) if the segment records should contain
-//the number of supporters in the group.  Note tht counting supporters is very
-//expensive in terms of clock time.  *Very* expensive.  Use CountNo unless you
-//must have the number of supporters.
-func AllSegments(e *Environment, c bool, x chan Segment) error {
-	rqt := SegSearchRequest{
-		Offset:       0,
-		Count:        e.Metrics.MaxBatchSize,
-		MemberCounts: c,
-	}
-	var resp SegSearchResult
-	n := NetOp{
-		Host:     e.Host,
-		Endpoint: SegSearch,
-		Method:   SearchMethod,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
-	for rqt.Count > 0 {
-		err := n.Do()
-		if err != nil {
-			return err
-		}
-		for _, s := range resp.Segments {
-			x <- s
-		}
-		count := len(resp.Segments)
-		rqt.Count = int32(count)
-		rqt.Offset = rqt.Offset + int32(count)
-	}
-	close(x)
-	return nil
+//AssignSupportersResultPayload (argh) wraps the supporters from
+//an assigment request.
+type AssignSupportersResultPayload struct {
+	Supporters []AssignSupportersResult `json:"supporters"`
+	Count      int                      `json:"count"`
 }
 
-//SegmentCensus returns the supporters in a group.
-func SegmentCensus(e *Environment, s Segment) ([]Supporter, error) {
-	var a []Supporter
-	rqt := SegSupporterSearchRequest{
-		SegmentID: s.SegmentID,
-		Offset:    0,
-		Count:     e.Metrics.MaxBatchSize,
-	}
-
-	var resp SegSupporterSearchResult
-	n := NetOp{
-		Host:     e.Host,
-		Endpoint: SegSupporterSearch,
-		Method:   SearchMethod,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
-
-	for rqt.Count > 0 {
-		err := n.Do()
-		if err != nil {
-			return a, err
-		}
-		for _, s := range resp.Supporters {
-			a = append(a, s)
-		}
-		count := len(resp.Supporters)
-		rqt.Count = int32(count)
-		rqt.Offset = rqt.Offset + int32(count)
-	}
-	return a, nil
+//DeleteSupportersRequest provides the segment and list of supporter IDs
+//that need to be added.
+type DeleteSupportersRequest struct {
+	Payload DeleteSupportersPayload `json:"payload"`
 }
 
-//AllSegmentCensus creates a Census object for every segment, then pushes
-//it onto the census channel.  The census channel is closed when all segments
-//have been procssed.
-//
-//Internally, there are goroutines that retrieves segments and pushes census records.
-//
-//Panicking on errors until we find an elegant way to handle them in goroutines.
-//
-//Note!  This function currently discriminates against the DEFAULT segments. TODO: Add filter function.
-func AllSegmentCensus(e *Environment, d chan Census) {
-	c := make(chan Segment)
-	var wg sync.WaitGroup
+//DeleteSupportersPayload carries the request details.
+type DeleteSupportersPayload struct {
+	SegmentID    string   `json:"segmentId"`
+	SupporterIds []string `json:"supporterIds"`
+}
 
-	//Receiver creates a Census object and pushes it to the output channel.
-	//Census channel is closed after the last segment is processed.
-	//
-	go (func(c chan Segment, d chan Census, wg *sync.WaitGroup) {
-		wg.Add(1)
-		defer wg.Done()
-		for true {
-			s, ok := <-c
-			if !ok {
-				break
-			}
-			if s.Type != SegmentTypeDefault {
-				supporters, err := SegmentCensus(e, s)
-				if err != nil {
-					panic(err)
-				}
-				census := Census{
-					Segment:    s,
-					Supporters: supporters,
-				}
-				d <- census
-			}
-		}
-		close(d)
-	})(c, d, &wg)
+//DeleteSupportersResponse carries the results of adding supporters to a segment.
+type DeleteSupportersResponse struct {
+	Payload DeleteSupportersResultPayload `json:"payload"`
+}
 
-	//Sender sends all segments to the Census maker.
-	//
-	//Panicking on errors until we find an elegant way to handle them
-	//in goroutines.
-	go (func(c chan Segment, wg *sync.WaitGroup) {
-		wg.Add(1)
-		defer wg.Done()
-		err := AllSegments(e, CountNo, c)
-		if err != nil {
-			panic(err)
-		}
-	})(c, &wg)
-	wg.Wait()
+//DeleteSupportersResult contains the results of adding supporters to a segment.
+type DeleteSupportersResult struct {
+	SupporterID string `json:"supporterId"`
+	Result      string `json:"result"`
+}
+
+//DeleteSupportersResultPayload (argh) wraps the supporters from
+//an assigment request.
+type DeleteSupportersResultPayload struct {
+	Supporters []DeleteSupportersResult `json:"supporters"`
+	Count      int                      `json:"count"`
+}
+
+//SegmentSupporterSearchRequest requests a list of supporters.  Supplying
+//"supporterIds" constrains the results to just those supporters.
+type SegmentSupporterSearchRequest struct {
+	Header  SegmentSupporterSearchHeader  `json:"header"`
+	Payload SegmentSupporterSearchPayload `json:"payload"`
+}
+
+//SegmentSupporterSearchHeader contains a reference ID provided by the caller.
+type SegmentSupporterSearchHeader struct {
+	RefID string `json:"refId"`
+}
+
+//SegmentSupporterSearchPayload provides the reqest body.
+type SegmentSupporterSearchPayload struct {
+	SegmentID    string   `json:"segmentId"`
+	Offset       int      `json:"offset"`
+	Count        int      `json:"count"`
+	SupporterIds []string `json:"supporterIds"`
+}
+
+//SegmentSupporterSearchResponse contains a list of supporters that match
+//the search criteria.
+type SegmentSupporterSearchResponse struct {
+	ID        string                                `json:"id"`
+	Timestamp time.Time                             `json:"timestamp"`
+	Header    Header                                `json:"header"`
+	Payload   SegmentSupporterSearchResponsePayload `json:"payload"`
+}
+
+//SegmentSupporterSearchResponsePayload (whew) carries information about the found
+//supporters.  Note that Supporter is common for all of Engage.
+type SegmentSupporterSearchResponsePayload struct {
+	Total      int         `json:"total"`
+	Supporters []Supporter `json:"supporters"`
+	Count      int         `json:"count"`
 }
