@@ -19,14 +19,6 @@ type SegmentUpsertResponse struct {
 	Payload SegmentUpsertPayload `json:"payload"`
 }
 
-//Error is returned by the system for segment errors.
-type Error struct {
-	ID        string `json:"id"`
-	Code      int    `json:"code"`
-	Message   string `json:"message"`
-	FieldName string `json:"fieldName"`
-}
-
 //Segment contains the results of an upsert.
 type Segment struct {
 	SegmentID        string  `json:"segmentId,omitempty"`
