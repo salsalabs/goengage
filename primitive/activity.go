@@ -1,7 +1,9 @@
 package goengage
 
-//ActSearch is used to search for activities.
-const ActSearch = "/api/integration/ext/v1/activities/search"
+//Engage endpoints for activities
+const (
+	ActivitySearch = "/api/integration/ext/v1/activities/search"
+)
 
 //Activity types
 const (
