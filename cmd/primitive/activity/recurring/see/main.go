@@ -86,7 +86,7 @@ func main() {
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
 	var resp primitive.RecurringResponse
-	n := goengage.NetOp{
+	n := primitive.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
 		Endpoint: goengage.ActSearch,
@@ -97,7 +97,7 @@ func main() {
 	//b, _ := json.MarshalIndent(n, "", "    ")
 	//fmt.Printf("NetOp: %+v\n", string(b))
 
-	err = n.Do2()
+	err = n.Do()
 	if err != nil {
 		panic(err)
 	}
