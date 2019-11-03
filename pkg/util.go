@@ -1,6 +1,7 @@
 package goengage
 
 import (
+	"errors"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -38,6 +39,9 @@ func Date(s string) time.Time {
 //and an Engage API token.  These are then stored into an
 //environment object.
 func Credentials(fn string) (*Environment, error) {
+	if len(fn) == 0 {
+		return nil, errors.New("A configuration file is *required*.")
+	}
 	var c struct {
 		Token string `json:"token"`
 		Host  string `json:"host"`
