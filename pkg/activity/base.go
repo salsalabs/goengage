@@ -11,10 +11,10 @@ type BaseResponse struct {
 	Payload BaseResponsePayload `json:"payload,omitempty"`
 }
 
-//BaseActivity returns activity information from SUBSCRIBE or
-//SUBSCRIPTION_MANAGEMENT requests.  Note that BaseActivity is actually
+//Base returns activity information from SUBSCRIBE or
+//SUBSCRIPTION_MANAGEMENT requests.  Note that Base is actually
 //contained in the other activity result objects.
-type BaseActivity struct {
+type Base struct {
 	ActivityType     string    `json:"activityType,omitempty"`
 	ActivityID       string    `json:"activityId,omitempty"`
 	ActivityFormName string    `json:"activityFormName,omitempty"`
@@ -27,8 +27,8 @@ type BaseActivity struct {
 //BaseResponsePayload contains the data returned by a SUBSCRIBE or
 //SUBSCRIPTION_MANAGEMENT requests.
 type BaseResponsePayload struct {
-	Total      int            `json:"total,omitempty"`
-	Offset     int            `json:"offset,omitempty"`
-	Count      int            `json:"count,omitempty"`
-	Activities []BaseActivity `json:"activities,omitempty"`
+	Total      int    `json:"total,omitempty"`
+	Offset     int    `json:"offset,omitempty"`
+	Count      int    `json:"count,omitempty"`
+	Activities []Base `json:"activities,omitempty"`
 }

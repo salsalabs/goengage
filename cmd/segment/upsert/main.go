@@ -4,7 +4,7 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	engprimitive "github.com/salsalabs/goengage/primitive"
+	enggoengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	rqt := engprimitive.SegmentUpsertRequest{
+	rqt := enggoengage.SegmentUpsertRequest{
         Payload: {
             Segments: [ {
                 Name: name,

@@ -1,13 +1,17 @@
 package goengage
 
-import "time"
+import (
+	"time"
+
+	goengage "github.com/salsalabs/goengage/pkg"
+)
 
 //Constants for Engage endpoints.
 const (
-	SegmentSearch          = "/api/integration/ext/v1/segments/search"
-	SegmentSupporterSearch = "/api/integration/ext/v1/segments/Supporters/search"
-	SemgentUpsert          = "/api/integration/ext/v1/supporters"
-	SegmentDelete          = "/api/integration/ext/v1/supporters"
+	Search          = "/api/integration/ext/v1/segments/search"
+	SupporterSearch = "/api/integration/ext/v1/segments/Supporters/search"
+	SemgentUpsert   = "/api/integration/ext/v1/supporters"
+	Delete          = "/api/integration/ext/v1/supporters"
 )
 
 //Constants to drive counting, or not counting, supporters on a segment read.
@@ -19,15 +23,15 @@ const (
 
 //Segment types.
 const (
-	SegmentTypeDefault = "DEFAULT"
-	SegmentTypeCustom  = "CUSTOM"
+	TypeDefault = "DEFAULT"
+	TypeCustom  = "CUSTOM"
 )
 
-//SegmentUpsertRequest is used to add or modify segments.
-type SegmentUpsertRequest struct {
+//UpsertRequest is used to add or modify segments.
+type UpsertRequest struct {
 	Payload struct {
 		Segments []struct {
-			SegmentID        string `json:"segmentId,omitempty"`
+			ID               string `json:"segmentId,omitempty"`
 			Name             string `json:"name"`
 			Description      string `json:"description"`
 			ExternalSystemID string `json:"externalSystemId,omitempty"`
@@ -35,14 +39,14 @@ type SegmentUpsertRequest struct {
 	} `json:"payload"`
 }
 
-//SegmentUpsertResponse returns the results from a SegmentUpsertRequest.
-type SegmentUpsertResponse struct {
-	Payload SegmentUpsertPayload `json:"payload"`
+//UpsertResponse returns the results from a UpsertRequest.
+type UpsertResponse struct {
+	Payload UpsertPayload `json:"payload"`
 }
 
 //Segment contains the results of an upsert.
 type Segment struct {
-	SegmentID        string  `json:"segmentId,omitempty"`
+	ID               string  `json:"segmentId,omitempty"`
 	Name             string  `json:"name"`
 	Description      string  `json:"description"`
 	ExternalSystemID string  `json:"externalSystemId"`
@@ -50,13 +54,13 @@ type Segment struct {
 	Errors           []Error `json:"errors,omitempty"`
 }
 
-//SegmentUpsertPayload wraps the response for a segment upsert.
-type SegmentUpsertPayload struct {
+//UpsertPayload wraps the response for a segment upsert.
+type UpsertPayload struct {
 	Segments []Segment `json:"segments"`
 }
 
-//SegmentDeleteRequest is used to remove a group.
-type SegmentDeleteRequest struct {
+//DeleteRequest is used to remove a group.
+type DeleteRequest struct {
 	Payload struct {
 		Segments []struct {
 			SegmentID string `json:"segmentId"`
@@ -64,30 +68,30 @@ type SegmentDeleteRequest struct {
 	} `json:"payload"`
 }
 
-//SegmentDeleteResponse contains the results from deleting one or more segments.
-type SegmentDeleteResponse struct {
-	ID        string               `json:"id"`
-	Timestamp time.Time            `json:"timestamp"`
-	Header    Header               `json:"header"`
-	Payload   SegmentDeletePayload `json:"payload"`
+//DeleteResponse contains the results from deleting one or more segments.
+type DeleteResponse struct {
+	ID        string          `json:"id"`
+	Timestamp time.Time       `json:"timestamp"`
+	Header    goengage.Header `json:"header"`
+	Payload   DeletePayload   `json:"payload"`
 }
 
-//SegmentDeleteResult describes the result from a single segment delete.
-type SegmentDeleteResult struct {
+//DeleteResult describes the result from a single segment delete.
+type DeleteResult struct {
 	SegmentID string `json:"segmentId"`
 	Result    string `json:"result"`
 }
 
-//SegmentDeletePayload is a wrapper about for details about deleting segments.
-type SegmentDeletePayload struct {
-	Segments []SegmentDeleteResult `json:"segments"`
-	Count    int                   `json:"count"`
+//DeletePayload is a wrapper about for details about deleting segments.
+type DeletePayload struct {
+	Segments []DeleteResult `json:"segments"`
+	Count    int            `json:"count"`
 }
 
-//SegmentSearchRequest contains parameters for searching for segments.  Please
+//SearchRequest contains parameters for searching for segments.  Please
 //see the documentation for details.  Note that true in "includeSupporterCounts"
 //really, *really* slows this call down.  A bunch.
-type SegmentSearchRequest struct {
+type SearchRequest struct {
 	Header struct {
 		RefID string `json:"refId"`
 	} `json:"header"`
@@ -101,9 +105,9 @@ type SegmentSearchRequest struct {
 	} `json:"payload"`
 }
 
-//SegmentSearchResult contains the results of a search for a segment.
+//SearchResult contains the results of a search for a segment.
 //Different from a Segment by the fact that it contains extra fields.
-type SegmentSearchResult struct {
+type SearchResult struct {
 	SegmentID        string `json:"segmentId,omitempty"`
 	Name             string `json:"name,omitempty"`
 	Description      string `json:"description,omitempty"`
@@ -113,13 +117,13 @@ type SegmentSearchResult struct {
 	ExternalSystemID string `json:"externalSystemId"`
 }
 
-//SegmentSearchResponse contains the results returned by searching for segments.
-type SegmentSearchResponse struct {
+//SearchResponse contains the results returned by searching for segments.
+type SearchResponse struct {
 	Payload struct {
-		Count    int                   `json:"count"`
-		Offset   int                   `json:"offset"`
-		Total    int                   `json:"total"`
-		Segments []SegmentSearchResult `json:"segments"`
+		Count    int            `json:"count"`
+		Offset   int            `json:"offset"`
+		Total    int            `json:"total"`
+		Segments []SearchResult `json:"segments"`
 	} `json:"payload"`
 }
 
@@ -183,38 +187,33 @@ type DeleteSupportersResultPayload struct {
 	Count      int                      `json:"count"`
 }
 
-//SegmentSupporterSearchRequest requests a list of supporters.  Supplying
+//SupporterSearchRequest requests a list of supporters.  Supplying
 //"supporterIds" constrains the results to just those supporters.
-type SegmentSupporterSearchRequest struct {
-	Header  SegmentSupporterSearchHeader  `json:"header"`
-	Payload SegmentSupporterSearchPayload `json:"payload"`
+type SupporterSearchRequest struct {
+	Header  goengage.Header        `json:"header"`
+	Payload SupporterSearchPayload `json:"payload"`
 }
 
-//SegmentSupporterSearchHeader contains a reference ID provided by the caller.
-type SegmentSupporterSearchHeader struct {
-	RefID string `json:"refId"`
-}
-
-//SegmentSupporterSearchPayload provides the reqest body.
-type SegmentSupporterSearchPayload struct {
+//SupporterSearchPayload provides the reqest body.
+type SupporterSearchPayload struct {
 	SegmentID    string   `json:"segmentId"`
 	Offset       int      `json:"offset"`
 	Count        int      `json:"count"`
 	SupporterIds []string `json:"supporterIds"`
 }
 
-//SegmentSupporterSearchResponse contains a list of supporters that match
+//SupporterSearchResponse contains a list of supporters that match
 //the search criteria.
-type SegmentSupporterSearchResponse struct {
-	ID        string                                `json:"id"`
-	Timestamp time.Time                             `json:"timestamp"`
-	Header    Header                                `json:"header"`
-	Payload   SegmentSupporterSearchResponsePayload `json:"payload"`
+type SupporterSearchResponse struct {
+	ID        string                         `json:"id"`
+	Timestamp time.Time                      `json:"timestamp"`
+	Header    goengage.Header                `json:"header"`
+	Payload   SupporterSearchResponsePayload `json:"payload"`
 }
 
-//SegmentSupporterSearchResponsePayload (whew) carries information about the found
+//SupporterSearchResponsePayload (whew) carries information about the found
 //supporters.  Note that Supporter is common for all of Engage.
-type SegmentSupporterSearchResponsePayload struct {
+type SupporterSearchResponsePayload struct {
 	Total      int         `json:"total"`
 	Supporters []Supporter `json:"supporters"`
 	Count      int         `json:"count"`

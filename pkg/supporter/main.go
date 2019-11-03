@@ -4,9 +4,9 @@ import "time"
 
 //Engage endpoints for supporters.
 const (
-	SupporterSearch = "/api/integration/ext/v1/supporters/search"
-	SupporterUpsert = "/api/integration/ext/v1/supporters"
-	SupporterDelete = "/api/integration/ext/v1/supporters"
+	Search = "/api/integration/ext/v1/supporters/search"
+	Upsert = "/api/integration/ext/v1/supporters"
+	Delete = "/api/integration/ext/v1/supporters"
 )
 
 //Contact types.
@@ -20,18 +20,18 @@ const (
 	ContactLinkedin = "LINKEDIN_ID"
 )
 
-//SupporterSearchRequest provides the criteria to match when searching
+//SearchRequest provides the criteria to match when searching
 //for supporters.  Providing no criterria will return all supporters.
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
 //by identifiers.
-type SupporterSearchRequest struct {
-	Payload SupporterSearchRequestPayload `json:"payload,omitempty"`
+type SearchRequest struct {
+	Payload SearchRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterSearchRequestPayload holds the search criteria.  There are rules
+//SearchRequestPayload holds the search criteria.  There are rules
 //that you need to know about.  See those here
 //https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
-type SupporterSearchRequestPayload struct {
+type SearchRequestPayload struct {
 	Identifiers    []string  `json:"identifiers,omitempty"`
 	IdentifierType string    `json:"identifierType,omitempty"`
 	ModifiedFrom   time.Time `json:"modifiedFrom,omitempty"`
@@ -40,10 +40,10 @@ type SupporterSearchRequestPayload struct {
 	Count          int       `json:"count,omitempty"`
 }
 
-//SupporterSearchResults lists the supporters that match the search criteria.
+//SearchResults lists the supporters that match the search criteria.
 //Note that Supporter is common throughout Engage.
-type SupporterSearchResults struct {
-	Payload SupporterSearchResultsPayload `json:"payload,omitempty"`
+type SearchResults struct {
+	Payload SearchResultsPayload `json:"payload,omitempty"`
 }
 
 //Address holds a street address and geolocation stuff for a supporter.
@@ -88,64 +88,59 @@ type Supporter struct {
 	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty"`
 }
 
-//SupporterSearchResultsPayload wraps the supporters found by a
+//SearchResultsPayload wraps the supporters found by a
 //supporter search request.
-type SupporterSearchResultsPayload struct {
+type SearchResultsPayload struct {
 	Count      int         `json:"count,omitempty"`
 	Offset     int         `json:"offset,omitempty"`
 	Total      int         `json:"total,omitempty"`
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterUpdateRequest provides a list of modified supporter records that
+//UpdateRequest provides a list of modified supporter records that
 //the caller wants to be updated in the database.
-type SupporterUpdateRequest struct {
-	Payload SupporterUpdateRequestPayload `json:"payload,omitempty"`
+type UpdateRequest struct {
+	Payload UpdateRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterUpdateRequestPayload carries the list of supporters to be modified.
-type SupporterUpdateRequestPayload struct {
+//UpdateRequestPayload carries the list of supporters to be modified.
+type UpdateRequestPayload struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterUpdateResponse provides results for the updated supporters.
-type SupporterUpdateResponse struct {
-	Payload SupporterUpdateResponsePayload `json:"payload,omitempty"`
+//UpdateResponse provides results for the updated supporters.
+type UpdateResponse struct {
+	Payload UpdateResponsePayload `json:"payload,omitempty"`
 }
 
-//SupporterUpdateResponsePayload contains the results of modifying supporters.
-type SupporterUpdateResponsePayload struct {
+//UpdateResponsePayload contains the results of modifying supporters.
+type UpdateResponsePayload struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterDeleteRequest is used to delete supporter records.  By the way,
+//DeleteRequest is used to delete supporter records.  By the way,
 //deleted records are gone forever -- they are not coming back, Jim.
-type SupporterDeleteRequest struct {
-	Payload SupporterDeleteRequestPayload `json:"payload,omitempty"`
+type DeleteRequest struct {
+	Payload DeleteRequestPayload `json:"payload,omitempty"`
 }
 
-//Supporters is the way to define a single supporter ID.
-type Supporters struct {
-	SupporterID string `json:"supporterId,omitempty"`
-}
-
-//SupporterDeleteRequestPayload contains the list of supporters to be deleted.
-type SupporterDeleteRequestPayload struct {
+//DeleteRequestPayload contains the list of supporters to be deleted.
+type DeleteRequestPayload struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterDeletedResponse returns the results of deleting supporters.
-type SupporterDeletedResponse struct {
-	Payload SupporterDeletedResponsePayload `json:"payload,omitempty"`
+//DeletedResponse returns the results of deleting supporters.
+type DeletedResponse struct {
+	Payload DeletedResponsePayload `json:"payload,omitempty"`
 }
 
-//SupporterDeleteResult describes the results of deleting a single supporter.
-type SupporterDeleteResult struct {
+//DeleteResult describes the results of deleting a single supporter.
+type DeleteResult struct {
 	SupporterID string `json:"supporterId,omitempty"`
 	Result      string `json:"result,omitempty"`
 }
 
-//SupporterDeletedResponsePayload contains the delete results.
-type SupporterDeletedResponsePayload struct {
-	Supporters []SupporterDeleteResult `json:"supporters,omitempty"`
+//DeletedResponsePayload contains the delete results.
+type DeletedResponsePayload struct {
+	Supporters []DeleteResult `json:"supporters,omitempty"`
 }

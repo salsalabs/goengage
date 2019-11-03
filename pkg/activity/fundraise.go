@@ -22,11 +22,11 @@ type Transaction struct {
 	GatewayAuthorizationCode string    `json:"gatewayAuthorizationCode,omitempty"`
 }
 
-//FundraiseActivity holds a single fundraising activity.  A fundraising
+//Fundraise holds a single fundraising activity.  A fundraising
 //activity is actually a base activity with fundraising-specific fields.
-//Note:  FundraiseActivity also contains recurring fields.  Those will be
+//Note:  Fundraise also contains recurring fields.  Those will be
 //automatically populated when the ActivityType is "Recurring".
-type FundraiseActivity struct {
+type Fundraise struct {
 	ActivityID             string        `json:"activityId,omitempty"`
 	ActivityFormName       string        `json:"activityFormName,omitempty"`
 	ActivityFormID         string        `json:"activityFormId,omitempty"`
@@ -59,8 +59,8 @@ type FundraiseActivity struct {
 
 //FundraiseResponsePayload holds the activities for a ONE_TIME search.
 type FundraiseResponsePayload struct {
-	Total      int                 `json:"total,omitempty"`
-	Offset     int                 `json:"offset,omitempty"`
-	Count      int                 `json:"count,omitempty"`
-	Activities []FundraiseActivity `json:"activities,omitempty"`
+	Total      int         `json:"total,omitempty"`
+	Offset     int         `json:"offset,omitempty"`
+	Count      int         `json:"count,omitempty"`
+	Activities []Fundraise `json:"activities,omitempty"`
 }

@@ -2,7 +2,7 @@ package goengage
 
 //Engage endpoints for activities
 const (
-	ActivitySearch = "/api/integration/ext/v1/activities/search"
+	Search = "/api/integration/ext/v1/activities/search"
 )
 
 //Activity types

@@ -61,10 +61,10 @@ type Purchase struct {
 	Status     string  `json:"status,omitempty"`
 }
 
-//TicketedEventActivity holds information about signup event for a
+//TicketedEvent holds information about signup event for a
 //ticketed event. Note that the Purchases field is only filled in when
 //a P2P event attendee attends an event.
-type TicketedEventActivity struct {
+type TicketedEvent struct {
 	ActivityID           string        `json:"activityId,omitempty"`
 	ActivityFormName     string        `json:"activityFormName,omitempty"`
 	ActivityFormID       string        `json:"activityFormId,omitempty"`
@@ -90,8 +90,8 @@ type TicketedEventActivity struct {
 //TicketedEventResponsePayload contains the data returned for a TICKETED_EVENT
 //search.
 type TicketedEventResponsePayload struct {
-	Total      int                     `json:"total,omitempty"`
-	Offset     int                     `json:"offset,omitempty"`
-	Count      int                     `json:"count,omitempty"`
-	Activities []TicketedEventActivity `json:"activities,omitempty"`
+	Total      int             `json:"total,omitempty"`
+	Offset     int             `json:"offset,omitempty"`
+	Count      int             `json:"count,omitempty"`
+	Activities []TicketedEvent `json:"activities,omitempty"`
 }

@@ -7,11 +7,11 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	primitive "github.com/salsalabs/goengage/primitive"
+	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeBaseResponse(resp primitive.BaseResponse) {
+func seeBaseResponse(resp activity.BaseResponse) {
 	fmt.Println("\nHeader")
 	fmt.Printf("\tProcessingTime: %v\n", resp.Header.ProcessingTime)
 	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
@@ -47,26 +47,26 @@ func main() {
 		panic(err)
 	}
 	types := []string{
-		primitive.SubscriptionManagementType,
-		primitive.SubscribeType,
-		primitive.FundraiseType,
-		primitive.PetitionType,
-		primitive.TargetedLetterType,
-		primitive.TicketedEventType,
-		primitive.P2PEventType,
+		activity.SubscriptionManagementType,
+		activity.SubscribeType,
+		activity.FundraiseType,
+		activity.PetitionType,
+		activity.TargetedLetterType,
+		activity.TicketedEventType,
+		activity.P2PEventType,
 	}
 	for _, r := range types {
-		rqt := primitive.ActivityRequest{
+		rqt := activity.ActivityRequest{
 			Type:         r,
 			Offset:       0,
 			Count:        e.Metrics.MaxBatchSize,
 			ModifiedFrom: "2010-01-01T00:00:00.000Z",
 		}
-		var resp primitive.BaseResponse
-		n := primitive.NetOp{
+		var resp activity.BaseResponse
+		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: goengage.ActSearch,
+			Endpoint: activity.Search,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
