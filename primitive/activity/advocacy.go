@@ -1,16 +1,20 @@
 package goengage
 
-import "time"
+import (
+	"time"
+
+	primitive "github.com/salsalabs/goengage/primitive"
+)
 
 //PetitionResponse is returned when the request type is "PETITION".
 type PetitionResponse struct {
-	Header  Header                  `json:"header,omitempty"`
+	Header  primitive.Header        `json:"header,omitempty"`
 	Payload PetitionResponsePayload `json:"payload,omitempty"`
 }
 
-//PetitionActivity contains information about a petition being signed.
+//Petition contains information about a petition being signed.
 //Note that PetitionActivity starts with the contents of BaseActivity...
-type PetitionActivity struct {
+type Petition struct {
 	ActivityID               string    `json:"activityId,omitempty"`
 	ActivityFormName         string    `json:"activityFormName,omitempty"`
 	ActivityFormID           string    `json:"activityFormId,omitempty"`
@@ -26,15 +30,15 @@ type PetitionActivity struct {
 
 //PetitionResponsePayload contains the data returned for a PETITION search.
 type PetitionResponsePayload struct {
-	Total      int                `json:"total,omitempty"`
-	Offset     int                `json:"offset,omitempty"`
-	Count      int                `json:"count,omitempty"`
-	Activities []PetitionActivity `json:"activities,omitempty"`
+	Total      int        `json:"total,omitempty"`
+	Offset     int        `json:"offset,omitempty"`
+	Count      int        `json:"count,omitempty"`
+	Activities []Petition `json:"activities,omitempty"`
 }
 
 //TargetedLetterResponse is returned when the request is "TARGETED_LETTERS".
 type TargetedLetterResponse struct {
-	Header  Header                        `json:"header,omitempty"`
+	Header  primitive.Header              `json:"header,omitempty"`
 	Payload TargetedLetterResponsePayload `json:"payload,omitempty"`
 }
 
@@ -68,8 +72,8 @@ type Letter struct {
 	Targets            []Target `json:"targets,omitempty"`
 }
 
-//TargetedLetterActivity describes the action taken for a targeted letter.
-type TargetedLetterActivity struct {
+//TargetedLetter describes the action taken for a targeted letter.
+type TargetedLetter struct {
 	ActivityID       string    `json:"activityId,omitempty"`
 	ActivityFormName string    `json:"activityFormName,omitempty"`
 	ActivityFormID   string    `json:"activityFormId,omitempty"`
@@ -82,8 +86,8 @@ type TargetedLetterActivity struct {
 
 //TargetedLetterResponsePayload  contains the data returned for a TARGETED_LETTER search.
 type TargetedLetterResponsePayload struct {
-	Total      int                      `json:"total,omitempty"`
-	Offset     int                      `json:"offset,omitempty"`
-	Count      int                      `json:"count,omitempty"`
-	Activities []TargetedLetterActivity `json:"activities,omitempty"`
+	Total      int              `json:"total,omitempty"`
+	Offset     int              `json:"offset,omitempty"`
+	Count      int              `json:"count,omitempty"`
+	Activities []TargetedLetter `json:"activities,omitempty"`
 }
