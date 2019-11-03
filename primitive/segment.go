@@ -2,6 +2,27 @@ package goengage
 
 import "time"
 
+//Constants for Engage endpoints.
+const (
+	SegmentSearch          = "/api/integration/ext/v1/segments/search"
+	SegmentSupporterSearch = "/api/integration/ext/v1/segments/Supporters/search"
+	SemgentUpsert          = "/api/integration/ext/v1/supporters"
+	SegmentDelete          = "/api/integration/ext/v1/supporters"
+)
+
+//Constants to drive counting, or not counting, supporters on a segment read.
+//Counting is expensive, sometimes prohibitively so.
+const (
+	CountNo  = false
+	CountYes = true
+)
+
+//Segment types.
+const (
+	SegmentTypeDefault = "DEFAULT"
+	SegmentTypeCustom  = "CUSTOM"
+)
+
 //SegmentUpsertRequest is used to add or modify segments.
 type SegmentUpsertRequest struct {
 	Payload struct {
@@ -64,19 +85,19 @@ type SegmentDeletePayload struct {
 }
 
 //SegmentSearchRequest contains parameters for searching for segments.  Please
-//see the documentation for details.  Note that true in "includeMemberCounts"
+//see the documentation for details.  Note that true in "includeSupporterCounts"
 //really, *really* slows this call down.  A bunch.
 type SegmentSearchRequest struct {
 	Header struct {
 		RefID string `json:"refId"`
 	} `json:"header"`
 	Payload struct {
-		Offset              int      `json:"offset"`
-		Count               int      `json:"count"`
-		Identifiers         []string `json:"identifiers"`
-		IdentifierType      string   `json:"identifierType"`
-		IncludeMemberCounts bool     `json:"includeMemberCounts"`
-		JoinedSince         string   `json:"joinedSince"`
+		Offset                 int      `json:"offset"`
+		Count                  int      `json:"count"`
+		Identifiers            []string `json:"identifiers"`
+		IdentifierType         string   `json:"identifierType"`
+		IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
+		JoinedSince            string   `json:"joinedSince"`
 	} `json:"payload"`
 }
 
@@ -87,7 +108,7 @@ type SegmentSearchResult struct {
 	Name             string `json:"name,omitempty"`
 	Description      string `json:"description,omitempty"`
 	Type             string `json:"type,omitempty"`
-	TotalMembers     int    `json:"totalMembers,omitempty"`
+	TotalSupporters  int    `json:"totalSupporters,omitempty"`
 	Result           string `json:"result"`
 	ExternalSystemID string `json:"externalSystemId"`
 }
@@ -162,38 +183,38 @@ type DeleteSupportersResultPayload struct {
 	Count      int                      `json:"count"`
 }
 
-//SearchSegmentSupportersRequest requests a list of supporters.  Supplying
+//SegmentSupporterSearchRequest requests a list of supporters.  Supplying
 //"supporterIds" constrains the results to just those supporters.
-type SearchSegmentSupportersRequest struct {
-	Header  SearchSegmentSupportersHeader  `json:"header"`
-	Payload SearchSegmentSupportersPayload `json:"payload"`
+type SegmentSupporterSearchRequest struct {
+	Header  SegmentSupporterSearchHeader  `json:"header"`
+	Payload SegmentSupporterSearchPayload `json:"payload"`
 }
 
-//SearchSegmentSupportersHeader contains a reference ID provided by the caller.
-type SearchSegmentSupportersHeader struct {
+//SegmentSupporterSearchHeader contains a reference ID provided by the caller.
+type SegmentSupporterSearchHeader struct {
 	RefID string `json:"refId"`
 }
 
-//SearchSegmentSupportersPayload provides the reqest body.
-type SearchSegmentSupportersPayload struct {
+//SegmentSupporterSearchPayload provides the reqest body.
+type SegmentSupporterSearchPayload struct {
 	SegmentID    string   `json:"segmentId"`
 	Offset       int      `json:"offset"`
 	Count        int      `json:"count"`
 	SupporterIds []string `json:"supporterIds"`
 }
 
-//SearchSegmentSupportersResponse contains a list of supporters that match
+//SegmentSupporterSearchResponse contains a list of supporters that match
 //the search criteria.
-type SearchSegmentSupportersResponse struct {
-	ID        string                              `json:"id"`
-	Timestamp time.Time                           `json:"timestamp"`
-	Header    Header                              `json:"header"`
-	Payload   SearchSegmentSupportersFoundPayload `json:"payload"`
+type SegmentSupporterSearchResponse struct {
+	ID        string                                `json:"id"`
+	Timestamp time.Time                             `json:"timestamp"`
+	Header    Header                                `json:"header"`
+	Payload   SegmentSupporterSearchResponsePayload `json:"payload"`
 }
 
-//SearchSegmentSupportersFoundPayload carries information about the found
+//SegmentSupporterSearchResponsePayload (whew) carries information about the found
 //supporters.  Note that Supporter is common for all of Engage.
-type SearchSegmentSupportersFoundPayload struct {
+type SegmentSupporterSearchResponsePayload struct {
 	Total      int         `json:"total"`
 	Supporters []Supporter `json:"supporters"`
 	Count      int         `json:"count"`
