@@ -13,6 +13,12 @@ const (
 	ContentType = "application/json"
 	//SearchMethod is always "POST" in Engage.
 	SearchMethod = http.MethodPost
+	//UpsertMethod is always "PUT" in Engage.
+	UpsertMethod = http.MethodPut
+	//GetMethod is always "GET" in Engage".
+	GetMethod = http.MethodGet
+	//DeleteMethod is always "Delete" in Engage.
+	DeleteMethod = http.MethodDelete
 )
 
 //Environment is the Engage environment.
