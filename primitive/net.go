@@ -37,32 +37,27 @@ func (n *NetOp) Do() error {
 	//Prep a request if it is provided.  Typically it is, but may not
 	//be needed for some Engage API calls.  Newbie note: r is automatically
 	//nil.
-	var r *bytes.Reader
-	var err error
-	if n.Request != nil {
-		rqt := goengage.Request{
-			Payload: n.Request,
-		}
-		b, err := json.Marshal(rqt)
-		if err != nil {
-			return err
-		}
-		r = bytes.NewReader(b)
-	}
-
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
 	u.Host = n.Host
 	var req *http.Request
+	var err error
+
 	if n.Request == nil {
-		//'r' is a concrete instantiation.  Setting it to nil is not the
-		//same as passing a nil, apparently.  Interesting, no?
 		req, err = http.NewRequest(n.Method, u.String(), nil)
+		if err != nil {
+			return err
+		}
 	} else {
+		b, err := json.Marshal(n.Request)
+		if err != nil {
+			return err
+		}
+		r := bytes.NewReader(b)
 		req, err = http.NewRequest(n.Method, u.String(), r)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	req.Header.Set("authToken", n.Token)
 	req.Header.Set("Content-Type", goengage.ContentType)
