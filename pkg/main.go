@@ -1,87 +1,74 @@
 package goengage
 
-import (
-	"net/http"
-)
+import "time"
 
+//Segment constants
 const (
-	//UatHost is the hostname for Engage instances on the test server.
-	UatHost = "hq.uat.igniteaction.net"
-	//ProdHost is the hostname for Engage instances on the production server.
-	ProdHost = "api.salsalabs.org"
-	//ContentType is always Javascript.
-	ContentType = "application/json"
-	//SearchMethod is always "POST" in Engage.
-	SearchMethod = http.MethodPost
+	//Added indicates that the provided segment was added to the system
+	Added = "ADDED"
+	//Updated indicates that the provided segment was updated
+	Updated = "UPDATED"
+	//NotAllowed indicates that the segment represented by the provided id
+	//is not allowed to be modified via the API.
+	NotAllowed = "NOT_ALLOWED"
 )
 
-//Environment is the Engage environment.
-type Environment struct {
-	Host    string
-	Token   string
-	Metrics MetricData
+//Merge supporter records esult value constants.
+const (
+	//Found will be reported for the destination supporter if no updates were
+	//specified to be performed.
+	Found = "FOUND"
+	//Update will be reported for the destination supporter if updates were
+	//specified. It will also be reported on the main payload if the merge
+	//operation was successful.
+	Update = "UPDATE"
+	//NotFound will be reported for the destination or source supporter if the
+	//provided id(s) do not exist.
+	NotFound = "NOT_FOUND"
+	//Deleted will be reported for the source supporter on a successful merge.
+	Deleted = "DELETED"
+	//ValidationError will be reported on the main payload if either the source
+	//or the destination supporter is not found, or a request to update the
+	//destination was specified and validation errors occurred during that
+	//update.
+	ValidationError = "VALIDATION_ERROR"
+	//SystemError if the merge could not be completed.
+	SystemError = "SYSTEM_ERROR"
+)
+
+// Types for searching for email results.
+const (
+	//Email is used for searching for blasts.
+	//Email = "Email"
+	//CommSeries is used for searching email series.
+	CommSeries = "CommSeries"
+)
+
+//Contact types.
+const (
+	Email     = "EMAIL"
+	HomePhone = "HOME_PHONE"
+	CellPhone = "CELL_PHONE"
+	WorkPhone = "WORK_PHONE"
+	Facebook  = "FACEBOOK_ID"
+	Twitter   = "TWITTER_ID"
+	Linkedin  = "LINKEDIN_ID"
+)
+
+//Header returns server-side information for Engage API calls.
+type Header struct {
+	ProcessingTime int    `json:"processingTime"`
+	ServerID       string `json:"serverId"`
 }
 
-//Error is used to report Engage errors.
-type Error struct {
-	ID        string `json:"id,omitempty"`
-	Code      int    `json:"code,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Details   string `json:"details,omitempty"`
-	FieldName string `json:"fieldName,omitempty"`
-}
-
-//Request is the common structure for a request.  YOur request object
-//gets stored in Payload automatically by net.Do().
-type Request struct {
-	Header struct {
-		RefID string `json:"refId,omitempty"`
-	} `json:"header,omitempty"`
-	Payload interface{} `json:"payload"`
-}
-
-//Response is the common structure for a request.  YOur request object
-//gets stored in Payload automatically by net.Do().
-type Response struct {
-	ID        string `json:"id"`
-	Timestamp string `json:"timestamp"`
-	Header    struct {
-		ProcessingTime int    `json:"processingTime"`
-		ServerID       string `json:"serverId"`
-	} `json:"header,omitempty"`
-	Errors  []Error     `json:"errors,omitempty"`
-	Payload interface{} `json:"payload"`
-}
-
-//NewEnvironment creates a new Environment and initializes the metrics.
-//Panics if updating the metrics returns an error.
-func NewEnvironment(h string, t string) Environment {
-	e := Environment{
-		Host:  h,
-		Token: t,
-	}
-	err := (&e).UpdateMetrics()
-	if err != nil {
-		panic(err)
-	}
-	return e
-}
-
-//UpdateMetrics reads metrics and returns them.
-func (e *Environment) UpdateMetrics() error {
-	var resp MetricData
-	n := NetOp{
-		Host:     e.Host,
-		Endpoint: MetricsCommand,
-		Method:   http.MethodGet,
-		Token:    e.Token,
-		Request:  nil,
-		Response: &resp,
-	}
-	err := n.Do()
-	if err != nil {
-		return err
-	}
-	e.Metrics = resp
-	return nil
+//CustomFieldValue contains information about a custom field.  Note that
+//a supporter/activity will only have custom fields if the values have been
+//set in the supporter/activity record.
+type CustomFieldValue struct {
+	FieldID    string    `json:"fieldId"`
+	Name       string    `json:"name"`
+	Value      string    `json:"value"`
+	Type       string    `json:"type"`
+	OptInDate  time.Time `json:"optInDate,omitempty"`
+	OptOutDate time.Time `json:"optOutDate,omitempty"`
 }
