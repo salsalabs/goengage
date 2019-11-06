@@ -40,7 +40,7 @@ func Date(s string) time.Time {
 //environment object.
 func Credentials(fn string) (*Environment, error) {
 	if len(fn) == 0 {
-		return nil, errors.New("A configuration file is *required*.")
+		return nil, errors.New(" configuration file is *required*")
 	}
 	var c struct {
 		Token string `json:"token"`
@@ -53,6 +53,9 @@ func Credentials(fn string) (*Environment, error) {
 	err = yaml.Unmarshal(raw, &c)
 	if err != nil {
 		return nil, err
+	}
+	if len(c.Host) == 0 {
+		c.Host = APIHost
 	}
 	e := NewEnvironment(c.Host, c.Token)
 	return &e, nil
