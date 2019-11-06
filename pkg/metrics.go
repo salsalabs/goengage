@@ -1,36 +1,48 @@
 package goengage
 
+import "time"
+
 //MetricsCommand is used to retrieve runtime metrics.
 const MetricsCommand = "/api/integration/ext/v1/metrics"
 
-//MetricData contains the measurable stsuff in Engage.
-type MetricData struct {
-	RateLimit                      int32  `json:"rateLimit"`
-	MaxBatchSize                   int32  `json:"maxBatchSize"`
-	CurrentRateLimit               int32  `json:"currentRateLimit"`
-	TotalAPICalls                  int32  `json:"totalAPICalls"`
-	LastAPICall                    string `json:"lastAPICall"`
-	TotalAPICallFailures           int32  `json:"totalAPICallFailures"`
-	LastAPICallFailure             string `json:"lastAPICallFailure"`
-	ActivityFundraise              int32  `json:"activityFundraise"`
-	ActivityP2PEvent               int32  `json:"activityP2PEvent"`
-	ActivityPetition               int32  `json:"activityPetition"`
-	ActivitySubscribe              int32  `json:"activitySubscribe"`
-	ActivitySubscriptionManagement int32  `json:"activitySubscriptionManagement"`
-	ActivityTargetedLetter         int32  `json:"activityTargetedLetter"`
-	ActivityTicketedEvent          int32  `json:"activityTicketedEvent"`
-	OfflineDonationAdd             int32  `json:"offlineDonationAdd"`
-	OfflineDonationUpdate          int32  `json:"offlineDonationUpdate"`
-	SegmentAdd                     int32  `json:"segmentAdd"`
-	SegmentDelete                  int32  `json:"segmentDelete"`
-	SegmentRead                    int32  `json:"segmentRead"`
-	SegmentUpdate                  int32  `json:"segmentUpdate"`
-	SegmentAssignmentAdd           int32  `json:"segmentAssignmentAdd"`
-	SegmentAssignmentDelete        int32  `json:"segmentAssignmentDelete"`
-	SegmentAssignmentRead          int32  `json:"segmentAssignmentRead"`
-	SegmentAssignmentUpdate        int32  `json:"segmentAssignmentUpdate"`
-	SupporterAdd                   int32  `json:"supporterAdd"`
-	SupporterDelete                int32  `json:"supporterDelete"`
-	SupporterRead                  int32  `json:"supporterRead"`
-	SupporterUpdate                int32  `json:"supporterUpdate"`
+//There metrics command does not require request JSON.
+
+//MetricsResponse wraps the results of the metrics call.
+type MetricsResponse struct {
+	ID        string    `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
+	Header    Header    `json:"header"`
+	Payload   Metrics   `json:"payload"`
+}
+
+//Metrics data returned via the Metrics call.
+//See https://help.salsalabs.com/hc/en-us/articles/224531208-General-Use#understanding-available-calls-remaining
+type Metrics struct {
+	RateLimit                      int       `json:"rateLimit"`
+	MaxBatchSize                   int       `json:"maxBatchSize"`
+	SupporterRead                  int       `json:"supporterRead"`
+	SupporterAdd                   int       `json:"supporterAdd"`
+	SupporterDelete                int       `json:"supporterDelete"`
+	SupporterUpdate                int       `json:"supporterUpdate"`
+	SegmentRead                    int       `json:"segmentRead"`
+	SegmentAdd                     int       `json:"segmentAdd"`
+	SegmentDelete                  int       `json:"segmentDelete"`
+	SegmentUpdate                  int       `json:"segmentUpdate"`
+	SegmentAssignmentRead          int       `json:"segmentAssignmentRead"`
+	SegmentAssignmentAdd           int       `json:"segmentAssignmentAdd"`
+	SegmentAssignmentUpdate        int       `json:"segmentAssignmentUpdate"`
+	SegmentAssignmentDelete        int       `json:"segmentAssignmentDelete"`
+	OfflineDonationAdd             int       `json:"offlineDonationAdd"`
+	OfflineDonationUpdate          int       `json:"offlineDonationUpdate"`
+	ActivityTicketedEvent          int       `json:"activityTicketedEvent"`
+	ActivityP2PEvent               int       `json:"activityP2PEvent"`
+	ActivitySubscribe              int       `json:"activitySubscribe"`
+	ActivityFundraise              int       `json:"activityFundraise"`
+	ActivityTargetedLetter         int       `json:"activityTargetedLetter"`
+	ActivityPetition               int       `json:"activityPetition"`
+	ActivitySubscriptionManagement int       `json:"activitySubscriptionManagement"`
+	LastAPICall                    time.Time `json:"lastAPICall"`
+	TotalAPICalls                  int       `json:"totalAPICalls"`
+	TotalAPICallFailures           int       `json:"totalAPICallFailures"`
+	CurrentRateLimit               int       `json:"currentRateLimit"`
 }
