@@ -124,11 +124,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rqt := activity.ActivityRequest{
+	payload := activity.ActivityRequestPayload{
 		Type:         activity.TicketedEventType,
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
-		ModifiedFrom: "2010-01-01T00:00:00.000Z",
+		ModifiedFrom: "2000-01-01T00:00:00.000Z",
+	}
+	rqt := activity.ActivityRequest{
+		Header:  goengage.Header{},
+		Payload: payload,
 	}
 	var resp activity.TicketedEventResponse
 	n := goengage.NetOp{

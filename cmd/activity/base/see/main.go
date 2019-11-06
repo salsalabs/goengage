@@ -12,16 +12,6 @@ import (
 )
 
 func seeBaseResponse(resp activity.BaseResponse) {
-	fmt.Println("\nHeader")
-	fmt.Printf("\tProcessingTime: %v\n", resp.Header.ProcessingTime)
-	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
-
-	fmt.Println("\nPayload")
-	fmt.Printf("\tTotal: %v\n", resp.Payload.Total)
-	fmt.Printf("\tOffset: %v\n", resp.Payload.Offset)
-	fmt.Printf("\tCount: %v\n", resp.Payload.Count)
-	fmt.Printf("\tLength: %v\n", len(resp.Payload.Activities))
-
 	fmt.Println("\nActivities")
 	for i, a := range resp.Payload.Activities {
 		fmt.Printf("%2d %v %v %v %v %v %v %v\n",
@@ -56,11 +46,15 @@ func main() {
 		activity.P2PEventType,
 	}
 	for _, r := range types {
-		rqt := activity.ActivityRequest{
+		payload := activity.ActivityRequestPayload{
 			Type:         r,
 			Offset:       0,
 			Count:        e.Metrics.MaxBatchSize,
-			ModifiedFrom: "2010-01-01T00:00:00.000Z",
+			ModifiedFrom: "2000-01-01T00:00:00.000Z",
+		}
+		rqt := activity.ActivityRequest{
+			Header:  goengage.Header{},
+			Payload: payload,
 		}
 		var resp activity.BaseResponse
 		n := goengage.NetOp{

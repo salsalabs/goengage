@@ -1,5 +1,7 @@
 package goengage
 
+import goengage "github.com/salsalabs/goengage/pkg"
+
 //Engage endpoints for activities
 const (
 	Search = "/api/integration/ext/v1/activities/search"
@@ -122,6 +124,12 @@ const (
 //date range.  Choose one and provide the necessary data.  The remainder
 //will be ignored when the request is sent to Engage.
 type ActivityRequest struct {
+	Header  goengage.Header        `json:"header"`
+	Payload ActivityRequestPayload `json:"payload"`
+}
+
+//ActivityRequestPayload provides criteria for the activities to retrieve from Engage.
+type ActivityRequestPayload struct {
 	Type            string   `json:"type,omitempty"`
 	Offset          int32    `json:"offset"`
 	Count           int32    `json:"count"`
