@@ -52,7 +52,6 @@ func (n *NetOp) Do() error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("net.Do: request %s\n", string(b))
 		r := bytes.NewReader(b)
 		req, err = http.NewRequest(n.Method, u.String(), r)
 		if err != nil {

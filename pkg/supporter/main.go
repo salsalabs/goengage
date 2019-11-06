@@ -41,7 +41,7 @@ type SearchRequestPayload struct {
 	ModifiedFrom   time.Time `json:"modifiedFrom,omitempty"`
 	ModifiedTo     time.Time `json:"modifiedTo,omitempty"`
 	Offset         int       `json:"offset,omitempty"`
-	Count          int       `json:"count,omitempty"`
+	Count          int32       `json:"count,omitempty"`
 }
 
 //SearchResults lists the supporters that match the search criteria.
@@ -53,7 +53,7 @@ type SearchResults struct {
 //SearchResultsPayload wraps the supporters found by a
 //supporter search request.
 type SearchResultsPayload struct {
-	Count      int                  `json:"count,omitempty"`
+	Count      int32                  `json:"count,omitempty"`
 	Offset     int                  `json:"offset,omitempty"`
 	Total      int                  `json:"total,omitempty"`
 	Supporters []goengage.Supporter `json:"supporters,omitempty"`

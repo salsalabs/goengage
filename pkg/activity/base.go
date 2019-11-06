@@ -33,6 +33,6 @@ type Base struct {
 type BaseResponsePayload struct {
 	Total      int    `json:"total,omitempty"`
 	Offset     int    `json:"offset,omitempty"`
-	Count      int    `json:"count,omitempty"`
+	Count      int32    `json:"count,omitempty"`
 	Activities []Base `json:"activities,omitempty"`
 }

@@ -32,7 +32,7 @@ type Petition struct {
 type PetitionResponsePayload struct {
 	Total      int        `json:"total,omitempty"`
 	Offset     int        `json:"offset,omitempty"`
-	Count      int        `json:"count,omitempty"`
+	Count      int32        `json:"count,omitempty"`
 	Activities []Petition `json:"activities,omitempty"`
 }
 
@@ -88,6 +88,6 @@ type TargetedLetter struct {
 type TargetedLetterResponsePayload struct {
 	Total      int              `json:"total,omitempty"`
 	Offset     int              `json:"offset,omitempty"`
-	Count      int              `json:"count,omitempty"`
+	Count      int32              `json:"count,omitempty"`
 	Activities []TargetedLetter `json:"activities,omitempty"`
 }

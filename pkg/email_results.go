@@ -44,7 +44,7 @@ type EmailResponsePayload struct {
 	Total           int             `json:"total"`
 	Offset          int             `json:"offset"`
 	EmailActivities []EmailActivity `json:"emailActivities"`
-	Count           int             `json:"count"`
+	Count           int32             `json:"count"`
 }
 
 //SeriesResponse response is returned when the request type is "CommSeries".

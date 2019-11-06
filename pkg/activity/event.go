@@ -96,6 +96,6 @@ type TicketedEvent struct {
 type TicketedEventResponsePayload struct {
 	Total      int             `json:"total,omitempty"`
 	Offset     int             `json:"offset,omitempty"`
-	Count      int             `json:"count,omitempty"`
+	Count      int32             `json:"count,omitempty"`
 	Activities []TicketedEvent `json:"activities,omitempty"`
 }

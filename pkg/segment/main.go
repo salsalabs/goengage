@@ -85,7 +85,7 @@ type DeleteResult struct {
 //DeletePayload is a wrapper about for details about deleting segments.
 type DeletePayload struct {
 	Segments []DeleteResult `json:"segments"`
-	Count    int            `json:"count"`
+	Count    int32            `json:"count"`
 }
 
 //SearchRequest contains parameters for searching for segments.  Please
@@ -97,7 +97,7 @@ type SearchRequest struct {
 	} `json:"header"`
 	Payload struct {
 		Offset                 int      `json:"offset"`
-		Count                  int      `json:"count"`
+		Count                  int32      `json:"count"`
 		Identifiers            []string `json:"identifiers"`
 		IdentifierType         string   `json:"identifierType"`
 		IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
@@ -120,7 +120,7 @@ type SearchResult struct {
 //SearchResponse contains the results returned by searching for segments.
 type SearchResponse struct {
 	Payload struct {
-		Count    int            `json:"count"`
+		Count    int32            `json:"count"`
 		Offset   int            `json:"offset"`
 		Total    int            `json:"total"`
 		Segments []SearchResult `json:"segments"`
@@ -154,7 +154,7 @@ type AssignSupportersResult struct {
 //an assigment request.
 type AssignSupportersResultPayload struct {
 	Supporters []AssignSupportersResult `json:"supporters"`
-	Count      int                      `json:"count"`
+	Count      int32                      `json:"count"`
 }
 
 //DeleteSupportersRequest provides the segment and list of supporter IDs
@@ -184,7 +184,7 @@ type DeleteSupportersResult struct {
 //an assigment request.
 type DeleteSupportersResultPayload struct {
 	Supporters []DeleteSupportersResult `json:"supporters"`
-	Count      int                      `json:"count"`
+	Count      int32                      `json:"count"`
 }
 
 //SupporterSearchRequest requests a list of supporters.  Supplying
@@ -198,7 +198,7 @@ type SupporterSearchRequest struct {
 type SupporterSearchPayload struct {
 	SegmentID    string   `json:"segmentId"`
 	Offset       int      `json:"offset"`
-	Count        int      `json:"count"`
+	Count        int32      `json:"count"`
 	SupporterIds []string `json:"supporterIds"`
 }
 
@@ -216,5 +216,5 @@ type SupporterSearchResponse struct {
 type SupporterSearchResponsePayload struct {
 	Total      int         `json:"total"`
 	Supporters []Supporter `json:"supporters"`
-	Count      int         `json:"count"`
+	Count      int32         `json:"count"`
 }
