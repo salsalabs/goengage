@@ -123,8 +123,8 @@ const (
 //will be ignored when the request is sent to Engage.
 type ActivityRequest struct {
 	Type            string   `json:"type,omitempty"`
-	Offset          int32    `json:"offset,omitempty"`
-	Count           int32    `json:"count,omitempty"`
+	Offset          int32    `json:"offset"`
+	Count           int32    `json:"count"`
 	ActivityIDs     []string `json:"activityIds,omitempty"`
 	ActivityFormIDs []string `json:"activityFormIds,omitempty"`
 	ModifiedFrom    string   `json:"modifiedFrom,omitempty"`

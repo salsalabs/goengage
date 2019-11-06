@@ -1,10 +1,14 @@
 package goengage
 
-import "time"
+import (
+	"time"
+
+	goengage "github.com/salsalabs/goengage/pkg"
+)
 
 //FundraiseResponse is returned for requests of type "FUNDRAISE".
 type FundraiseResponse struct {
-	Header  Header                   `json:"header,omitempty"`
+	Header  goengage.Header          `json:"header,omitempty"`
 	Payload FundraiseResponsePayload `json:"payload,omitempty"`
 }
 

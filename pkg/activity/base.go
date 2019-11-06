@@ -1,13 +1,17 @@
 package goengage
 
-import "time"
+import (
+	"time"
+
+	goengage "github.com/salsalabs/goengage/pkg"
+)
 
 //BaseResponse is the set of common fields returned for all activities.
 //Some activities (like SUBSCRIBE or SUBSCRIPTION_MANAGEMENT) only return
 //ActivityBase.  Other activities, like donations, events and P2P, return
 //data appended to the base.
 type BaseResponse struct {
-	Header  Header              `json:"header,omitempty"`
+	Header  goengage.Header     `json:"header,omitempty"`
 	Payload BaseResponsePayload `json:"payload,omitempty"`
 }
 

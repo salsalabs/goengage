@@ -6,10 +6,11 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
+	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeTicketedEventResponse(resp goengage.TicketedEventResponse) {
+func seeTicketedEventResponse(resp activity.TicketedEventResponse) {
 	fmt.Println("\nHeader")
 	fmt.Printf("\tProcessingTime: %v\n", resp.Header.ProcessingTime)
 	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
@@ -123,17 +124,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rqt := goengage.ActivityRequest{
-		Type:         goengage.TicketedEventType,
+	rqt := activity.ActivityRequest{
+		Type:         activity.TicketedEventType,
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
 		ModifiedFrom: "2010-01-01T00:00:00.000Z",
 	}
-	var resp goengage.TicketedEventResponse
+	var resp activity.TicketedEventResponse
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Endpoint: goengage.ActSearch,
+		Endpoint: activity.Search,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,

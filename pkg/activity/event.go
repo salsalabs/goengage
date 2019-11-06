@@ -1,12 +1,16 @@
 package goengage
 
-import "time"
+import (
+	"time"
+
+	goengage "github.com/salsalabs/goengage/pkg"
+)
 
 //TicketedEventResponse is returned when the request type is "TICKETED_EVENT"
 //or "P2P_EVENT".  P2P events differ from ticketed events by containing purchase
 //information.  A ticketed event will not have a 'Purchases" field.
 type TicketedEventResponse struct {
-	Header  Header                       `json:"header,omitempty"`
+	Header  goengage.Header              `json:"header,omitempty"`
 	Payload TicketedEventResponsePayload `json:"payload,omitempty"`
 }
 

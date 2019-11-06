@@ -6,10 +6,11 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
+	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeTargetedLetterResponse(resp goengage.TargetedLetterResponse) {
+func seeTargetedLetterResponse(resp activity.TargetedLetterResponse) {
 	fmt.Println("\nHeader")
 	fmt.Printf("\tProcessingTime: %v\n", resp.Header.ProcessingTime)
 	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
@@ -74,17 +75,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rqt := goengage.ActivityRequest{
-		Type:         goengage.TargetedLetterType,
+	rqt := activity.ActivityRequest{
+		Type:         activity.TargetedLetterType,
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
-		ModifiedFrom: "2010-01-01T00:00:00.000Z",
+		ModifiedFrom: "2000-01-01T00:00:00.000Z",
 	}
-	var resp goengage.TargetedLetterResponse
+	var resp activity.TargetedLetterResponse
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Endpoint: goengage.ActSearch,
+		Endpoint: activity.Search,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
