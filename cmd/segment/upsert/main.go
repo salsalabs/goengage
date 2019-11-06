@@ -4,7 +4,6 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	enggoengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 

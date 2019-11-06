@@ -2,6 +2,8 @@ package goengage
 
 import "time"
 
+
+
 //Segment constants
 const (
 	//Added indicates that the provided segment was added to the system
@@ -71,4 +73,46 @@ type CustomFieldValue struct {
 	Type       string    `json:"type"`
 	OptInDate  time.Time `json:"optInDate,omitempty"`
 	OptOutDate time.Time `json:"optOutDate,omitempty"`
+}
+
+//Address holds a street address and geolocation stuff for a supporter.
+type Address struct {
+	AddressLine1 string    `json:"addressLine1,omitempty"`
+	AddressLine2 string    `json:"addressLine2,omitempty"`
+	City         string    `json:"city,omitempty"`
+	State        string    `json:"state,omitempty"`
+	PostalCode   string    `json:"postalCode,omitempty"`
+	County       string    `json:"county,omitempty"`
+	Country      string    `json:"country,omitempty"`
+	Lattitude    float64   `json:"lattitude,omitempty"`
+	Longitude    float64   `json:"longitude,omitempty"`
+	Status       string    `json:"status,omitempty"`
+	OptInDate    time.Time `json:"optInDate,omitempty"`
+}
+
+//Contact holds a way to communicate with a supporter.  Typical contacts
+//include email address and phone numbers.
+type Contact struct {
+	Type   string `json:"type,omitempty"`
+	Value  string `json:"value,omitempty"`
+	Status string `json:"status,omitempty,omitempty"`
+}
+
+//Supporter describes a single Engage supporter.
+type Supporter struct {
+	SupporterID       string             `json:"supporterId,omitempty"`
+	Result            string             `json:"result,omitempty"`
+	Title             string             `json:"title,omitempty"`
+	FirstName         string             `json:"firstName,omitempty"`
+	MiddleName        string             `json:"middleName,omitempty"`
+	LastName          string             `json:"lastName,omitempty"`
+	Suffix            string             `json:"suffix,omitempty"`
+	DateOfBirth       time.Time          `json:"dateOfBirth,omitempty"`
+	Gender            string             `json:"gender,omitempty"`
+	CreatedDate       time.Time          `json:"createdDate,omitempty"`
+	LastModified      time.Time          `json:"lastModified,omitempty"`
+	ExternalSystemID  string             `json:"externalSystemId,omitempty"`
+	Address           Address            `json:"address,omitempty"`
+	Contacts          []Contact          `json:"contacts,omitempty"`
+	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty"`
 }

@@ -46,12 +46,12 @@ type UpsertResponse struct {
 
 //Segment contains the results of an upsert.
 type Segment struct {
-	ID               string  `json:"segmentId,omitempty"`
-	Name             string  `json:"name"`
-	Description      string  `json:"description"`
-	ExternalSystemID string  `json:"externalSystemId"`
-	Result           string  `json:"result"`
-	Errors           []Error `json:"errors,omitempty"`
+	ID               string           `json:"segmentId,omitempty"`
+	Name             string           `json:"name"`
+	Description      string           `json:"description"`
+	ExternalSystemID string           `json:"externalSystemId"`
+	Result           string           `json:"result"`
+	Errors           []goengage.Error `json:"errors,omitempty"`
 }
 
 //UpsertPayload wraps the response for a segment upsert.
@@ -70,10 +70,10 @@ type DeleteRequest struct {
 
 //DeleteResponse contains the results from deleting one or more segments.
 type DeleteResponse struct {
-	ID        string          `json:"id"`
-	Timestamp time.Time       `json:"timestamp"`
-	Header    goengage.Header `json:"header"`
-	Payload   DeletePayload   `json:"payload"`
+	ID        string        `json:"id"`
+	Timestamp time.Time     `json:"timestamp"`
+	Header    Header        `json:"header"`
+	Payload   DeletePayload `json:"payload"`
 }
 
 //DeleteResult describes the result from a single segment delete.
@@ -190,7 +190,7 @@ type DeleteSupportersResultPayload struct {
 //SupporterSearchRequest requests a list of supporters.  Supplying
 //"supporterIds" constrains the results to just those supporters.
 type SupporterSearchRequest struct {
-	Header  goengage.Header        `json:"header"`
+	Header  Header                 `json:"header"`
 	Payload SupporterSearchPayload `json:"payload"`
 }
 
@@ -207,7 +207,7 @@ type SupporterSearchPayload struct {
 type SupporterSearchResponse struct {
 	ID        string                         `json:"id"`
 	Timestamp time.Time                      `json:"timestamp"`
-	Header    goengage.Header                `json:"header"`
+	Header    Header                         `json:"header"`
 	Payload   SupporterSearchResponsePayload `json:"payload"`
 }
 

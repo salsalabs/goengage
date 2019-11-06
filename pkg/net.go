@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	goengage "github.com/salsalabs/goengage/pkg"
 )
 
 //NetOp is the wrapper for calls to Engage.  Here to keep
@@ -37,6 +35,7 @@ func (n *NetOp) Do() error {
 	//Prep a request if it is provided.  Typically it is, but may not
 	//be needed for some Engage API calls.  Newbie note: r is automatically
 	//nil.
+
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
 	u.Host = n.Host
@@ -60,7 +59,7 @@ func (n *NetOp) Do() error {
 		}
 	}
 	req.Header.Set("authToken", n.Token)
-	req.Header.Set("Content-Type", goengage.ContentType)
+	req.Header.Set("Content-Type", ContentType)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

@@ -7,7 +7,6 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 

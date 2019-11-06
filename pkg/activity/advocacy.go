@@ -1,14 +1,10 @@
 package goengage
 
-import (
-	"time"
-
-	goengage "github.com/salsalabs/goengage/pkg"
-)
+import "time"
 
 //PetitionResponse is returned when the request type is "PETITION".
 type PetitionResponse struct {
-	Header  goengage.Header        `json:"header,omitempty"`
+	Header  Header                  `json:"header,omitempty"`
 	Payload PetitionResponsePayload `json:"payload,omitempty"`
 }
 
@@ -38,7 +34,7 @@ type PetitionResponsePayload struct {
 
 //TargetedLetterResponse is returned when the request is "TARGETED_LETTERS".
 type TargetedLetterResponse struct {
-	Header  goengage.Header              `json:"header,omitempty"`
+	Header  Header                        `json:"header,omitempty"`
 	Payload TargetedLetterResponsePayload `json:"payload,omitempty"`
 }
 

@@ -1,14 +1,15 @@
 package goengage
 
 import (
+	"fmt"
 	"net/http"
 )
 
 const (
-	//UatHost is the hostname for Engage instances on the test server.
-	UatHost = "hq.uat.igniteaction.net"
-	//ProdHost is the hostname for Engage instances on the production server.
-	ProdHost = "api.salsalabs.org"
+	//UATHost is the hostname for Engage instances on the test server.
+	UATHost = "hq.uat.igniteaction.net"
+	//APIHost is the hostname for Engage instances on the production server.
+	APIHost = "api.salsalabs.org"
 	//ContentType is always Javascript.
 	ContentType = "application/json"
 	//SearchMethod is always "POST" in Engage.
@@ -19,7 +20,7 @@ const (
 type Environment struct {
 	Host    string
 	Token   string
-	Metrics MetricData
+	Metrics Metrics
 }
 
 //Error is used to report Engage errors.
@@ -69,7 +70,7 @@ func NewEnvironment(h string, t string) Environment {
 
 //UpdateMetrics reads metrics and returns them.
 func (e *Environment) UpdateMetrics() error {
-	var resp MetricData
+	var resp MetricsResponse
 	n := NetOp{
 		Host:     e.Host,
 		Endpoint: MetricsCommand,
@@ -82,6 +83,7 @@ func (e *Environment) UpdateMetrics() error {
 	if err != nil {
 		return err
 	}
-	e.Metrics = resp
+	fmt.Printf("Updated metrics: %+v\n", resp)
+	e.Metrics = resp.Payload
 	return nil
 }
