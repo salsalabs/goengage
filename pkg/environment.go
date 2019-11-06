@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -83,7 +82,6 @@ func (e *Environment) UpdateMetrics() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Updated metrics: %+v\n", resp)
 	e.Metrics = resp.Payload
 	return nil
 }
