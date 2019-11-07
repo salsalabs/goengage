@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/salsalabs/goengage/pkg"
+	supporter "github.com/salsalabs/goengage/pkg/supporter"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -30,31 +31,48 @@ func main() {
 		panic(err)
 	}
 
-	a := []string{*email}
-	rqt := goengage.SupSearchIDRequest{
-		Identifiers:    a,
-		IdentifierType: "EMAIL_ADDRESS",
-		Offset:         0,
-		Count:          int32(len(a)),
-	}
-	var resp goengage.SupSearchResult
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: goengage.SupSearch,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
-	err = n.Do()
-	if err != nil {
-		panic(err)
-	}
-	for _, s := range resp.Payload.Supporters {
-		b, err := json.MarshalIndent(s, "", "  ")
+	count := int32(e.Metrics.MaxBatchSize)
+	offset := int32(0)
+	// from := goengage.Date("2000-01-01T00:00:00.000Z")
+	// to := goengage.Date("2100-01-01T00:00:00.000Z")
+	for count == int32(e.Metrics.MaxBatchSize) {
+		payload := supporter.SupporterSearchPayload{
+			Identifiers:    []string{*email},
+			IdentifierType: supporter.EmailAddressType,
+			Offset:         offset,
+			Count:          e.Metrics.MaxBatchSize,
+		}
+		rqt := supporter.SupporterSearch{
+			Header:  goengage.Header{},
+			Payload: payload,
+		}
+		var resp supporter.SupporterSearchResults
+		n := goengage.NetOp{
+			Host:     e.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: supporter.Search,
+			Token:    e.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(string(b))
+		b, _ := json.MarshalIndent(rqt, "", "    ")
+		fmt.Printf("Request:\n%v\n", string(b))
+		b, _ = json.MarshalIndent(resp, "", "    ")
+		fmt.Printf("Response:\n%v\n", string(b))
+		count = resp.Payload.Count
+		for i, s := range resp.Payload.Supporters {
+			email := goengage.FirstEmail(s)
+			fmt.Printf("%2d %-20v %-20v %v\n",
+				i+1,
+				s.FirstName,
+				s.LastName,
+				email)
+			b, _ := json.MarshalIndent(s, "", "    ")
+			fmt.Println(string(b))
+		}
 	}
 }
