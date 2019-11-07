@@ -82,7 +82,7 @@ func main() {
 		ModifiedFrom: "2000-01-01T00:00:00.000Z",
 	}
 	rqt := activity.ActivityRequest{
-		Header:  goengage.Header{},
+		Header:  goengage.RequestHeader{RefID: "abcdefg"},
 		Payload: payload,
 	}
 	var resp activity.TargetedLetterResponse

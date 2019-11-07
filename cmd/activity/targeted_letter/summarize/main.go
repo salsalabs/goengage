@@ -41,7 +41,7 @@ func process(e *goengage.Environment, offset int32) (int32, error) {
 		ModifiedTo:   "2019-10-31T00:00:00.0Z",
 	}
 	rqt := activity.ActivityRequest{
-		Header:  goengage.Header{},
+		Header:  goengage.RequestHeader{RefID: "cmd/activity/targeted_letter/summarize"},
 		Payload: payload,
 	}
 	var resp activity.BaseResponse

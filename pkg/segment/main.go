@@ -29,6 +29,7 @@ const (
 
 //UpsertRequest is used to add or modify segments.
 type UpsertRequest struct {
+	Header  goengage.RequestHeader `json:"header,omitempty"`
 	Payload struct {
 		Segments []struct {
 			ID               string `json:"segmentId,omitempty"`
@@ -41,7 +42,8 @@ type UpsertRequest struct {
 
 //UpsertResponse returns the results from a UpsertRequest.
 type UpsertResponse struct {
-	Payload UpsertPayload `json:"payload"`
+	Header  goengage.Header `json:"header,omitempty"`
+	Payload UpsertPayload   `json:"payload"`
 }
 
 //Segment contains the results of an upsert.
@@ -61,6 +63,7 @@ type UpsertPayload struct {
 
 //DeleteRequest is used to remove a group.
 type DeleteRequest struct {
+	Header  goengage.RequestHeader `json:"header,omitempty"`
 	Payload struct {
 		Segments []struct {
 			SegmentID string `json:"segmentId"`
@@ -70,10 +73,10 @@ type DeleteRequest struct {
 
 //DeleteResponse contains the results from deleting one or more segments.
 type DeleteResponse struct {
-	ID        string        `json:"id"`
-	Timestamp time.Time     `json:"timestamp"`
-	Header    Header        `json:"header"`
-	Payload   DeletePayload `json:"payload"`
+	ID        string          `json:"id"`
+	Timestamp time.Time       `json:"timestamp"`
+	Header    goengage.Header `json:"header"`
+	Payload   DeletePayload   `json:"payload"`
 }
 
 //DeleteResult describes the result from a single segment delete.
@@ -85,24 +88,25 @@ type DeleteResult struct {
 //DeletePayload is a wrapper about for details about deleting segments.
 type DeletePayload struct {
 	Segments []DeleteResult `json:"segments"`
-	Count    int32            `json:"count"`
+	Count    int32          `json:"count"`
 }
 
 //SearchRequest contains parameters for searching for segments.  Please
 //see the documentation for details.  Note that true in "includeSupporterCounts"
 //really, *really* slows this call down.  A bunch.
 type SearchRequest struct {
-	Header struct {
-		RefID string `json:"refId"`
-	} `json:"header"`
-	Payload struct {
-		Offset                 int32      `json:"offset"`
-		Count                  int32      `json:"count"`
-		Identifiers            []string `json:"identifiers"`
-		IdentifierType         string   `json:"identifierType"`
-		IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
-		JoinedSince            string   `json:"joinedSince"`
-	} `json:"payload"`
+	Header  goengage.RequestHeader `json:"header,omitempty"`
+	Payload SearchRequestPayload   `json:"payload,omitempty"`
+}
+
+//SearchRequestPayload contains the request criteria.
+type SearchRequestPayload struct {
+	Offset                 int32    `json:"offset"`
+	Count                  int32    `json:"count"`
+	Identifiers            []string `json:"identifiers"`
+	IdentifierType         string   `json:"identifierType"`
+	IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
+	JoinedSince            string   `json:"joinedSince"`
 }
 
 //SearchResult contains the results of a search for a segment.
@@ -120,9 +124,9 @@ type SearchResult struct {
 //SearchResponse contains the results returned by searching for segments.
 type SearchResponse struct {
 	Payload struct {
-		Count    int32            `json:"count"`
-		Offset   int32            `json:"offset"`
-		Total    int32            `json:"total"`
+		Count    int32          `json:"count"`
+		Offset   int32          `json:"offset"`
+		Total    int32          `json:"total"`
 		Segments []SearchResult `json:"segments"`
 	} `json:"payload"`
 }
@@ -130,6 +134,7 @@ type SearchResponse struct {
 //AssignSupportersRequest provides the segment and list of supporter IDs
 //that need to be added.
 type AssignSupportersRequest struct {
+	Header  goengage.RequestHeader  `json:"header,omitempty"`
 	Payload AssignSupportersPayload `json:"payload"`
 }
 
@@ -154,12 +159,13 @@ type AssignSupportersResult struct {
 //an assigment request.
 type AssignSupportersResultPayload struct {
 	Supporters []AssignSupportersResult `json:"supporters"`
-	Count      int32                      `json:"count"`
+	Count      int32                    `json:"count"`
 }
 
 //DeleteSupportersRequest provides the segment and list of supporter IDs
 //that need to be added.
 type DeleteSupportersRequest struct {
+	Header  goengage.RequestHeader  `json:"header,omitempty"`
 	Payload DeleteSupportersPayload `json:"payload"`
 }
 
@@ -184,21 +190,21 @@ type DeleteSupportersResult struct {
 //an assigment request.
 type DeleteSupportersResultPayload struct {
 	Supporters []DeleteSupportersResult `json:"supporters"`
-	Count      int32                      `json:"count"`
+	Count      int32                    `json:"count"`
 }
 
 //SupporterSearchRequest requests a list of supporters.  Supplying
 //"supporterIds" constrains the results to just those supporters.
 type SupporterSearchRequest struct {
-	Header  Header                 `json:"header"`
+	Header  goengage.RequestHeader `json:"header,omitempty"`
 	Payload SupporterSearchPayload `json:"payload"`
 }
 
 //SupporterSearchPayload provides the reqest body.
 type SupporterSearchPayload struct {
 	SegmentID    string   `json:"segmentId"`
-	Offset       int32      `json:"offset"`
-	Count        int32      `json:"count"`
+	Offset       int32    `json:"offset"`
+	Count        int32    `json:"count"`
 	SupporterIds []string `json:"supporterIds"`
 }
 
@@ -207,14 +213,14 @@ type SupporterSearchPayload struct {
 type SupporterSearchResponse struct {
 	ID        string                         `json:"id"`
 	Timestamp time.Time                      `json:"timestamp"`
-	Header    Header                         `json:"header"`
+	Header    goengage.Header                `json:"header"`
 	Payload   SupporterSearchResponsePayload `json:"payload"`
 }
 
 //SupporterSearchResponsePayload (whew) carries information about the found
 //supporters.  Note that Supporter is common for all of Engage.
 type SupporterSearchResponsePayload struct {
-	Total      int32         `json:"total"`
-	Supporters []Supporter `json:"supporters"`
-	Count      int32         `json:"count"`
+	Total      int32                `json:"total"`
+	Supporters []goengage.Supporter `json:"supporters"`
+	Count      int32                `json:"count"`
 }

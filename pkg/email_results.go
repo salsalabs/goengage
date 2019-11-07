@@ -1,12 +1,15 @@
 package goengage
 
-import "time"
+import (
+	"time"
+)
 
 //EmailResultsRequest is used to request email blast activity
 //records for a blast.
 //
 // See https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
 type EmailResultsRequest struct {
+	Header  RequestHeader `json:"header,omitempty"`
 	Payload struct {
 		Cursor    string `json:"cursor,omitempty"`
 		Type      string `json:"type,omitempty"`
@@ -41,10 +44,10 @@ type EmailActivity struct {
 
 //EmailResponsePayload holds the content for an email blast search.
 type EmailResponsePayload struct {
-	Total           int32             `json:"total"`
-	Offset          int32             `json:"offset"`
+	Total           int32           `json:"total"`
+	Offset          int32           `json:"offset"`
 	EmailActivities []EmailActivity `json:"emailActivities"`
-	Count           int32             `json:"count"`
+	Count           int32           `json:"count"`
 }
 
 //SeriesResponse response is returned when the request type is "CommSeries".
@@ -91,7 +94,7 @@ type Recipient struct {
 //RecipientsData contains the list of recpients.
 type RecipientsData struct {
 	Recipients []Recipient `json:"recipients"`
-	Total      int32         `json:"total"`
+	Total      int32       `json:"total"`
 }
 
 //IndividualEmailActivityData contains information about something.  Not

@@ -36,7 +36,7 @@ const (
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
 //by identifiers.
 type SupporterSearch struct {
-	Header  goengage.Header        `json:"header,omitempty"`
+	Header  goengage.RequestHeader `json:"header,omitempty"`
 	Payload SupporterSearchPayload `json:"payload,omitempty"`
 }
 
@@ -73,7 +73,8 @@ type SupporterSearchResultsPayload struct {
 //UpdateRequest provides a list of modified supporter records that
 //the caller wants to be updated in the database.
 type UpdateRequest struct {
-	Payload UpdateRequestPayload `json:"payload,omitempty"`
+	Header  goengage.RequestHeader `json:"header,omitempty"`
+	Payload UpdateRequestPayload   `json:"payload,omitempty"`
 }
 
 //UpdateRequestPayload carries the list of supporters to be modified.
@@ -83,6 +84,7 @@ type UpdateRequestPayload struct {
 
 //UpdateResponse provides results for the updated supporters.
 type UpdateResponse struct {
+	Header  goengage.tHeader      `json:"header,omitempty"`
 	Payload UpdateResponsePayload `json:"payload,omitempty"`
 }
 
@@ -94,7 +96,8 @@ type UpdateResponsePayload struct {
 //DeleteRequest is used to delete supporter records.  By the way,
 //deleted records are gone forever -- they are not coming back, Jim.
 type DeleteRequest struct {
-	Payload DeleteRequestPayload `json:"payload,omitempty"`
+	Header  goengage.RequestHeader `json:"header,omitempty"`
+	Payload DeleteRequestPayload   `json:"payload,omitempty"`
 }
 
 //DeleteRequestPayload contains the list of supporters to be deleted.
@@ -104,6 +107,7 @@ type DeleteRequestPayload struct {
 
 //DeletedResponse returns the results of deleting supporters.
 type DeletedResponse struct {
+	Header  goengage.Header        `json:"header,omitempty"`
 	Payload DeletedResponsePayload `json:"payload,omitempty"`
 }
 

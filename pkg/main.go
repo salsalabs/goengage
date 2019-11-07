@@ -2,8 +2,6 @@ package goengage
 
 import "time"
 
-
-
 //Segment constants
 const (
 	//Added indicates that the provided segment was added to the system
@@ -56,6 +54,11 @@ const (
 	Twitter   = "TWITTER_ID"
 	Linkedin  = "LINKEDIN_ID"
 )
+
+//RequestHeader provides a reference ID.
+type RequestHeader struct {
+	RefID string `json:"refId,omitEmpty"`
+}
 
 //Header returns server-side information for Engage API calls.
 type Header struct {

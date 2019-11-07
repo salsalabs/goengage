@@ -124,7 +124,7 @@ const (
 //date range.  Choose one and provide the necessary data.  The remainder
 //will be ignored when the request is sent to Engage.
 type ActivityRequest struct {
-	Header  goengage.Header        `json:"header"`
+	Header  goengage.RequestHeader `json:"header"`
 	Payload ActivityRequestPayload `json:"payload"`
 }
 

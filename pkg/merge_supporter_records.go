@@ -19,6 +19,7 @@ type Source struct {
 
 //MergeSupporterRecordsRequest specifies both source and destination supporters to be merged.
 type MergeSupporterRecordsRequest struct {
+	Header  RequestHeader `json:"header,omitempty"`
 	Payload struct {
 		Destination Destination `json:"destination"`
 		Source      Source      `json:"source"`
@@ -27,6 +28,7 @@ type MergeSupporterRecordsRequest struct {
 
 //MergeSupporterRecordsResponse shows the results of the merge request.
 type MergeSupporterRecordsResponse struct {
+	Header  Header `json:"header,omitempty"`
 	Payload struct {
 		Destination Destination `json:"destination"`
 		Source      Source      `json:"source"`
