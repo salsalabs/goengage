@@ -1,12 +1,12 @@
 package goengage
 
 import (
-	"errors"
-	"io/ioutil"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
 	"strings"
 	"time"
-
-	"gopkg.in/yaml.v2"
 )
 
 //FirstEmail returns the first email address for the provided supporter.
@@ -35,28 +35,37 @@ func Date(s string) time.Time {
 	return t
 }
 
-//Credentials reads a YAML file containing an Engage API host
-//and an Engage API token.  These are then stored into an
-//environment object.
-func Credentials(fn string) (*Environment, error) {
-	if len(fn) == 0 {
-		return nil, errors.New(" configuration file is *required*")
-	}
-	var c struct {
-		Token string `json:"token"`
-		Host  string `json:"host"`
-	}
-	raw, err := ioutil.ReadFile(fn)
+//UtilLogger is an environment to support a file logger.  It contains
+//a log.Logger attached to a file.
+type UtilLogger struct {
+	File   *os.File
+	Logger *log.Logger
+}
+
+//NewUtilLogger creates a file and attaches a logger to it.  The file is generic
+//looking with the date-time that this object was created.
+func NewUtilLogger() (*UtilLogger, error) {
+	u := UtilLogger{}
+	now := time.Now()
+	t := now.Format("2006-01-02T15:04:05")
+	t = fmt.Sprintf("%v_log.txt", t)
+	f, err := os.OpenFile(t, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, err
+		return &u, err
 	}
-	err = yaml.Unmarshal(raw, &c)
-	if err != nil {
-		return nil, err
+	u.File = f
+	u.Logger = log.New(u.File, "", 0)
+	return &u, err
+}
+
+//LogJSON is used to write the contents of a byte slice to the log
+//as formatted JSON.  Note that no writes are performed if the Logger
+//object hasn't been initialized.
+func (u *UtilLogger) LogJSON(b []byte) {
+	if u.Logger != nil {
+		var x interface{}
+		_ = json.Unmarshal(b, &x)
+		t, _ := json.MarshalIndent(x, "", "\t")
+		u.Logger.Println(string(t))
 	}
-	if len(c.Host) == 0 {
-		c.Host = APIHost
-	}
-	e := NewEnvironment(c.Host, c.Token)
-	return &e, nil
 }

@@ -1,6 +1,20 @@
 package goengage
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
+
+const (
+	//UATHost is the hostname for Engage instances on the test server.
+	UATHost = "hq.uat.igniteaction.net"
+	//APIHost is the hostname for Engage instances on the production server.
+	APIHost = "api.salsalabs.org"
+	//ContentType is always Javascript.
+	ContentType = "application/json"
+	//SearchMethod is always "POST" in Engage.
+	SearchMethod = http.MethodPost
+)
 
 //Segment constants
 const (
@@ -54,6 +68,15 @@ const (
 	Twitter   = "TWITTER_ID"
 	Linkedin  = "LINKEDIN_ID"
 )
+
+//Error is used to report Engage errors.
+type Error struct {
+	ID        string `json:"id,omitempty"`
+	Code      int    `json:"code,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Details   string `json:"details,omitempty"`
+	FieldName string `json:"fieldName,omitempty"`
+}
 
 //RequestHeader provides a reference ID.
 type RequestHeader struct {

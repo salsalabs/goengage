@@ -19,6 +19,7 @@ type NetOp struct {
 	Token    string
 	Request  interface{}
 	Response interface{}
+	Logger   *UtilLogger
 }
 
 //Do is a generic API request/response handler.  Uses the contents of
@@ -52,6 +53,9 @@ func (n *NetOp) Do() error {
 		if err != nil {
 			return err
 		}
+		if n.Logger != nil {
+			n.Logger.LogJSON(b)
+		}
 		r := bytes.NewReader(b)
 		req, err = http.NewRequest(n.Method, u.String(), r)
 		if err != nil {
@@ -74,6 +78,9 @@ func (n *NetOp) Do() error {
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
+	}
+	if n.Logger != nil {
+		n.Logger.LogJSON(b)
 	}
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {

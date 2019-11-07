@@ -3,11 +3,9 @@ package main
 //Application scan the activities database from top to bottom and write them
 //to the console.
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
-	"strings"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 	activity "github.com/salsalabs/goengage/pkg/activity"
@@ -45,6 +43,10 @@ func process(e *goengage.Environment, offset int32) (int32, error) {
 		Payload: payload,
 	}
 	var resp activity.BaseResponse
+	logger, err := goengage.NewUtilLogger()
+	if err != nil {
+		return 0, err
+	}
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
@@ -52,22 +54,17 @@ func process(e *goengage.Environment, offset int32) (int32, error) {
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
+		Logger:   logger,
 	}
-	err := n.Do()
+	err = n.Do()
 	if err != nil {
 		return 0, err
 	}
-	// fmt.Printf("process:  offset: %2d, requested: %2d, total: %2d, returned %2d\n",
-	// 	offset,
-	// 	rqt.Payload.Count,
-	// 	resp.Payload.Total,
-	// 	resp.Payload.Count)
-	b, _ := json.MarshalIndent(rqt, "", "    ")
-	fmt.Printf("Request: %+v\n", string(b))
-	b, _ = json.MarshalIndent(resp, "", "    ")
-	fmt.Printf("Response: %+v\n", string(b))
-	fmt.Println(strings.Repeat("=", 70))
-	// seeBaseResponse(resp)
+	fmt.Printf("process:  offset: %2d, requested: %2d, total: %2d, returned %2d\n",
+		offset,
+		rqt.Payload.Count,
+		resp.Payload.Total,
+		resp.Payload.Count)
 	return resp.Payload.Count, nil
 }
 

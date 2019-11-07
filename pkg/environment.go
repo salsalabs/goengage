@@ -1,18 +1,11 @@
 package goengage
 
 import (
+	"errors"
+	"io/ioutil"
 	"net/http"
-)
 
-const (
-	//UATHost is the hostname for Engage instances on the test server.
-	UATHost = "hq.uat.igniteaction.net"
-	//APIHost is the hostname for Engage instances on the production server.
-	APIHost = "api.salsalabs.org"
-	//ContentType is always Javascript.
-	ContentType = "application/json"
-	//SearchMethod is always "POST" in Engage.
-	SearchMethod = http.MethodPost
+	yaml "gopkg.in/yaml.v2"
 )
 
 //Environment is the Engage environment.
@@ -20,37 +13,6 @@ type Environment struct {
 	Host    string
 	Token   string
 	Metrics Metrics
-}
-
-//Error is used to report Engage errors.
-type Error struct {
-	ID        string `json:"id,omitempty"`
-	Code      int    `json:"code,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Details   string `json:"details,omitempty"`
-	FieldName string `json:"fieldName,omitempty"`
-}
-
-//Request is the common structure for a request.  YOur request object
-//gets stored in Payload automatically by net.Do().
-type Request struct {
-	Header struct {
-		RefID string `json:"refId,omitempty"`
-	} `json:"header,omitempty"`
-	Payload interface{} `json:"payload"`
-}
-
-//Response is the common structure for a request.  YOur request object
-//gets stored in Payload automatically by net.Do().
-type Response struct {
-	ID        string `json:"id"`
-	Timestamp string `json:"timestamp"`
-	Header    struct {
-		ProcessingTime int    `json:"processingTime"`
-		ServerID       string `json:"serverId"`
-	} `json:"header,omitempty"`
-	Errors  []Error     `json:"errors,omitempty"`
-	Payload interface{} `json:"payload"`
 }
 
 //NewEnvironment creates a new Environment and initializes the metrics.
@@ -65,6 +27,32 @@ func NewEnvironment(h string, t string) Environment {
 		panic(err)
 	}
 	return e
+}
+
+//Credentials reads a YAML file containing an Engage API host
+//and an Engage API token.  These are then stored into an
+//environment object.
+func Credentials(fn string) (*Environment, error) {
+	if len(fn) == 0 {
+		return nil, errors.New(" configuration file is *required*")
+	}
+	var c struct {
+		Token string `json:"token"`
+		Host  string `json:"host"`
+	}
+	raw, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(raw, &c)
+	if err != nil {
+		return nil, err
+	}
+	if len(c.Host) == 0 {
+		c.Host = APIHost
+	}
+	e := NewEnvironment(c.Host, c.Token)
+	return &e, nil
 }
 
 //UpdateMetrics reads metrics and returns them.
