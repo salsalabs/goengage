@@ -31,8 +31,8 @@ type Base struct {
 //BaseResponsePayload contains the data returned by a SUBSCRIBE or
 //SUBSCRIPTION_MANAGEMENT requests.
 type BaseResponsePayload struct {
-	Total      int    `json:"total,omitempty"`
-	Offset     int    `json:"offset,omitempty"`
+	Total      int32    `json:"total,omitempty"`
+	Offset     int32    `json:"offset,omitempty"`
 	Count      int32    `json:"count,omitempty"`
 	Activities []Base `json:"activities,omitempty"`
 }

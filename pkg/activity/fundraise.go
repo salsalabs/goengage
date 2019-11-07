@@ -64,8 +64,8 @@ type Fundraise struct {
 
 //FundraiseResponsePayload holds the activities for a ONE_TIME search.
 type FundraiseResponsePayload struct {
-	Total      int         `json:"total,omitempty"`
-	Offset     int         `json:"offset,omitempty"`
+	Total      int32         `json:"total,omitempty"`
+	Offset     int32         `json:"offset,omitempty"`
 	Count      int32         `json:"count,omitempty"`
 	Activities []Fundraise `json:"activities,omitempty"`
 }

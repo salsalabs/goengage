@@ -41,8 +41,8 @@ type EmailActivity struct {
 
 //EmailResponsePayload holds the content for an email blast search.
 type EmailResponsePayload struct {
-	Total           int             `json:"total"`
-	Offset          int             `json:"offset"`
+	Total           int32             `json:"total"`
+	Offset          int32             `json:"offset"`
 	EmailActivities []EmailActivity `json:"emailActivities"`
 	Count           int32             `json:"count"`
 }
@@ -91,7 +91,7 @@ type Recipient struct {
 //RecipientsData contains the list of recpients.
 type RecipientsData struct {
 	Recipients []Recipient `json:"recipients"`
-	Total      int         `json:"total"`
+	Total      int32         `json:"total"`
 }
 
 //IndividualEmailActivityData contains information about something.  Not

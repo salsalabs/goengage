@@ -96,7 +96,7 @@ type SearchRequest struct {
 		RefID string `json:"refId"`
 	} `json:"header"`
 	Payload struct {
-		Offset                 int      `json:"offset"`
+		Offset                 int32      `json:"offset"`
 		Count                  int32      `json:"count"`
 		Identifiers            []string `json:"identifiers"`
 		IdentifierType         string   `json:"identifierType"`
@@ -121,8 +121,8 @@ type SearchResult struct {
 type SearchResponse struct {
 	Payload struct {
 		Count    int32            `json:"count"`
-		Offset   int            `json:"offset"`
-		Total    int            `json:"total"`
+		Offset   int32            `json:"offset"`
+		Total    int32            `json:"total"`
 		Segments []SearchResult `json:"segments"`
 	} `json:"payload"`
 }
@@ -197,7 +197,7 @@ type SupporterSearchRequest struct {
 //SupporterSearchPayload provides the reqest body.
 type SupporterSearchPayload struct {
 	SegmentID    string   `json:"segmentId"`
-	Offset       int      `json:"offset"`
+	Offset       int32      `json:"offset"`
 	Count        int32      `json:"count"`
 	SupporterIds []string `json:"supporterIds"`
 }
@@ -214,7 +214,7 @@ type SupporterSearchResponse struct {
 //SupporterSearchResponsePayload (whew) carries information about the found
 //supporters.  Note that Supporter is common for all of Engage.
 type SupporterSearchResponsePayload struct {
-	Total      int         `json:"total"`
+	Total      int32         `json:"total"`
 	Supporters []Supporter `json:"supporters"`
 	Count      int32         `json:"count"`
 }

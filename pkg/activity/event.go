@@ -94,8 +94,8 @@ type TicketedEvent struct {
 //TicketedEventResponsePayload contains the data returned for a TICKETED_EVENT
 //search.
 type TicketedEventResponsePayload struct {
-	Total      int             `json:"total,omitempty"`
-	Offset     int             `json:"offset,omitempty"`
+	Total      int32             `json:"total,omitempty"`
+	Offset     int32             `json:"offset,omitempty"`
 	Count      int32             `json:"count,omitempty"`
 	Activities []TicketedEvent `json:"activities,omitempty"`
 }

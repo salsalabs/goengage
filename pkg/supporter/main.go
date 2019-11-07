@@ -6,6 +6,13 @@ import (
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
+//Identifier types for supporter requests
+const (
+	SupporterIDType  = "SUPPORTER_ID"
+	EmailAddressType = "EMAIL_ADDRESS"
+	ExternalIDType   = "EXTERNAL_ID"
+)
+
 //Engage endpoints for supporters.
 const (
 	Search = "/api/integration/ext/v1/supporters/search"
@@ -24,38 +31,42 @@ const (
 	ContactLinkedin = "LINKEDIN_ID"
 )
 
-//SearchRequest provides the criteria to match when searching
+//SupporterSearch provides the criteria to match when searching
 //for supporters.  Providing no criterria will return all supporters.
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
 //by identifiers.
-type SearchRequest struct {
-	Payload SearchRequestPayload `json:"payload,omitempty"`
+type SupporterSearch struct {
+	Header  goengage.Header        `json:"header,omitempty"`
+	Payload SupporterSearchPayload `json:"payload,omitempty"`
 }
 
-//SearchRequestPayload holds the search criteria.  There are rules
+//SupporterSearchPayload holds the search criteria.  There are rules
 //that you need to know about.  See those here
 //https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
-type SearchRequestPayload struct {
-	Identifiers    []string  `json:"identifiers,omitempty"`
-	IdentifierType string    `json:"identifierType,omitempty"`
-	ModifiedFrom   time.Time `json:"modifiedFrom,omitempty"`
-	ModifiedTo     time.Time `json:"modifiedTo,omitempty"`
-	Offset         int       `json:"offset,omitempty"`
-	Count          int32       `json:"count,omitempty"`
+type SupporterSearchPayload struct {
+	Identifiers    []string `json:"identifiers,omitempty"`
+	IdentifierType string   `json:"identifierType,omitempty"`
+	ModifiedFrom   string   `json:"modifiedFrom,omitempty"`
+	ModifiedTo     string   `json:"modifiedTo,omitempty"`
+	Offset         int32    `json:"offset,omitempty"`
+	Count          int32    `json:"count,omitempty"`
 }
 
-//SearchResults lists the supporters that match the search criteria.
+//SupporterSearchResults lists the supporters that match the search criteria.
 //Note that Supporter is common throughout Engage.
-type SearchResults struct {
-	Payload SearchResultsPayload `json:"payload,omitempty"`
+type SupporterSearchResults struct {
+	ID        string                        `json:"id"`
+	Timestamp time.Time                     `json:"timestamp"`
+	Header    goengage.Header               `json:"header"`
+	Payload   SupporterSearchResultsPayload `json:"payload,omitempty"`
 }
 
-//SearchResultsPayload wraps the supporters found by a
+//SupporterSearchResultsPayload wraps the supporters found by a
 //supporter search request.
-type SearchResultsPayload struct {
-	Count      int32                  `json:"count,omitempty"`
-	Offset     int                  `json:"offset,omitempty"`
-	Total      int                  `json:"total,omitempty"`
+type SupporterSearchResultsPayload struct {
+	Count      int32                `json:"count,omitempty"`
+	Offset     int32                `json:"offset,omitempty"`
+	Total      int32                `json:"total,omitempty"`
 	Supporters []goengage.Supporter `json:"supporters,omitempty"`
 }
 
