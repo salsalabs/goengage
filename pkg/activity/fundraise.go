@@ -44,7 +44,7 @@ type Fundraise struct {
 	OneTimeAmount          float64       `json:"oneTimeAmount,omitempty"`
 	DonationType           string        `json:"donationType,omitempty"`
 	RecurringInterval      string        `json:"recurringInterval,omitempty"`
-	RecurringCount         int32           `json:"recurringCount,omitempty"`
+	RecurringCount         int32         `json:"recurringCount,omitempty"`
 	RecurringTransactionID string        `json:"recurringTransactionId,omitempty"`
 	RecurringStart         time.Time     `json:"recurringStart,omitempty"`
 	RecurringEnd           time.Time     `json:"recurringEnd,omitempty"`
@@ -64,8 +64,8 @@ type Fundraise struct {
 
 //FundraiseResponsePayload holds the activities for a ONE_TIME search.
 type FundraiseResponsePayload struct {
-	Total      int32         `json:"total,omitempty"`
-	Offset     int32         `json:"offset,omitempty"`
-	Count      int32         `json:"count,omitempty"`
+	Total      int32       `json:"total,omitempty"`
+	Offset     int32       `json:"offset,omitempty"`
+	Count      int32       `json:"count,omitempty"`
 	Activities []Fundraise `json:"activities,omitempty"`
 }

@@ -30,9 +30,9 @@ type Petition struct {
 
 //PetitionResponsePayload contains the data returned for a PETITION search.
 type PetitionResponsePayload struct {
-	Total      int32        `json:"total,omitempty"`
-	Offset     int32        `json:"offset,omitempty"`
-	Count      int32        `json:"count,omitempty"`
+	Total      int32      `json:"total,omitempty"`
+	Offset     int32      `json:"offset,omitempty"`
+	Count      int32      `json:"count,omitempty"`
 	Activities []Petition `json:"activities,omitempty"`
 }
 
@@ -86,8 +86,8 @@ type TargetedLetter struct {
 
 //TargetedLetterResponsePayload  contains the data returned for a TARGETED_LETTER search.
 type TargetedLetterResponsePayload struct {
-	Total      int32              `json:"total,omitempty"`
-	Offset     int32              `json:"offset,omitempty"`
-	Count      int32              `json:"count,omitempty"`
+	Total      int32            `json:"total,omitempty"`
+	Offset     int32            `json:"offset,omitempty"`
+	Count      int32            `json:"count,omitempty"`
 	Activities []TargetedLetter `json:"activities,omitempty"`
 }

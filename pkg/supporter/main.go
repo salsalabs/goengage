@@ -84,7 +84,7 @@ type UpdateRequestPayload struct {
 
 //UpdateResponse provides results for the updated supporters.
 type UpdateResponse struct {
-	Header  goengage.tHeader      `json:"header,omitempty"`
+	Header  goengage.Header       `json:"header,omitempty"`
 	Payload UpdateResponsePayload `json:"payload,omitempty"`
 }
 
