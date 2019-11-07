@@ -63,6 +63,7 @@ func main() {
 		fmt.Printf("Request:\n%v\n", string(b))
 		b, _ = json.MarshalIndent(resp, "", "    ")
 		fmt.Printf("Response:\n%v\n", string(b))
+
 		count = resp.Payload.Count
 		for i, s := range resp.Payload.Supporters {
 			email := goengage.FirstEmail(s)
@@ -71,8 +72,6 @@ func main() {
 				s.FirstName,
 				s.LastName,
 				email)
-			b, _ := json.MarshalIndent(s, "", "    ")
-			fmt.Println(string(b))
 		}
 	}
 }
