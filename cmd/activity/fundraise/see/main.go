@@ -16,10 +16,10 @@ func seeFundraiseResponse(resp activity.FundraiseResponse) {
 	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
 
 	fmt.Println("\nPayload")
-	fmt.Printf("\tTotal: %v\n", resp.Payload.Total)
-	fmt.Printf("\tOffset: %v\n", resp.Payload.Offset)
-	fmt.Printf("\tCount: %v\n", resp.Payload.Count)
-	fmt.Printf("\tLength: %v\n", len(resp.Payload.Activities))
+	fmt.Printf("\tTotal: %d\n", resp.Payload.Total)
+	fmt.Printf("\tOffset: %d\n", resp.Payload.Offset)
+	fmt.Printf("\tCount: %d\n", resp.Payload.Count)
+	fmt.Printf("\tLength: %d\n", len(resp.Payload.Activities))
 
 	fmt.Println("\nFundraise")
 	for i, a := range resp.Payload.Activities {
@@ -32,12 +32,12 @@ func seeFundraiseResponse(resp activity.FundraiseResponse) {
 		fmt.Printf("\tActivityType: %v\n", a.ActivityType)
 		fmt.Printf("\tLastModified: %v\n", a.LastModified)
 		fmt.Printf("\tDonationID: %v\n", a.DonationID)
-		fmt.Printf("\tTotalReceivedAmount: %v\n", a.TotalReceivedAmount)
+		fmt.Printf("\tTotalReceivedAmount: %5.2f\n", a.TotalReceivedAmount)
 		fmt.Printf("\tDonationType: %v\n", a.DonationType)
-		fmt.Printf("\tOneTimeAmount: %v\n", a.OneTimeAmount)
-		fmt.Printf("\tRecurringAmount: %v\n", a.RecurringAmount)
+		fmt.Printf("\tOneTimeAmount: %5.2f\n", a.OneTimeAmount)
+		fmt.Printf("\tRecurringAmount: %5.2f\n", a.RecurringAmount)
 		fmt.Printf("\tRecurringInterval: %v\n", a.RecurringInterval)
-		fmt.Printf("\tRecurringCount: %v\n", a.RecurringCount)
+		fmt.Printf("\tRecurringCount: %d\n", a.RecurringCount)
 		fmt.Printf("\tRecurringTransactionID: %v\n", a.RecurringTransactionID)
 		fmt.Printf("\tRecurringStart: %v\n", a.RecurringStart)
 		fmt.Printf("\tRecurringEnd: %v\n", a.RecurringEnd)
@@ -86,7 +86,7 @@ func main() {
 		ModifiedFrom: "2000-01-01T00:00:00.000Z",
 	}
 	rqt := activity.ActivityRequest{
-		Header:  goengage.Header{},
+		Header:  goengage.RequestHeader{},
 		Payload: payload,
 	}
 
