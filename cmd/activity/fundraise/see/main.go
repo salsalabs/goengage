@@ -79,36 +79,37 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	payload := activity.ActivityRequestPayload{
-		Type:         activity.FundraiseType,
-		Offset:       0,
-		Count:        e.Metrics.MaxBatchSize,
-		ModifiedFrom: "2000-01-01T00:00:00.000Z",
-	}
-	rqt := activity.ActivityRequest{
-		Header:  goengage.RequestHeader{},
-		Payload: payload,
-	}
+	count := e.Metrics.MaxBatchSize
+	offset := int32(0)
+	for count > 0 {
+		payload := activity.ActivityRequestPayload{
+			Type:         activity.FundraiseType,
+			Offset:       offset,
+			Count:        count,
+			ModifiedFrom: "2000-01-01T00:00:00.000Z",
+		}
+		rqt := activity.ActivityRequest{
+			Header:  goengage.RequestHeader{},
+			Payload: payload,
+		}
 
-	var resp activity.FundraiseResponse
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: activity.Search,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
+		var resp activity.FundraiseResponse
+		n := goengage.NetOp{
+			Host:     e.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: activity.Search,
+			Token:    e.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		fmt.Printf("Reading %d from %d\n", rqt.Payload.Count, rqt.Payload.Offset)
+		err = n.Do()
+		if err != nil {
+			panic(err)
+		}
+		//seeFundraiseResponse(resp)
+		fmt.Printf("Payload total %d, offset %d, count %d\n", resp.Payload.Total, resp.Payload.Offset, resp.Payload.Count)
+		count = resp.Payload.Count
+		offset = offset + count
 	}
-	//b, _ := json.MarshalIndent(n, "", "    ")
-	//fmt.Printf("NetOp: %+v\n", string(b))
-
-	err = n.Do()
-	if err != nil {
-		panic(err)
-	}
-	//b, _ = json.MarshalIndent(rqt, "", "    ")
-	//fmt.Printf("Request: %+v\n", string(b))
-	//b, _ = json.MarshalIndent(resp, "", "    ")
-	//fmt.Printf("Response: %+v\n", string(b))
-	seeFundraiseResponse(resp)
 }
