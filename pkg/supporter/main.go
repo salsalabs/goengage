@@ -56,7 +56,7 @@ type SupporterSearchPayload struct {
 //Note that Supporter is common throughout Engage.
 type SupporterSearchResults struct {
 	ID        string                        `json:"id"`
-	Timestamp time.Time                     `json:"timestamp"`
+	Timestamp *time.Time                    `json:"timestamp"`
 	Header    goengage.Header               `json:"header"`
 	Payload   SupporterSearchResultsPayload `json:"payload,omitempty"`
 }

@@ -25,7 +25,7 @@ type DonorAddress struct {
 type Donation struct {
 	AccountType              string             `json:"accountType,omitempty"`
 	AccountNumber            string             `json:"accountNumber,omitempty"`
-	AccountExpiration        time.Time          `json:"accountExpiration,omitempty"`
+	AccountExpiration        *time.Time          `json:"accountExpiration,omitempty"`
 	AccountProvider          string             `json:"accountProvider,omitempty"`
 	Fund                     string             `json:"fund,omitempty"`
 	Campaign                 string             `json:"campaign,omitempty"`
@@ -33,7 +33,7 @@ type Donation struct {
 	DedicationType           string             `json:"dedicationType,omitempty"`
 	Dedication               string             `json:"dedication,omitempty"`
 	Type                     string             `json:"type,omitempty"`
-	Date                     time.Time          `json:"date,omitempty"`
+	Date                     *time.Time          `json:"date,omitempty"`
 	Amount                   float64            `json:"amount,omitempty"`
 	DeductibleAmount         float64            `json:"deductibleAmount,omitempty"`
 	FeesPaid                 float64            `json:"feesPaid,omitempty"`
@@ -72,7 +72,7 @@ type ResultDonation struct {
 	Result                   string                `json:"result,omitempty"`
 	AccountType              string                `json:"accountType,omitempty"`
 	AccountNumber            string                `json:"accountNumber,omitempty"`
-	AccountExpiration        time.Time             `json:"accountExpiration,omitempty"`
+	AccountExpiration        *time.Time             `json:"accountExpiration,omitempty"`
 	AccountProvider          string                `json:"accountProvider,omitempty"`
 	Fund                     string                `json:"fund,omitempty"`
 	Campaign                 string                `json:"campaign,omitempty"`
@@ -80,7 +80,7 @@ type ResultDonation struct {
 	DedicationType           string                `json:"dedicationType,omitempty"`
 	Dedication               string                `json:"dedication,omitempty"`
 	Type                     string                `json:"type,omitempty"`
-	Date                     time.Time             `json:"date,omitempty"`
+	Date                     *time.Time             `json:"date,omitempty"`
 	Amount                   float64               `json:"amount,omitempty"`
 	DeductibleAmount         float64               `json:"deductibleAmount,omitempty"`
 	FeesPaid                 float64               `json:"feesPaid,omitempty"`

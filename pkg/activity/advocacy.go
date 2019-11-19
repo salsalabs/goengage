@@ -19,9 +19,9 @@ type Petition struct {
 	ActivityFormName         string    `json:"activityFormName,omitempty"`
 	ActivityFormID           string    `json:"activityFormId,omitempty"`
 	SupporterID              string    `json:"supporterId,omitempty"`
-	ActivityDate             time.Time `json:"activityDate,omitempty"`
+	ActivityDate             *time.Time `json:"activityDate,omitempty"`
 	ActivityType             string    `json:"activityType,omitempty"`
-	LastModified             time.Time `json:"lastModified,omitempty"`
+	LastModified             *time.Time `json:"lastModified,omitempty"`
 	Comment                  string    `json:"comment,omitempty"`
 	ModerationState          string    `json:"moderationState,omitempty"`
 	DisplaySignaturePublicly bool      `json:"displaySignaturePublicly,omitempty"`
@@ -78,9 +78,9 @@ type TargetedLetter struct {
 	ActivityFormName string    `json:"activityFormName,omitempty"`
 	ActivityFormID   string    `json:"activityFormId,omitempty"`
 	SupporterID      string    `json:"supporterId,omitempty"`
-	ActivityDate     time.Time `json:"activityDate,omitempty"`
+	ActivityDate     *time.Time `json:"activityDate,omitempty"`
 	ActivityType     string    `json:"activityType,omitempty"`
-	LastModified     time.Time `json:"lastModified,omitempty"`
+	LastModified     *time.Time `json:"lastModified,omitempty"`
 	Letters          []Letter  `json:"letters,omitempty"`
 }
 

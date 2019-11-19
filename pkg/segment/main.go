@@ -74,7 +74,7 @@ type DeleteRequest struct {
 //DeleteResponse contains the results from deleting one or more segments.
 type DeleteResponse struct {
 	ID        string          `json:"id"`
-	Timestamp time.Time       `json:"timestamp"`
+	Timestamp *time.Time       `json:"timestamp"`
 	Header    goengage.Header `json:"header"`
 	Payload   DeletePayload   `json:"payload"`
 }
@@ -212,7 +212,7 @@ type SupporterSearchPayload struct {
 //the search criteria.
 type SupporterSearchResponse struct {
 	ID        string                         `json:"id"`
-	Timestamp time.Time                      `json:"timestamp"`
+	Timestamp *time.Time                      `json:"timestamp"`
 	Header    goengage.Header                `json:"header"`
 	Payload   SupporterSearchResponsePayload `json:"payload"`
 }

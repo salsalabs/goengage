@@ -3,16 +3,16 @@ package main
 import (
 	//"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/salsalabs/goengage/pkg"
+	supporter "github.com/salsalabs/goengage/pkg/supporter"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 func main() {
 	var (
-		app   = kingpin.New("activity-search", "A command-line app to see all supporters.")
+		app   = kingpin.New("supporter-search", "A command-line app to see all supporters.")
 		login = app.Flag("login", "YAML file with API token").Required().String()
 	)
 	app.Parse(os.Args[1:])
@@ -20,36 +20,35 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	m, err := e.Metrics()
-	if err != nil {
-		panic(err)
-	}
-	rqt := goengage.SupSearchRequest{
+	rqtPayload := supporter.SupporterSearchPayload{
 		ModifiedFrom: "2016-09-01T00:00:00.000Z",
 		ModifiedTo:   "2019-09-01T00:00:00.000Z",
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
 	}
-	var resp goengage.SupSearchResult
+	rqt := supporter.SupporterSearch{
+		Header:  goengage.RequestHeader{},
+		Payload: rqtPayload,
+	}
+	var resp supporter.SupporterSearchResults
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Endpoint: goengage.SupSearch,
+		Endpoint: supporter.Search,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-	count := int32(rqt.Count)
+	count := int32(rqt.Payload.Count)
 	for count > 0 {
-		fmt.Printf("Searching from offset %d\n", rqt.Offset)
+		fmt.Printf("Searching from offset %d\n", rqt.Payload.Offset)
 		err := n.Do()
 		if err != nil {
 			panic(err)
 		}
 		count = int32(len(resp.Payload.Supporters))
-		fmt.Printf("Read %d supporters from offset %d\n", count, rqt.Offset)
-		rqt.Offset = rqt.Offset + count
+		fmt.Printf("Read %d supporters from offset %d\n", count, rqt.Payload.Offset)
+		rqt.Payload.Offset = rqt.Payload.Offset + count
 		for _, s := range resp.Payload.Supporters {
 			e := goengage.FirstEmail(s)
 			email := ""

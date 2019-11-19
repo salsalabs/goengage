@@ -93,52 +93,52 @@ type Header struct {
 //a supporter/activity will only have custom fields if the values have been
 //set in the supporter/activity record.
 type CustomFieldValue struct {
-	FieldID    string    `json:"fieldId"`
-	Name       string    `json:"name"`
-	Value      string    `json:"value"`
-	Type       string    `json:"type"`
-	OptInDate  time.Time `json:"optInDate,omitempty"`
-	OptOutDate time.Time `json:"optOutDate,omitempty"`
+	FieldID    string     `json:"fieldId" gorm:"primary_key"`
+	Name       string     `json:"name"`
+	Value      string     `json:"value"`
+	Type       string     `json:"type"`
+	OptInDate  *time.Time `json:"optInDate,omitempty" gorm:"optInDate"`
+	OptOutDate *time.Time `json:"optOutDate,omitempty" gorm:"optOutDate"`
 }
 
 //Address holds a street address and geolocation stuff for a supporter.
 type Address struct {
-	AddressLine1 string    `json:"addressLine1,omitempty"`
-	AddressLine2 string    `json:"addressLine2,omitempty"`
-	City         string    `json:"city,omitempty"`
-	State        string    `json:"state,omitempty"`
-	PostalCode   string    `json:"postalCode,omitempty"`
-	County       string    `json:"county,omitempty"`
-	Country      string    `json:"country,omitempty"`
-	Lattitude    float64   `json:"lattitude,omitempty"`
-	Longitude    float64   `json:"longitude,omitempty"`
-	Status       string    `json:"status,omitempty"`
-	OptInDate    time.Time `json:"optInDate,omitempty"`
+	AddressLine1 string     `json:"addressLine1,omitempty" gorm:"addressLine1"`
+	AddressLine2 string     `json:"addressLine2,omitempty" gorm:"addressLine2"`
+	City         string     `json:"city,omitempty" gorm:"city"`
+	State        string     `json:"state,omitempty" gorm:"state"`
+	PostalCode   string     `json:"postalCode,omitempty" gorm:"postalCode"`
+	County       string     `json:"county,omitempty" gorm:"county"`
+	Country      string     `json:"country,omitempty" gorm:"country"`
+	Lattitude    float64    `json:"lattitude,omitempty" gorm:"lattitude"`
+	Longitude    float64    `json:"longitude,omitempty" gorm:"longitude"`
+	Status       string     `json:"status,omitempty" gorm:"status"`
+	OptInDate    *time.Time `json:"optInDate,omitempty" gorm:"optInDate"`
 }
 
 //Contact holds a way to communicate with a supporter.  Typical contacts
 //include email address and phone numbers.
 type Contact struct {
-	Type   string `json:"type,omitempty"`
-	Value  string `json:"value,omitempty"`
-	Status string `json:"status,omitempty,omitempty"`
+	Type   string `json:"type,omitempty" gorm:"type"`
+	Value  string `json:"value,omitempty" gorm:"value"`
+	Status string `json:"status,omitempty,omitempty" gorm:"status,omitempty"`
 }
 
 //Supporter describes a single Engage supporter.
 type Supporter struct {
-	SupporterID       string             `json:"supporterId,omitempty"`
-	Result            string             `json:"result,omitempty"`
-	Title             string             `json:"title,omitempty"`
-	FirstName         string             `json:"firstName,omitempty"`
-	MiddleName        string             `json:"middleName,omitempty"`
-	LastName          string             `json:"lastName,omitempty"`
-	Suffix            string             `json:"suffix,omitempty"`
-	DateOfBirth       time.Time          `json:"dateOfBirth,omitempty"`
-	Gender            string             `json:"gender,omitempty"`
-	CreatedDate       time.Time          `json:"createdDate,omitempty"`
-	LastModified      time.Time          `json:"lastModified,omitempty"`
-	ExternalSystemID  string             `json:"externalSystemId,omitempty"`
-	Address           Address            `json:"address,omitempty"`
-	Contacts          []Contact          `json:"contacts,omitempty"`
-	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty"`
+	SupporterID       string             `json:"supporterId,omitempty" gorm:"supporterId"`
+	Result            string             `json:"result,omitempty" gorm:"result"`
+	Title             string             `json:"title,omitempty" gorm:"title"`
+	FirstName         string             `json:"firstName,omitempty" gorm:"firstName"`
+	MiddleName        string             `json:"middleName,omitempty" gorm:"middleName"`
+	LastName          string             `json:"lastName,omitempty" gorm:"lastName"`
+	Suffix            string             `json:"suffix,omitempty" gorm:"suffix"`
+	DateOfBirth       *time.Time         `json:"dateOfBirth,omitempty" gorm:"dateOfBirth"`
+	Gender            string             `json:"gender,omitempty" gorm:"gender"`
+	CreatedDate       *time.Time         `json:"createdDate,omitempty" gorm:"createdDate"`
+	LastModified      *time.Time         `json:"lastModified,omitempty" gorm:"lastModified"`
+	ExternalSystemID  string             `json:"externalSystemId,omitempty" gorm:"externalSystemId"`
+	Address           Address            `json:"address,omitempty" gorm:"address"`
+	Contacts          []Contact          `json:"contacts,omitempty" gorm:"-"`
+	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"-"`
 }

@@ -24,8 +24,8 @@ type Base struct {
 	ActivityFormName string    `json:"activityFormName,omitempty"`
 	ActivityFormID   string    `json:"activityFormId,omitempty"`
 	SupporterID      string    `json:"supporterId,omitempty"`
-	ActivityDate     time.Time `json:"activityDate,omitempty"`
-	LastModified     time.Time `json:"lastModified,omitempty"`
+	ActivityDate     *time.Time `json:"activityDate,omitempty"`
+	LastModified     *time.Time `json:"lastModified,omitempty"`
 }
 
 //BaseResponsePayload contains the data returned by a SUBSCRIBE or

@@ -36,7 +36,7 @@ type Attendee struct {
 	State              string     `json:"state,omitempty"`
 	Phone              string     `json:"phone,omitempty"`
 	IsCurrentSupporter bool       `json:"isCurrentSupporter,omitempty"`
-	LastModified       time.Time  `json:"lastModified,omitempty"`
+	LastModified       *time.Time  `json:"lastModified,omitempty"`
 	Questions          []Question `json:"questions,omitempty"`
 }
 
@@ -45,7 +45,7 @@ type Ticket struct {
 	TicketID         string     `json:"ticketId,omitempty"`
 	TicketName       string     `json:"ticketName,omitempty"`
 	TransactionID    string     `json:"transactionId,omitempty"`
-	LastModified     time.Time  `json:"lastModified,omitempty"`
+	LastModified     *time.Time  `json:"lastModified,omitempty"`
 	TicketStatus     string     `json:"ticketStatus,omitempty"`
 	TicketCost       float64    `json:"ticketCost,omitempty"`
 	DeductibleAmount float64    `json:"deductibleAmount,omitempty"`
@@ -73,16 +73,16 @@ type TicketedEvent struct {
 	ActivityFormName     string        `json:"activityFormName,omitempty"`
 	ActivityFormID       string        `json:"activityFormId,omitempty"`
 	SupporterID          string        `json:"supporterId,omitempty"`
-	ActivityDate         time.Time     `json:"activityDate,omitempty"`
+	ActivityDate         *time.Time     `json:"activityDate,omitempty"`
 	ActivityType         string        `json:"activityType,omitempty"`
-	LastModified         time.Time     `json:"lastModified,omitempty"`
+	LastModified         *time.Time     `json:"lastModified,omitempty"`
 	DonationID           string        `json:"donationId,omitempty"`
 	TotalReceivedAmount  float64       `json:"totalReceivedAmount,omitempty"`
 	OneTimeAmount        float64       `json:"oneTimeAmount,omitempty"`
 	DonationType         string        `json:"donationType,omitempty"`
 	AccountType          string        `json:"accountType,omitempty"`
 	AccountNumber        string        `json:"accountNumber,omitempty"`
-	AccountExpiration    time.Time     `json:"accountExpiration,omitempty"`
+	AccountExpiration    *time.Time     `json:"accountExpiration,omitempty"`
 	AccountProvider      string        `json:"accountProvider,omitempty"`
 	PaymentProcessorName string        `json:"paymentProcessorName,omitempty"`
 	ActivityResult       string        `json:"activityResult,omitempty"`

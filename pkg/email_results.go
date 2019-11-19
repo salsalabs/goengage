@@ -21,7 +21,7 @@ type EmailResultsRequest struct {
 //EmailResponse is returned when the request type is "Email".
 type EmailResponse struct {
 	ID        string               `json:"id"`
-	Timestamp time.Time            `json:"timestamp"`
+	Timestamp *time.Time            `json:"timestamp"`
 	Header    Header               `json:"header"`
 	Payload   EmailResponsePayload `json:"payload"`
 }
@@ -38,7 +38,7 @@ type EmailActivity struct {
 	Topic       string      `json:"topic"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	PublishDate time.Time   `json:"publishDate"`
+	PublishDate *time.Time   `json:"publishDate"`
 	Components  []Component `json:"components"`
 }
 
@@ -53,7 +53,7 @@ type EmailResponsePayload struct {
 //SeriesResponse response is returned when the request type is "CommSeries".
 type SeriesResponse struct {
 	ID        string                `json:"id"`
-	Timestamp time.Time             `json:"timestamp"`
+	Timestamp *time.Time             `json:"timestamp"`
 	Header    Header                `json:"header"`
 	Payload   SeriesResponsePayload `json:"payload"`
 }
@@ -61,7 +61,7 @@ type SeriesResponse struct {
 //Conversion hold information about any donatoins made as a result of an
 //email blast.
 type Conversion struct {
-	ConversionDate time.Time `json:"conversionDate"`
+	ConversionDate *time.Time `json:"conversionDate"`
 	ActivityType   string    `json:"activityType"`
 	ActivityName   string    `json:"activityName"`
 	ActivityID     string    `json:"activityId"`
@@ -79,14 +79,14 @@ type Recipient struct {
 	Country              string       `json:"country"`
 	State                string       `json:"state"`
 	City                 string       `json:"city"`
-	TimeSent             time.Time    `json:"timeSent"`
+	TimeSent             *time.Time    `json:"timeSent"`
 	SplitName            string       `json:"splitName"`
 	Status               string       `json:"status"`
 	Opened               bool         `json:"opened"`
 	Clicked              bool         `json:"clicked"`
 	Converted            bool         `json:"converted"`
 	Unsubscribed         bool         `json:"unsubscribed"`
-	FirstOpenDate        time.Time    `json:"firstOpenDate,omitempty"`
+	FirstOpenDate        *time.Time    `json:"firstOpenDate,omitempty"`
 	NumberOfLinksClicked string       `json:"numberOfLinksClicked"`
 	Conversions          []Conversion `json:"conversionData,omitempty"`
 }

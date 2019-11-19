@@ -10,7 +10,7 @@ const MetricsCommand = "/api/integration/ext/v1/metrics"
 //MetricsResponse wraps the results of the metrics call.
 type MetricsResponse struct {
 	ID        string    `json:"id"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp *time.Time `json:"timestamp"`
 	Header    Header    `json:"header"`
 	Payload   Metrics   `json:"payload"`
 }
@@ -41,7 +41,7 @@ type Metrics struct {
 	ActivityTargetedLetter         int32     `json:"activityTargetedLetter"`
 	ActivityPetition               int32     `json:"activityPetition"`
 	ActivitySubscriptionManagement int32     `json:"activitySubscriptionManagement"`
-	LastAPICall                    time.Time `json:"lastAPICall"`
+	LastAPICall                    *time.Time `json:"lastAPICall"`
 	TotalAPICalls                  int32     `json:"totalAPICalls"`
 	TotalAPICallFailures           int32     `json:"totalAPICallFailures"`
 	CurrentRateLimit               int32     `json:"currentRateLimit"`
