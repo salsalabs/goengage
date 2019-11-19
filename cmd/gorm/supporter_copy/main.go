@@ -66,7 +66,9 @@ func main() {
 		for _, s := range resp.Payload.Supporters {
 			db.Create(s)
 			if len(s.Contacts) != 0 {
-				db.Create(&s.Contacts)
+				for _, c := range s.Contacts {
+					db.Create(&c)
+				}
 			}
 			if s.CustomFieldValues != nil {
 				for _, c := range s.CustomFieldValues {
