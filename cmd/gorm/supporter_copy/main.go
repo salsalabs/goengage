@@ -15,7 +15,7 @@ import (
 
 func main() {
 	var (
-		app   = kingpin.New("supporter-search", "A command-line app to see all supporters.")
+		app   = kingpin.New("gorm-supporter-copy", "A command-line app copy supporters to SQLite via GORM")
 		login = app.Flag("login", "YAML file with API token").Required().String()
 	)
 	app.Parse(os.Args[1:])
