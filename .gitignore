@@ -26,3 +26,7 @@ logins/*
 # Apple files
 .DS_Store
 */.DS_Store
+
+# Databases
+*.db
+*.sqlite3
