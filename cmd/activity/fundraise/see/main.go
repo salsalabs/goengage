@@ -102,13 +102,12 @@ func main() {
 			Request:  &rqt,
 			Response: &resp,
 		}
-		fmt.Printf("Reading %d from %d\n", rqt.Payload.Count, rqt.Payload.Offset)
 		err = n.Do()
 		if err != nil {
 			panic(err)
 		}
-		//seeFundraiseResponse(resp)
-		fmt.Printf("Payload total %d, offset %d, count %d\n", resp.Payload.Total, resp.Payload.Offset, resp.Payload.Count)
+		seeFundraiseResponse(resp)
+		fmt.Printf("Payload total %5d, offset %5d, count %2d\n", resp.Payload.Total, resp.Payload.Offset, resp.Payload.Count)
 		count = resp.Payload.Count
 		offset = offset + count
 	}
