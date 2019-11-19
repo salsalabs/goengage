@@ -24,6 +24,8 @@ type Transaction struct {
 	FeesPaid                 float64    `json:"feesPaid,omitempty"`
 	GatewayTransactionID     string     `json:"gatewayTransactionId,omitempty"`
 	GatewayAuthorizationCode string     `json:"gatewayAuthorizationCode,omitempty"`
+	//Foreign key for GORM.
+	ActivityID string `gorm:"activity_id"`
 }
 
 //Fundraise holds a single fundraising activity.  A fundraising
@@ -31,7 +33,7 @@ type Transaction struct {
 //Note:  Fundraise also contains recurring fields.  Those will be
 //automatically populated when the ActivityType is "Recurring".
 type Fundraise struct {
-	ActivityID             string        `json:"activityId,omitempty" gorm:"primary_key"`
+	ActivityID             string        `json:"activityId,omitempty" gorm:"activity_id,primary_key"`
 	ActivityFormName       string        `json:"activityFormName,omitempty"`
 	ActivityFormID         string        `json:"activityFormId,omitempty"`
 	SupporterID            string        `json:"supporterId,omitempty"`
@@ -59,7 +61,7 @@ type Fundraise struct {
 	DedicationType         string        `json:"dedicationType,omitempty"`
 	Dedication             string        `json:"dedication,omitempty"`
 	Notify                 string        `json:"notify,omitempty"`
-	Transactions           []Transaction `json:"transactions,omitempty"`
+	Transactions           []Transaction `json:"transactions,omitempty" gorm:"activity_id:foreignkey"`
 }
 
 //FundraiseResponsePayload holds the activities for a ONE_TIME search.
