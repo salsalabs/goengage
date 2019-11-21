@@ -2,7 +2,6 @@ package goengage
 
 import (
 	"net/http"
-	"time"
 )
 
 const (
@@ -89,61 +88,118 @@ type Header struct {
 	ServerID       string `json:"serverId"`
 }
 
-//Address holds a street address and geolocation stuff for a supporter.
-type Address struct {
-	AddressLine1 string     `json:"addressLine1,omitempty"`
-	AddressLine2 string     `json:"addressLine2,omitempty"`
-	City         string     `json:"city,omitempty"`
-	State        string     `json:"state,omitempty"`
-	PostalCode   string     `json:"postalCode,omitempty"`
-	County       string     `json:"county,omitempty"`
-	Country      string     `json:"country,omitempty"`
-	Lattitude    float64    `json:"lattitude,omitempty"`
-	Longitude    float64    `json:"longitude,omitempty"`
-	Status       string     `json:"status,omitempty"`
-	OptInDate    *time.Time `json:"optInDate,omitempty"`
-}
+//Engage endpoints for activities
+const (
+	SearchActivity = "/api/integration/ext/v1/activities/search"
+)
 
-//CustomFieldValue contains information about a custom field.  Note that
-//a supporter/activity will only have custom fields if the values have been
-//set in the supporter/activity record.
-type CustomFieldValue struct {
-	FieldID    string     `json:"fieldId" gorm:"field_id,primarykey"`
-	Name       string     `json:"name"`
-	Value      string     `json:"value"`
-	Type       string     `json:"type"`
-	OptInDate  *time.Time `json:"optInDate,omitempty"`
-	OptOutDate *time.Time `json:"optOutDate,omitempty"`
-	//Foreign key for GORM.
-	SupporterID string `gorm:"supporter_id"`
-}
+//Activity types
+const (
+	SubscriptionManagementType = "SUBSCRIPTION_MANAGEMENT"
+	SubscribeType              = "SUBSCRIBE"
+	FundraiseType              = "FUNDRAISE"
+	PetitionType               = "PETITION"
+	TargetedLetterType         = "TARGETED_LETTER"
+	TicketedEventType          = "TICKETED_EVENT"
+	P2PEventType               = "P2P_EVENT"
+)
 
-//Contact holds a way to communicate with a supporter.  Typical contacts
-//include email address and phone numbers.
-type Contact struct {
-	Type   string `json:"type,omitempty"`
-	Value  string `json:"value,omitempty"`
-	Status string `json:"status,omitempty,omitempty" gorm:"status,omitempty"`
-	//Foreign key for GORM.``
-	SupporterID string `gorm:"supporter_id"`
-	ContactID   string `gorm:"contact_id,primarykey,autoincrement"`
-}
+//DonationType type
+const (
+	OneTime   = "ONE_TIME"
+	Recurring = "RECURRING"
+)
 
-//Supporter describes a single Engage supporter.
-type Supporter struct {
-	SupporterID       string             `json:"supporterId,omitempty" gorm:"primary_key"`
-	Result            string             `json:"result,omitempty"`
-	Title             string             `json:"title,omitempty"`
-	FirstName         string             `json:"firstName,omitempty"`
-	MiddleName        string             `json:"middleName,omitempty"`
-	LastName          string             `json:"lastName,omitempty"`
-	Suffix            string             `json:"suffix,omitempty"`
-	DateOfBirth       *time.Time         `json:"dateOfBirth,omitempty"`
-	Gender            string             `json:"gender,omitempty"`
-	CreatedDate       *time.Time         `json:"createdDate,omitempty"`
-	LastModified      *time.Time         `json:"lastModified,omitempty"`
-	ExternalSystemID  string             `json:"externalSystemId,omitempty"`
-	Address           Address            `json:"address,omitempty"`
-	Contacts          []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
-	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
-}
+//RecurringInterval
+const (
+	Monthly = "MONTHLY"
+	Yearly  = "YEARLY"
+)
+
+//Account type
+const (
+	CreditCard = "CREDIT_CARD"
+	ECheck     = "E_CHECK"
+)
+
+//Dedication type
+const (
+	None       = "NONE"
+	InHonorOf  = "IN_HONOR_OF"
+	InMemoryOf = "IN_MEMORY_OF"
+)
+
+//Event Reason
+const (
+	EventDonation = "DONATION"
+	EventTicket   = "EVENT_TICKET"
+)
+
+//Transaction type
+const (
+	Charge   = "CHARGE"
+	Refunc   = "REFUND"
+	Cancel   = "CANCEL"
+	Complete = "COMPLETE"
+)
+
+//Moderatiion state
+const (
+	Display     = "DISPLAY"
+	DontDisplay = "DONT_DISPLAY"
+	Pending     = "PENDING"
+)
+
+//Advocacy action target type
+const (
+	FederalExecutive = "Federal Executive"
+	FederalSenate    = "Federal Senate"
+	FederalHouse     = "Federal House"
+	StateExecutive   = "State Executive"
+	StateSenate      = "State Senate"
+	StateHouse       = "State House"
+	USCounty         = "US County"
+	USMunicipality   = "US Municipality"
+	CustomTarget     = "Custom Target"
+)
+
+//Result from action telephone calls
+const (
+	CallBusy       = "BUSY"
+	CallFailed     = "FAILED"
+	CallCompleted  = "COMPLETED"
+	CallCancelled  = "CANCELLED"
+	CallNoAnswer   = "NO_ANSWER"
+	CallMachine    = "MACHINE"
+	CallOverBudget = "OVER_BUDGET"
+	CallSkipped    = "SKIPPED"
+	CallNoCall     = "NO_CALL"
+)
+
+//Event activity result
+const (
+	DonationOnly       = "DONATION_ONLY"
+	DonationAndTickets = "DONATION_AND_TICKETS"
+	TicketsOnly        = "TICKETS_ONLY"
+)
+
+// Attendee types
+const (
+	PurchaserAttendee = "PURCHASER"
+	GuestAttendee     = "GUEST"
+)
+
+//Attendee status
+const (
+	RegisteredType   = "REGISTERED"
+	UnregisteredType = "UNREGISTERED"
+)
+
+//Ticket status.  Note that some of these definitions are for P2P only.
+const (
+	Valid                = "VALID"
+	Refunded             = "REFUNDED"
+	Cancelled            = "CANCELLED"
+	CancelledAndRefunded = "CANCELLED_AND_REFUNDED"
+	ValidAndRefunded     = "VALID_AND_REFUNDED"
+)

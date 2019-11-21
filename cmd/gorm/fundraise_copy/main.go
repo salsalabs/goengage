@@ -8,8 +8,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/salsalabs/goengage/pkg"
-	activity "github.com/salsalabs/goengage/pkg/activity"
+	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -30,24 +29,27 @@ func main() {
 	defer db.Close()
 
 	// Migrate the schema
-	db.AutoMigrate(&activity.Fundraise{})
-	db.AutoMigrate(&activity.Transaction{})
+	db.AutoMigrate(&goengage.Fundraise{})
+	db.AutoMigrate(&goengage.Transaction{})
+	db.AutoMigrate(&goengage.Supporter{})
+	db.AutoMigrate(&goengage.Contact{})
+	db.AutoMigrate(&goengage.CustomFieldValue{})
 
-	rqtPayload := activity.ActivityRequestPayload{
-		Type:         activity.FundraiseType,
+	payload := goengage.ActivityRequestPayload{
+		Type:         goengage.FundraiseType,
 		ModifiedFrom: "2010-09-01T00:00:00.000Z",
 		ModifiedTo:   "2020-09-01T00:00:00.000Z",
 		Offset:       0,
 		Count:        e.Metrics.MaxBatchSize,
 	}
-	rqt := activity.ActivityRequest{
+	rqt := goengage.ActivityRequest{
 		Header:  goengage.RequestHeader{},
-		Payload: rqtPayload,
+		Payload: payload,
 	}
-	var resp activity.FundraiseResponse
+	var resp goengage.FundraiseResponse
 	n := goengage.NetOp{
 		Host:     e.Host,
-		Endpoint: activity.Search,
+		Endpoint: goengage.SearchActivity,
 		Method:   goengage.SearchMethod,
 		Token:    e.Token,
 		Request:  &rqt,

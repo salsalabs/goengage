@@ -2,15 +2,7 @@ package goengage
 
 import (
 	"time"
-
-	goengage "github.com/salsalabs/goengage/pkg"
 )
-
-//FundraiseResponse is returned for requests of type "FUNDRAISE".
-type FundraiseResponse struct {
-	Header  goengage.Header          `json:"header,omitempty"`
-	Payload FundraiseResponsePayload `json:"payload,omitempty"`
-}
 
 //Transaction holds a single monetary transaction.  Transactions are
 //generally contained in "donations" as FundRaiseActivity.
@@ -33,10 +25,10 @@ type Transaction struct {
 //Note:  Fundraise also contains recurring fields.  Those will be
 //automatically populated when the ActivityType is "Recurring".
 type Fundraise struct {
-	ActivityID             string        `json:"activityId,omitempty" gorm:"primary_key"`
+	ActivityID             string        `json:"activityId,omitempty"`
 	ActivityFormName       string        `json:"activityFormName,omitempty"`
 	ActivityFormID         string        `json:"activityFormId,omitempty"`
-	SupporterID            string        `json:"supporterId,omitempty"`
+	SupporterID            string        `json:"supporterId,omitempty" gorm:"foreignkey:supporter_id"`
 	ActivityDate           *time.Time    `json:"activityDate,omitempty"`
 	ActivityType           string        `json:"activityType,omitempty"`
 	LastModified           *time.Time    `json:"lastModified,omitempty"`
@@ -62,12 +54,16 @@ type Fundraise struct {
 	Dedication             string        `json:"dedication,omitempty"`
 	Notify                 string        `json:"notify,omitempty"`
 	Transactions           []Transaction `json:"transactions,omitempty" gorm:"foreignkey:activity_id"`
+	Supporter              Supporter     `gorm:"foreignkey:supporter_id"`
 }
 
-//FundraiseResponsePayload holds the activities for a ONE_TIME search.
-type FundraiseResponsePayload struct {
-	Total      int32       `json:"total,omitempty"`
-	Offset     int32       `json:"offset,omitempty"`
-	Count      int32       `json:"count,omitempty"`
-	Activities []Fundraise `json:"activities,omitempty"`
+//FundraiseResponse is returned for requests of type "FUNDRAISE".
+type FundraiseResponse struct {
+	Header  Header `json:"header,omitempty"`
+	Payload struct {
+		Total      int32       `json:"total,omitempty"`
+		Offset     int32       `json:"offset,omitempty"`
+		Count      int32       `json:"count,omitempty"`
+		Activities []Fundraise `json:"activities,omitempty"`
+	} `json:"payload,omitempty"`
 }
