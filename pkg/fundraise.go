@@ -55,6 +55,9 @@ type Fundraise struct {
 	Notify                 string        `json:"notify,omitempty"`
 	Transactions           []Transaction `json:"transactions,omitempty" gorm:"foreignkey:activity_id"`
 	Supporter              Supporter     `gorm:"foreignkey:supporter_id"`
+	Month                  int
+	Day                    int
+	Year                   int
 }
 
 //FundraiseResponse is returned for requests of type "FUNDRAISE".
