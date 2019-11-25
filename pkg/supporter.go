@@ -1,7 +1,6 @@
 package goengage
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -188,13 +187,11 @@ func FetchSupporter(e *Environment, k string) (*Supporter, error) {
 		return nil, err
 	}
 	count := int32(len(response.Payload.Supporters))
-	fmt.Printf("Found %d supporters that matched supporterID %v\n", len(response.Payload.Supporters), k)
 	if count == 0 {
 		return nil, nil
 	}
 	for _, s := range response.Payload.Supporters {
-		fmt.Printf("FetchSupporter: %v was created %v\n", s.SupporterID, s.CreatedDate)
-		// This should always be true, BTW`
+		// This should always be true, BTW
 		if s.SupporterID == k {
 			if s.Result == Found {
 				return &s, nil
