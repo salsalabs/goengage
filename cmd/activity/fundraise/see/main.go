@@ -85,7 +85,7 @@ func main() {
 		ModifiedFrom: "2000-01-01T00:00:00.000Z",
 	}
 	rqt := goengage.ActivityRequest{
-		Header:  goengage.Header{},
+		Header:  goengage.RequestHeader{},
 		Payload: payload,
 	}
 
@@ -93,7 +93,7 @@ func main() {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Endpoint: goengage.Search,
+		Endpoint: goengage.SearchActivity,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
