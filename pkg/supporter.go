@@ -1,6 +1,7 @@
 package goengage
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -158,4 +159,47 @@ type DeletedResponse struct {
 			Result      string `json:"result,omitempty"`
 		} `json:"supporters,omitempty"`
 	} `json:"payload,omitempty"`
+}
+
+//FetchSupporter retrieves a supporter record for Engage using the SupporterID
+//in the provided record.
+func FetchSupporter(e *Environment, k string) (*Supporter, error) {
+	payload := SupporterSearchPayload{
+		Identifiers:    []string{k},
+		IdentifierType: SupporterIDType,
+		Offset:         int32(0),
+		Count:          e.Metrics.MaxBatchSize,
+	}
+	request := SupporterSearch{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var response SupporterSearchResults
+	n := NetOp{
+		Host:     e.Host,
+		Endpoint: SearchSupporter,
+		Method:   SearchMethod,
+		Token:    e.Token,
+		Request:  &request,
+		Response: &response,
+	}
+	err := n.Do()
+	if err != nil {
+		return nil, err
+	}
+	count := int32(len(response.Payload.Supporters))
+	fmt.Printf("Found %d supporters that matched supporterID %v\n", len(response.Payload.Supporters), k)
+	if count == 0 {
+		return nil, nil
+	}
+	for _, s := range response.Payload.Supporters {
+		fmt.Printf("FetchSupporter: %v was created %v\n", s.SupporterID, s.CreatedDate)
+		// This should always be true, BTW`
+		if s.SupporterID == k {
+			if s.Result == Found {
+				return &s, nil
+			}
+		}
+	}
+	return nil, nil
 }
