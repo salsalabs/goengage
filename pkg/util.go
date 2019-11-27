@@ -26,13 +26,16 @@ func FirstEmail(s Supporter) *string {
 }
 
 //Date parses an Engage date and returns a Go time.
-func Date(s string) time.Time {
+func Date(s string) (t *time.Time) {
+	if len(s) == 0 {
+		return t
+	}
 	p := strings.Replace(time.RFC3339Nano, "9999999Z07:00", "Z", -1)
-	t, err := time.Parse(p, s)
+	x, err := time.Parse(p, s)
 	if err != nil {
 		panic(err)
 	}
-	return t
+	return &x
 }
 
 //UtilLogger is an environment to support a file logger.  It contains
