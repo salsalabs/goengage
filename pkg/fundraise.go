@@ -16,8 +16,7 @@ type Transaction struct {
 	FeesPaid                 float64    `json:"feesPaid,omitempty"`
 	GatewayTransactionID     string     `json:"gatewayTransactionId,omitempty"`
 	GatewayAuthorizationCode string     `json:"gatewayAuthorizationCode,omitempty"`
-	//Foreign key for GORM.
-	ActivityID string `gorm:"fundraises_id"`
+	ActivityID               string     `gorm:"fundraises_id"`
 }
 
 //Fundraise holds a single fundraising activity.  A fundraising
