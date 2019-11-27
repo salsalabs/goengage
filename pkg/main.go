@@ -138,7 +138,7 @@ const (
 //Transaction type
 const (
 	Charge   = "CHARGE"
-	Refunc   = "REFUND"
+	Refund   = "REFUND"
 	Cancel   = "CANCEL"
 	Complete = "COMPLETE"
 )
