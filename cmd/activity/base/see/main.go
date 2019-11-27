@@ -7,11 +7,10 @@ import (
 	"os"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeBaseResponse(resp activity.BaseResponse) {
+func seeBaseResponse(resp goengage.BaseResponse) {
 	fmt.Println("\nActivities")
 	for i, a := range resp.Payload.Activities {
 		fmt.Printf("%2d %v %v %v %v %v %v %v\n",
@@ -37,30 +36,30 @@ func main() {
 		panic(err)
 	}
 	types := []string{
-		activity.SubscriptionManagementType,
-		activity.SubscribeType,
-		activity.FundraiseType,
-		activity.PetitionType,
-		activity.TargetedLetterType,
-		activity.TicketedEventType,
-		activity.P2PEventType,
+		goengage.SubscriptionManagementType,
+		goengage.SubscribeType,
+		goengage.FundraiseType,
+		goengage.PetitionType,
+		goengage.TargetedLetterType,
+		goengage.TicketedEventType,
+		goengage.P2PEventType,
 	}
 	for _, r := range types {
-		payload := activity.ActivityRequestPayload{
+		payload := goengage.ActivityRequestPayload{
 			Type:         r,
 			Offset:       0,
 			Count:        e.Metrics.MaxBatchSize,
 			ModifiedFrom: "2000-01-01T00:00:00.000Z",
 		}
-		rqt := activity.ActivityRequest{
-			Header:  goengage.Header{},
+		rqt := goengage.ActivityRequest{
+			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
-		var resp activity.BaseResponse
+		var resp goengage.BaseResponse
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: activity.Search,
+			Endpoint: goengage.SearchActivity,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,

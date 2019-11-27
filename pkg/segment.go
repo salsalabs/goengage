@@ -48,11 +48,13 @@ type UpsertResponse struct {
 
 //Segment contains the results of an upsert.
 type Segment struct {
-	ID               string  `json:"segmentId,omitempty"`
+	SegmentID        string  `json:"segmentId,omitempty"`
 	Name             string  `json:"name"`
 	Description      string  `json:"description"`
-	ExternalSystemID string  `json:"externalSystemId"`
-	Result           string  `json:"result"`
+	Type             string  `json:"type,omitempty"`
+	TotalSupporters  int     `json:"totalSupporters,omitempty"`
+	ExternalSystemID string  `json:"externalSystemId,omitempty"`
+	Result           string  `json:"result,omitempty"`
 	Errors           []Error `json:"errors,omitempty"`
 }
 

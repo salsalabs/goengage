@@ -8,11 +8,10 @@ import (
 	"sort"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	activity "github.com/salsalabs/goengage/pkg/activity"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeBaseResponse(resp activity.BaseResponse) {
+func seeBaseResponse(resp goengage.BaseResponse) {
 	var unsorted []string
 	for _, a := range resp.Payload.Activities {
 		date := a.ActivityDate.Format("2006-01-02")
@@ -30,19 +29,19 @@ func seeBaseResponse(resp activity.BaseResponse) {
 }
 
 func process(e *goengage.Environment, offset int32) (int32, error) {
-	payload := activity.ActivityRequestPayload{
-		Type:   activity.TargetedLetterType,
+	payload := goengage.ActivityRequestPayload{
+		Type:   goengage.TargetedLetterType,
 		Offset: int32(offset),
 		Count:  e.Metrics.MaxBatchSize,
 		//Pagination does *not* work with activityFormIds at this writing.
 		ModifiedFrom: "2019-09-01T00:00:00.0Z",
 		ModifiedTo:   "2019-10-31T00:00:00.0Z",
 	}
-	rqt := activity.ActivityRequest{
+	rqt := goengage.ActivityRequest{
 		Header:  goengage.RequestHeader{RefID: "cmd/activity/targeted_letter/summarize"},
 		Payload: payload,
 	}
-	var resp activity.BaseResponse
+	var resp goengage.BaseResponse
 	logger, err := goengage.NewUtilLogger()
 	if err != nil {
 		return 0, err
@@ -50,7 +49,7 @@ func process(e *goengage.Environment, offset int32) (int32, error) {
 	n := goengage.NetOp{
 		Host:     e.Host,
 		Method:   goengage.SearchMethod,
-		Endpoint: activity.Search,
+		Endpoint: goengage.SearchActivity,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
