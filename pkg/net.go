@@ -92,13 +92,11 @@ func (n *NetOp) internal() (err error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Metrics are %+v\n", n.Metrics)
 		return err
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Metrics are %+v\n", n.Metrics)
 		return err
 	}
 	if resp.StatusCode != 200 {
@@ -139,10 +137,5 @@ func (n *NetOp) Currently() (err error) {
 //MaxBatchSize.
 func (n *NetOp) Enough() bool {
 	b := n.Metrics.CurrentRateLimit > Multiplier*n.Metrics.MaxBatchSize
-	log.Printf("NetOp.Do: Have: %3d, Want: %3d, Enough? %v, %5v\n",
-		n.Metrics.CurrentRateLimit,
-		n.Metrics.MaxBatchSize,
-		b,
-		n.Endpoint)
 	return b
 }
