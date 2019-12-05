@@ -12,8 +12,11 @@ import (
 	"time"
 )
 
-//NapDuration is the time that we sleep to avoid 429 errors.
-const NapDuration = "2s"
+//NapDuration is the time that we sleep to avoid 429 errors.  Testing shows
+//that 10 seconds is a good minimum.  Napping for two seconds repeats at least
+//five times.  We're not going anywhere anyway -- might as well wait for a
+//logoner time.  Pleae tweak as needed.
+const NapDuration = "10s"
 
 //Multiplier is used to decide whether or not to take a nap to avoid 429 errors.
 const Multiplier = 2
