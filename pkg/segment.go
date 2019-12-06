@@ -7,9 +7,9 @@ import (
 //Constants for Engage endpoints.
 const (
 	SearchSegment          = "/api/integration/ext/v1/segments/search"
-	SupporterSearchSegment = "/api/integration/ext/v1/segments/Supporters/search"
-	UpsertSegment          = "/api/integration/ext/v1/supporters"
-	DeleteSegment          = "/api/integration/ext/v1/supporters"
+	SupporterSearchSegment = "/api/integration/ext/v1/segments/members/search"
+	UpsertSegment          = "/api/integration/ext/v1/segments"
+	DeleteSegment          = "/api/integration/ext/v1/segments"
 )
 
 //Constants to drive counting, or not counting, supporters on a segment read.
@@ -86,15 +86,18 @@ type SegmentDeleteResponse struct {
 //see the documentation for details.  Note that true in "includeSupporterCounts"
 //really, *really* slows this call down.  A bunch.
 type SegmentSearchRequest struct {
-	Header  RequestHeader `json:"header,omitempty"`
-	Payload struct {
-		Offset                 int32    `json:"offset"`
-		Count                  int32    `json:"count"`
-		Identifiers            []string `json:"identifiers"`
-		IdentifierType         string   `json:"identifierType"`
-		IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
-		JoinedSince            string   `json:"joinedSince"`
-	} `json:"payload,omitempty"`
+	Header  RequestHeader               `json:"header,omitempty"`
+	Payload SegmentSearchRequestPayload `json:"payload,omitempty"`
+}
+
+//SegmentSearchRequestPayload contains the payload for searching for segments.
+type SegmentSearchRequestPayload struct {
+	Offset                 int32    `json:"offset"`
+	Count                  int32    `json:"count"`
+	Identifiers            []string `json:"identifiers"`
+	IdentifierType         string   `json:"identifierType"`
+	IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
+	JoinedSince            string   `json:"joinedSince"`
 }
 
 //SegmentSearchResponse contains the results returned by searching for segments.
@@ -160,13 +163,17 @@ type DeleteSupportersResponse struct {
 //SupporterSearchRequest requests a list of supporters.  Supplying
 //"supporterIds" constrains the results to just those supporters.
 type SupporterSearchRequest struct {
-	Header  RequestHeader `json:"header,omitempty"`
-	Payload struct {
-		SegmentID    string   `json:"segmentId"`
-		Offset       int32    `json:"offset"`
-		Count        int32    `json:"count"`
-		SupporterIds []string `json:"supporterIds"`
-	} `json:"payload"`
+	Header  RequestHeader                 `json:"header,omitempty"`
+	Payload SupporterSearchRequestPayload `json:"payload"`
+}
+
+//SupporterSearchRequestPayload contains the request details when
+//searching for supporters in a segment.
+type SupporterSearchRequestPayload struct {
+	SegmentID    string   `json:"segmentId"`
+	Offset       int32    `json:"offset"`
+	Count        int32    `json:"count"`
+	SupporterIds []string `json:"supporterIds"`
 }
 
 //SupporterSearchResponse contains a list of supporters that match
