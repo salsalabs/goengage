@@ -103,7 +103,6 @@ func (n *NetOp) internal() (err error) {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		fmt.Printf("Metrics are %+v\n", n.Metrics)
 		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
 		return errors.New(m)
 	}
