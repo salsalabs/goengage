@@ -52,6 +52,7 @@ type Fundraise struct {
 	DedicationType         string        `json:"dedicationType,omitempty"`
 	Dedication             string        `json:"dedication,omitempty"`
 	Notify                 string        `json:"notify,omitempty"`
+	WasImported            bool          `json:"wasimported,omitEmpty"`
 	Transactions           []Transaction `json:"transactions,omitempty" gorm:"foreignkey:activity_id"`
 	Supporter              Supporter     `gorm:"foreignkey:supporter_id"`
 	Month                  int
