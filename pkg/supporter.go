@@ -37,23 +37,23 @@ const (
 
 //Address holds a street address and geolocation stuff for a supporter.
 type Address struct {
-	AddressLine1         string    `json:"addressLine1"`
-	AddressLine2         string    `json:"addressLine2"`
-	AddressLine3         string    `json:"addressLine3"`
-	City                 string    `json:"city"`
-	State                string    `json:"state"`
-	PostalCode           string    `json:"postalCode"`
-	County               string    `json:"county"`
-	Country              string    `json:"country"`
-	FederalHouseDistrict string    `json:"federalHouseDistrict"`
-	StateHouseDistrict   string    `json:"stateHouseDistrict"`
-	StateSenateDistrict  string    `json:"stateSenateDistrict"`
-	CountyDistrict       string    `json:"countyDistrict"`
-	MunicipalityDistrict string    `json:"municipalityDistrict"`
-	Lattitude            float64   `json:"lattitude"`
-	Longitude            float64   `json:"longitude"`
-	Status               string    `json:"status"`
-	OptInDate            time.Time `json:"optInDate"`
+	AddressLine1         string    `json:"addressLine1,omitempty"`
+	AddressLine2         string    `json:"addressLine2,omitempty"`
+	AddressLine3         string    `json:"addressLine3,omitempty"`
+	City                 string    `json:"city,omitempty"`
+	State                string    `json:"state,omitempty"`
+	PostalCode           string    `json:"postalCode,omitempty"`
+	County               string    `json:"county,omitempty"`
+	Country              string    `json:"country,omitempty"`
+	FederalHouseDistrict string    `json:"federalHouseDistrict,omitempty"`
+	StateHouseDistrict   string    `json:"stateHouseDistrict,omitempty"`
+	StateSenateDistrict  string    `json:"stateSenateDistrict,omitempty"`
+	CountyDistrict       string    `json:"countyDistrict,omitempty"`
+	MunicipalityDistrict string    `json:"municipalityDistrict,omitempty"`
+	Lattitude            float64   `json:"lattitude,omitempty"`
+	Longitude            float64   `json:"longitude,omitempty"`
+	Status               string    `json:"status,omitempty"`
+	OptInDate            time.Time `json:"optInDate,omitempty"`
 }
 
 //CustomFieldValue contains information about a custom field.  Note that
