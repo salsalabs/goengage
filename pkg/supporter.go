@@ -29,6 +29,12 @@ const (
 	ContactLinkedin = "LINKEDIN_ID"
 )
 
+//Status types.
+const (
+	OptIn  = "OPT_IN"
+	OptOut = "OPT_OUT"
+)
+
 //Address holds a street address and geolocation stuff for a supporter.
 type Address struct {
 	AddressLine1         string    `json:"addressLine1"`
