@@ -86,7 +86,11 @@ func main() {
 	}
 	for _, s := range resp.Payload.Supporters {
 		email := goengage.FirstEmail(s)
-		fmt.Printf("%-36s %-25v %v\n", s.SupporterID, *email, s.Result)
+		if email != nil {
+			fmt.Printf("%-36s %-25v %v\n", s.SupporterID, *email, s.Result)
+		} else { 
+			fmt.Printf("%-36s %-25v %v\n", s.SupporterID, "(None)", s.Result)
+		}
 		if s.Result != goengage.Found {
 			fmt.Printf("%v %v %v\n",
 				s.FirstName,
