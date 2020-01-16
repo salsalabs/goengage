@@ -63,7 +63,6 @@ type CustomFieldValue struct {
 	FieldID    string     `json:"fieldId" gorm:"field_id,primarykey"`
 	Name       string     `json:"name"`
 	Value      string     `json:"value"`
-	Type       string     `json:"type"`
 	OptInDate  *time.Time `json:"optInDate,omitempty"`
 	OptOutDate *time.Time `json:"optOutDate,omitempty"`
 	//Foreign key for GORM.
