@@ -37,23 +37,23 @@ const (
 
 //Address holds a street address and geolocation stuff for a supporter.
 type Address struct {
-	AddressLine1         string    `json:"addressLine1,omitempty"`
-	AddressLine2         string    `json:"addressLine2,omitempty"`
-	AddressLine3         string    `json:"addressLine3,omitempty"`
-	City                 string    `json:"city,omitempty"`
-	State                string    `json:"state,omitempty"`
-	PostalCode           string    `json:"postalCode,omitempty"`
-	County               string    `json:"county,omitempty"`
-	Country              string    `json:"country,omitempty"`
-	FederalHouseDistrict string    `json:"federalHouseDistrict,omitempty"`
-	StateHouseDistrict   string    `json:"stateHouseDistrict,omitempty"`
-	StateSenateDistrict  string    `json:"stateSenateDistrict,omitempty"`
-	CountyDistrict       string    `json:"countyDistrict,omitempty"`
-	MunicipalityDistrict string    `json:"municipalityDistrict,omitempty"`
-	Lattitude            float64   `json:"lattitude,omitempty"`
-	Longitude            float64   `json:"longitude,omitempty"`
-	Status               string    `json:"status,omitempty"`
-	OptInDate            time.Time `json:"optInDate,omitempty"`
+	AddressLine1         string     `json:"addressLine1,omitempty"`
+	AddressLine2         string     `json:"addressLine2,omitempty"`
+	AddressLine3         string     `json:"addressLine3,omitempty"`
+	City                 string     `json:"city,omitempty"`
+	State                string     `json:"state,omitempty"`
+	PostalCode           string     `json:"postalCode,omitempty"`
+	County               string     `json:"county,omitempty"`
+	Country              string     `json:"country,omitempty"`
+	FederalHouseDistrict string     `json:"federalHouseDistrict,omitempty"`
+	StateHouseDistrict   string     `json:"stateHouseDistrict,omitempty"`
+	StateSenateDistrict  string     `json:"stateSenateDistrict,omitempty"`
+	CountyDistrict       string     `json:"countyDistrict,omitempty"`
+	MunicipalityDistrict string     `json:"municipalityDistrict,omitempty"`
+	Lattitude            float64    `json:"lattitude,omitempty"`
+	Longitude            float64    `json:"longitude,omitempty"`
+	Status               string     `json:"status,omitempty"`
+	OptInDate            *time.Time `json:"optInDate,omitempty"`
 }
 
 //CustomFieldValue contains information about a custom field.  Note that
@@ -67,7 +67,7 @@ type CustomFieldValue struct {
 	OptInDate  *time.Time `json:"optInDate,omitempty"`
 	OptOutDate *time.Time `json:"optOutDate,omitempty"`
 	//Foreign key for GORM.
-	SupporterID string `gorm:"supporter_id"`
+	SupporterID string `json:"-" gorm:"supporter_id"`
 }
 
 //Contact holds a way to communicate with a supporter.  Typical contacts
@@ -77,8 +77,8 @@ type Contact struct {
 	Value  string `json:"value,omitempty"`
 	Status string `json:"status,omitempty,omitempty" gorm:"status,omitempty"`
 	//Foreign key for GORM.``
-	SupporterID string `gorm:"supporter_id"`
-	ContactID   string `gorm:"contact_id,primarykey,autoincrement"`
+	SupporterID string `json:"-" gorm:"supporter_id"`
+	ContactID   string `json:"-" gorm:"contact_id,primarykey,autoincrement"`
 }
 
 //Supporter describes a single Engage supporter.
