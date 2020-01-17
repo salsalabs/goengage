@@ -1,6 +1,15 @@
 package goengage
 
-import "time"
+import (
+	"encoding/json"
+	"log"
+	"time"
+)
+
+//Engage endpoint for offline donation upsert.
+const (
+	OfflineUpsert = "api/integration/ext/v1/offlineDonations"
+)
 
 //DonorAddress is the donor's address.  Shorter than a standard address...
 type DonorAddress struct {
@@ -68,4 +77,13 @@ type ResultDonation struct {
 	ActivityID string `json:"activityId,omitempty"`
 	Result     string `json:"result,omitempty"`
 	Donation
+}
+
+//ToString converts Donation record to a JSON string.
+func (r Donation) ToString() string {
+	b, err := json.MarshalIndent(r, "", "  ")
+	if err != nil {
+		log.Fatalf("InputSink: %v\n", err)
+	}
+	return string(b)
 }
