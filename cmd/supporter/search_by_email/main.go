@@ -5,8 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/salsalabs/goengage/pkg"
-	supporter "github.com/salsalabs/goengage/pkg/supporter"
+	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -37,21 +36,21 @@ func main() {
 	// to := goengage.Date("2100-01-01T00:00:00.000Z")
 	emails := strings.Split(*email, ",")
 	for count == int32(e.Metrics.MaxBatchSize) {
-		payload := supporter.SupporterSearchPayload{
+		payload := goengage.SupporterSearchPayload{
 			Identifiers:    emails,
-			IdentifierType: supporter.EmailAddressType,
+			IdentifierType: goengage.EmailAddressType,
 			Offset:         offset,
 			Count:          e.Metrics.MaxBatchSize,
 		}
-		rqt := supporter.SupporterSearch{
+		rqt := goengage.SupporterSearch{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
-		var resp supporter.SupporterSearchResults
+		var resp goengage.SupporterSearchResults
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: supporter.Search,
+			Endpoint: goengage.SearchSupporter,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
