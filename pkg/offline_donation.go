@@ -50,7 +50,6 @@ type Donation struct {
 //via the API.  Note, too, that there are rules to follow.
 //See https://help.salsalabs.com/hc/en-us/articles/360002275693-Engage-API-Offline-Donations#addingupdating-offline-donations
 type DonationUpsertRequest struct {
-	Header  RequestHeader
 	Payload struct {
 		Donations []Donation `json:"donations,omitempty"`
 	} `json:"payload,omitempty"`
