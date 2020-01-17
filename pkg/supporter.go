@@ -60,7 +60,7 @@ type Address struct {
 //a supporter/activity will only have custom fields if the values have been
 //set in the supporter/activity record.
 type CustomFieldValue struct {
-	FieldID    string     `json:"fieldId" gorm:"field_id,primarykey"`
+	FieldID    string     `json:"fieldId,omitempty" gorm:"field_id,primarykey,omitempty"`
 	Name       string     `json:"name"`
 	Value      string     `json:"value"`
 	OptInDate  *time.Time `json:"optInDate,omitempty"`
@@ -94,7 +94,7 @@ type Supporter struct {
 	CreatedDate       *time.Time         `json:"createdDate,omitempty"`
 	LastModified      *time.Time         `json:"lastModified,omitempty"`
 	ExternalSystemID  string             `json:"externalSystemId,omitempty"`
-	Address           Address            `json:"address,omitempty"`
+	Address           *Address           `json:"address,omitempty"`
 	Contacts          []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
 	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
 }
