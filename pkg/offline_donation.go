@@ -8,7 +8,8 @@ import (
 
 //Engage endpoint for offline donation upsert.
 const (
-	OfflineUpsert = "api/integration/ext/v1/offlineDonations"
+	OfflineUpsertMethod = "POST"
+	OfflineUpsert       = "api/integration/ext/v1/offlineDonations"
 )
 
 //DonorAddress is the donor's address.  Shorter than a standard address...
