@@ -9,7 +9,7 @@ import (
 //Engage endpoint for offline donation upsert.
 const (
 	OfflineUpsertMethod = "POST"
-	OfflineUpsert       = "api/integration/ext/v1/offlineDonations"
+	OfflineUpsert       = "/api/integration/ext/v1/offlineDonations"
 )
 
 //DonorAddress is the donor's address.  Shorter than a standard address...
@@ -59,10 +59,15 @@ type DonationUpsertRequest struct {
 //DonationUpsertResponse contains information about the add/update donations
 //request.
 type DonationUpsertResponse struct {
-	Header  Header
-	Payload struct {
-		Donations []ResultDonation `json:"donations,omitempty"`
-	} `json:"payload,omitempty"`
+	ID        string    `json:"id"`
+	Timestamp time.Time `json:"timestamp"`
+	Header    Header    `json:"header"`
+	Errors    []struct {
+		ID      string    `json:"id"`
+		Code    int       `json:"code"`
+		Message time.Time `json:"message"`
+		Details string    `json:"details"`
+	} `json:"errors,omitempty"`
 }
 
 //ResultDonation contains a donation preceded by errors.  If "Errors" is
