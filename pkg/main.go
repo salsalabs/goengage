@@ -2,7 +2,16 @@ package goengage
 
 import (
 	"net/http"
+	"time"
 )
+
+//EngageDateFormat is the Go date format for Engage.
+const EngageDateFormat = "2006-01-02T15:04:00.000Z"
+
+//TimeStamp wraps a time for marshalling into JSON.
+type TimeStamp struct {
+	*time.Time
+}
 
 const (
 	//UATHost is the hostname for Engage instances on the test server.

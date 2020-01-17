@@ -35,7 +35,7 @@ type Donation struct {
 	DedicationType           string             `json:"dedicationType,omitempty"`
 	Dedication               string             `json:"dedication,omitempty"`
 	Type                     string             `json:"type,omitempty"`
-	Date                     *time.Time         `json:"date,omitempty"`
+	Date                     TimeStamp          `json:"date,omitempty"`
 	Amount                   float64            `json:"amount,omitempty"`
 	DeductibleAmount         float64            `json:"deductibleAmount,omitempty"`
 	FeesPaid                 float64            `json:"feesPaid,omitempty"`

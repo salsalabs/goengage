@@ -72,3 +72,10 @@ func (u *UtilLogger) LogJSON(b []byte) {
 		u.Logger.Println(string(t))
 	}
 }
+
+//MarshalJSON JSON for a time.
+func (t TimeStamp) MarshalJSON() ([]byte, error) {
+	s := t.Format(EngageDateFormat)
+	s = fmt.Sprintf(`"%v"`, s)
+	return []byte(s), nil
+}
