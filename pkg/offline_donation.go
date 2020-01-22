@@ -58,16 +58,41 @@ type DonationUpsertRequest struct {
 
 //DonationUpsertResponse contains information about the add/update donations
 //request.
+//
+// **KLUDGE***
+// This is the output from JSON-to-Go.  It does not use Donation in the list of donations.
+//
 type DonationUpsertResponse struct {
 	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
-	Header    Header    `json:"header"`
-	Errors    []struct {
-		ID      string    `json:"id"`
-		Code    int       `json:"code"`
-		Message time.Time `json:"message"`
-		Details string    `json:"details"`
-	} `json:"errors,omitempty"`
+	Header    struct {
+		ProcessingTime int    `json:"processingTime"`
+		ServerID       string `json:"serverId"`
+	} `json:"header"`
+	Payload struct {
+		Donations []struct {
+			Type                     string    `json:"type"`
+			Date                     time.Time `json:"date"`
+			Amount                   float64   `json:"amount"`
+			GatewayTransactionID     string    `json:"gatewayTransactionId"`
+			GatewayAuthorizationCode string    `json:"gatewayAuthorizationCode"`
+			Supporter                struct {
+				ReadOnly     bool      `json:"readOnly"`
+				SupporterID  string    `json:"supporterId"`
+				FirstName    string    `json:"firstName"`
+				LastName     string    `json:"lastName"`
+				CreatedDate  time.Time `json:"createdDate"`
+				LastModified time.Time `json:"lastModified"`
+				Contacts     []struct {
+					Type   string `json:"type"`
+					Value  string `json:"value"`
+					Status string `json:"status,omitempty"`
+				} `json:"contacts"`
+				Result string `json:"result"`
+			} `json:"supporter"`
+		} `json:"donations"`
+		Count int `json:"count"`
+	} `json:"payload"`
 }
 
 //ResultDonation contains a donation preceded by errors.  If "Errors" is
