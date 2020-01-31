@@ -39,6 +39,7 @@ type Donation struct {
 	Amount                   float64            `json:"amount,omitempty"`
 	DeductibleAmount         float64            `json:"deductibleAmount,omitempty"`
 	FeesPaid                 float64            `json:"feesPaid,omitempty"`
+	OfflineTrackingCode      string             `json:"salsaTrack,omitempty"`
 	GatewayTransactionID     string             `json:"gatewayTransactionId,omitempty"`
 	GatewayAuthorizationCode string             `json:"gatewayAuthorizationCode,omitempty"`
 	ActivityFormName         string             `json:"activityFormName,omitempty"`
