@@ -97,6 +97,7 @@ type Supporter struct {
 	Address           *Address           `json:"address,omitempty"`
 	Contacts          []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
 	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
+	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitEmpty"`
 }
 
 //SupporterSearch provides the criteria to match when searching
