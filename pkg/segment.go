@@ -103,18 +103,10 @@ type SegmentSearchRequestPayload struct {
 //SegmentSearchResponse contains the results returned by searching for segments.
 type SegmentSearchResponse struct {
 	Payload struct {
-		Count    int32 `json:"count"`
-		Offset   int32 `json:"offset"`
-		Total    int32 `json:"total"`
-		Segments []struct {
-			SegmentID        string `json:"segmentId,omitempty"`
-			Name             string `json:"name,omitempty"`
-			Description      string `json:"description,omitempty"`
-			Type             string `json:"type,omitempty"`
-			TotalSupporters  int    `json:"totalSupporters,omitempty"`
-			Result           string `json:"result"`
-			ExternalSystemID string `json:"externalSystemId"`
-		} `json:"segments"`
+		Count    int32     `json:"count"`
+		Offset   int32     `json:"offset"`
+		Total    int32     `json:"total"`
+		Segments []Segment `json:"segments"`
 	} `json:"payload"`
 }
 
