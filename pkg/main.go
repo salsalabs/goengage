@@ -22,6 +22,8 @@ const (
 	ContentType = "application/json"
 	//SearchMethod is always "POST" in Engage.
 	SearchMethod = http.MethodPost
+	//UpdateMethod is always "PUT" in Engage.
+	UpdateMethod = http.MethodPut
 )
 
 //Segment constants
