@@ -57,15 +57,25 @@ type Address struct {
 	OptInDate            *time.Time `json:"optInDate,omitempty"`
 }
 
+// CustomFieldError is returned when an attempt to change a custom field fails.
+type CustomFieldError struct {
+	ID        string `json:"id,omitEmpty"`
+	Code      int    `json:"code,omitEmpty"`
+	Message   string `json:"message,omitEmpty"`
+	Details   string `json:"details,omitEmpty"`
+	FieldName string `json:"fieldName,omitEmpty"`
+}
+
 //CustomFieldValue contains information about a custom field.  Note that
 //a supporter/activity will only have custom fields if the values have been
 //set in the supporter/activity record.
 type CustomFieldValue struct {
-	FieldID    string     `json:"fieldId,omitempty" gorm:"field_id,primarykey,omitempty"`
-	Name       string     `json:"name"`
-	Value      string     `json:"value"`
-	OptInDate  *time.Time `json:"optInDate,omitempty"`
-	OptOutDate *time.Time `json:"optOutDate,omitempty"`
+	FieldID    string             `json:"fieldId,omitempty" gorm:"field_id,primarykey,omitempty"`
+	Name       string             `json:"name"`
+	Value      string             `json:"value"`
+	OptInDate  *time.Time         `json:"optInDate,omitempty"`
+	OptOutDate *time.Time         `json:"optOutDate,omitempty"`
+	Errors     []CustomFieldError `json:"errors,omitempty"`
 	//Foreign key for GORM.
 	SupporterID string `json:"-" gorm:"supporter_id"`
 }
@@ -299,5 +309,5 @@ func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
 		err = fmt.Errorf("engage return zero responses for ID %s", s.SupporterID)
 
 	}
-	return nil, err
+	return s, err
 }
