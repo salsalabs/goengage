@@ -1,6 +1,7 @@
 package goengage
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -135,17 +136,20 @@ type SupporterSearchResults struct {
 	} `json:"payload,omitempty"`
 }
 
-//UpdateRequest provides a list of modified supporter records that
-//the caller wants to be updated in the database.
-type UpdateRequest struct {
-	Header  RequestHeader `json:"header,omitempty"`
-	Payload struct {
-		Supporters []Supporter `json:"supporters,omitempty"`
-	} `json:"payload,omitempty"`
+//SupporterUpdatePayload holds the list of supporter records to be updated.
+type SupporterUpdatePayload struct {
+	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//UpdateResponse provides results for the updated supporters.
-type UpdateResponse struct {
+//SupporterUpdateRequest provides a list of modified supporter records that
+//the caller wants to be updated in the database.
+type SupporterUpdateRequest struct {
+	Header  RequestHeader          `json:"header,omitempty"`
+	Payload SupporterUpdatePayload `json:"payload,omitempty"`
+}
+
+//SupporterUpdateResponse provides results for the updated supporters.
+type SupporterUpdateResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
 		Supporters []Supporter `json:"supporters,omitempty"`
@@ -172,9 +176,9 @@ type DeletedResponse struct {
 	} `json:"payload,omitempty"`
 }
 
-//FetchSupporter retrieves a supporter record for Engage using the SupporterID
+//SupporterByID retrieves a supporter record for Engage using the SupporterID
 //in the provided record.
-func FetchSupporter(e *Environment, k string) (*Supporter, error) {
+func SupporterByID(e *Environment, k string) (*Supporter, error) {
 	payload := SupporterSearchPayload{
 		Identifiers:    []string{k},
 		IdentifierType: SupporterIDType,
@@ -211,4 +215,89 @@ func FetchSupporter(e *Environment, k string) (*Supporter, error) {
 		}
 	}
 	return nil, nil
+}
+
+// SupporterByEmail returns the first supporter whose email
+// matches the provided email.  Duplicates are gleefully ignored.
+func SupporterByEmail(e *Environment, email string) (s *Supporter, err error) {
+	offset := int32(0)
+	payload := SupporterSearchPayload{
+		Identifiers:    []string{email},
+		IdentifierType: EmailAddressType,
+		Offset:         offset,
+		Count:          e.Metrics.MaxBatchSize,
+	}
+	rqt := SupporterSearch{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var resp SupporterSearchResults
+	n := NetOp{
+		Host:     e.Host,
+		Method:   SearchMethod,
+		Endpoint: SearchSupporter,
+		Token:    e.Token,
+		Request:  &rqt,
+		Response: &resp,
+	}
+	err = n.Do()
+	if err != nil {
+		return s, err
+	}
+	count := resp.Payload.Count
+	if count != 0 {
+		for _, s := range resp.Payload.Supporters {
+			// This should always be true, BTW
+			x := FirstEmail(s)
+			if x != nil && *x == email && s.Result == Found {
+				return &s, nil
+			}
+		}
+	}
+	err = fmt.Errorf("error: %s is not a valid email", email)
+	return s, err
+}
+
+//SupporterUpsert upserts the provided supporter into Engage.
+func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
+	payload := SupporterUpdatePayload{
+		Supporters: []Supporter{*s},
+	}
+	request := SupporterUpdateRequest{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var response SupporterUpdateResponse
+	n := NetOp{
+		Host:     e.Host,
+		Endpoint: UpsertSupporter,
+		Method:   UpdateMethod,
+		Token:    e.Token,
+		Request:  &request,
+		Response: &response,
+	}
+	err := n.Do()
+	if err != nil {
+		return s, err
+	}
+	count := int32(len(response.Payload.Supporters))
+	if count != 0 {
+		s = &response.Payload.Supporters[0]
+		switch s.Result {
+		case Added:
+			err = nil
+		case Updated:
+			err = nil
+		case ValidationError:
+			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
+		case SystemError:
+			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
+		case NotFound:
+			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
+		}
+	} else {
+		err = fmt.Errorf("engage return zero responses for ID %s", s.SupporterID)
+
+	}
+	return nil, err
 }
