@@ -13,7 +13,7 @@ import (
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
-		app     = kingpin.New("see_distrincts", "A command-line app to to show districs for supporter for email address(es).")
+		app     = kingpin.New("see_districts", "A command-line app to to show districs for supporter for email address(es).")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
 		csvFile = app.Flag("csv", "Comma-separated file of email addresses to look up.  Email must be first.").Required().String()
 	)
