@@ -1,113 +1,151 @@
 package main
 
-//Application to find and detail petition signatures.
+//Application scan for donations and keep details *without* PII.
 import (
+	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
+	"strings"
+	"sync"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeFundraiseResponse(resp goengage.FundraiseResponse) {
-	fmt.Println("\nHeader")
-	fmt.Printf("\tProcessingTime: %v\n", resp.Header.ProcessingTime)
-	fmt.Printf("\tServerID: %v\n", resp.Header.ServerID)
-
-	fmt.Println("\nPayload")
-	fmt.Printf("\tTotal: %d\n", resp.Payload.Total)
-	fmt.Printf("\tOffset: %d\n", resp.Payload.Offset)
-	fmt.Printf("\tCount: %d\n", resp.Payload.Count)
-	fmt.Printf("\tLength: %d\n", len(resp.Payload.Activities))
-
-	fmt.Println("\nFundraise")
-	for i, a := range resp.Payload.Activities {
-		fmt.Printf("\n\tFundraise %d\n", i)
-		fmt.Printf("\tActivityID: %v\n", a.ActivityID)
-		fmt.Printf("\tActivityFormName: %v\n", a.ActivityFormName)
-		fmt.Printf("\tActivityFormID: %v\n", a.ActivityFormID)
-		fmt.Printf("\tSupporterID: %v\n", a.SupporterID)
-		fmt.Printf("\tActivityDate: %v\n", a.ActivityDate)
-		fmt.Printf("\tActivityType: %v\n", a.ActivityType)
-		fmt.Printf("\tLastModified: %v\n", a.LastModified)
-		fmt.Printf("\tDonationID: %v\n", a.DonationID)
-		fmt.Printf("\tTotalReceivedAmount: %5.2f\n", a.TotalReceivedAmount)
-		fmt.Printf("\tDonationType: %v\n", a.DonationType)
-		fmt.Printf("\tOneTimeAmount: %5.2f\n", a.OneTimeAmount)
-		fmt.Printf("\tRecurringAmount: %5.2f\n", a.RecurringAmount)
-		fmt.Printf("\tRecurringInterval: %v\n", a.RecurringInterval)
-		fmt.Printf("\tRecurringCount: %d\n", a.RecurringCount)
-		fmt.Printf("\tRecurringTransactionID: %v\n", a.RecurringTransactionID)
-		fmt.Printf("\tRecurringStart: %v\n", a.RecurringStart)
-		fmt.Printf("\tRecurringEnd: %v\n", a.RecurringEnd)
-		fmt.Printf("\tAccountType: %v\n", a.AccountType)
-		fmt.Printf("\tAccountNumber: %v\n", a.AccountNumber)
-		fmt.Printf("\tAccountExpiration: %v\n", a.AccountExpiration)
-		fmt.Printf("\tAccountProvider: %v\n", a.AccountProvider)
-		fmt.Printf("\tPaymentProcessorName: %v\n", a.PaymentProcessorName)
-		fmt.Printf("\tFundName: %v\n", a.FundName)
-		fmt.Printf("\tFundGLCode: %v\n", a.FundGLCode)
-		fmt.Printf("\tDesignation: %v\n", a.Designation)
-		fmt.Printf("\tDedicationType: %v\n", a.DedicationType)
-		fmt.Printf("\tDedication: %v\n", a.Dedication)
-		fmt.Printf("\tNotify: %v\n", a.Notify)
-
-		fmt.Printf("\tTransactions")
-		for i, t := range a.Transactions {
-			fmt.Printf("\n\t\tTrasaction %d\n", i)
-			fmt.Printf("\t\tTransactionID: %v\n", t.TransactionID)
-			fmt.Printf("\t\tType: %v\n", t.Type)
-			fmt.Printf("\t\tReason: %v\n", t.Reason)
-			fmt.Printf("\t\tDate: %v\n", t.Date)
-			fmt.Printf("\t\tAmount: %v\n", t.Amount)
-			fmt.Printf("\t\tDeductibleAmount: %v\n", t.DeductibleAmount)
-			fmt.Printf("\t\tFeesPaid: %v\n", t.FeesPaid)
-			fmt.Printf("\t\tGatewayTransactionID: %v\n", t.GatewayTransactionID)
-			fmt.Printf("\t\tGatewayAuthorizationCode: %v\n", t.GatewayAuthorizationCode)
+//handle retrieves responses from the channel, formats them, and
+//writes them to the handle's own CSV file.
+func handle(c chan goengage.FundraiseResponse, writer *csv.Writer, id int) {
+	log.Printf("handle-%d: begin\n", id)
+	for true {
+		resp, ok := <-c
+		if !ok {
+			break
 		}
+		var cache [][]string
+		for _, a := range resp.Payload.Activities {
+			date := strings.Split(fmt.Sprintf("%v", a.ActivityDate), " ")[0]
+			oneTimeAmount := fmt.Sprintf("%v", a.OneTimeAmount)
+			totalReceivedAmount := fmt.Sprintf("%v", a.TotalReceivedAmount)
+			record := []string{
+				a.SupporterID,
+				a.ActivityID,
+				a.ActivityType,
+				oneTimeAmount,
+				totalReceivedAmount,
+				date,
+			}
+			cache = append(cache, record)
+		}
+		err := writer.WriteAll(cache)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("handle-%d: write %d\n", id, len(cache))
+		writer.Flush()
 	}
+	log.Printf("handle-%d: end\n", id)
+}
+
+//startHandler creates a handler that reads from a channel of responses
+//and writes to the 'n'th output file. Output files have "-n" just before
+//the dot that separates the name from the extension (whatever-1.csv,
+//whatever-2.csv, etc.)  Errors panic.
+func startHandler(c chan goengage.FundraiseResponse, filename string, n int) {
+	parts := strings.Split(filename, ".")
+	csvFile := fmt.Sprintf("%s-%d.%s", parts[0], n, parts[1])
+	f, err := os.Create(csvFile)
+	if err != nil {
+		panic(err)
+	}
+	writer := csv.NewWriter(f)
+	headers := []string{
+		"SupporterID",
+		"ActivityID",
+		"ActivityType",
+		"OneTimeAmount",
+		"TotalReceivedAmount",
+		"Date",
+	}
+	err = writer.Write(headers)
+	if err != nil {
+		panic(err)
+	}
+	handle(c, writer, n)
 }
 
 func main() {
 	var (
-		app   = kingpin.New("activity-see", "List all activities")
-		login = app.Flag("login", "YAML file with API token").Required().String()
+		app     = kingpin.New("fundraise-see", "List all fundraising records")
+		login   = app.Flag("login", "YAML file with API token").Required().String()
+		csvFile = app.Flag("output", "CSVf file for results").Required().Default("fundraise.csv").String()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
 	}
-	count := e.Metrics.MaxBatchSize
-	offset := int32(0)
-	for count > 0 {
-		payload := goengage.ActivityRequestPayload{
-			Type:         goengage.FundraiseType,
-			Offset:       offset,
-			Count:        count,
-			ModifiedFrom: "2000-01-01T00:00:00.000Z",
-		}
-		rqt := goengage.ActivityRequest{
-			Header:  goengage.RequestHeader{},
-			Payload: payload,
-		}
-
-		var resp goengage.FundraiseResponse
-		n := goengage.NetOp{
-			Host:     e.Host,
-			Method:   goengage.SearchMethod,
-			Endpoint: goengage.SearchActivity,
-			Token:    e.Token,
-			Request:  &rqt,
-			Response: &resp,
-		}
-		err = n.Do()
-		if err != nil {
-			panic(err)
-		}
-		seeFundraiseResponse(resp)
-		fmt.Printf("Payload total %5d, offset %5d, count %2d\n", resp.Payload.Total, resp.Payload.Offset, resp.Payload.Count)
-		count = resp.Payload.Count
-		offset = offset + count
+	types := []string{
+		// goengage.SubscriptionManagementType,
+		// goengage.SubscriptionType,
+		goengage.FundraiseType,
+		// goengage.PetitionType,
+		// goengage.TargetedLetterType,
+		// goengage.TicketedEventType,
+		// goengage.P2PEventType,
 	}
+	c := make(chan goengage.FundraiseResponse, 1000)
+	var wg sync.WaitGroup
+	for i := 1; i < 6; i++ {
+		go func(c chan goengage.FundraiseResponse, filename string, id int, wg *sync.WaitGroup) {
+			wg.Add(1)
+			startHandler(c, *csvFile, id)
+			wg.Done()
+		}(c, *csvFile, i, &wg)
+		log.Printf("main: started handler %d\n", i)
+	}
+
+	// Listeners are all ready.  Start the talker.
+	go func(e *goengage.Environment, c chan<- goengage.FundraiseResponse, wg *sync.WaitGroup) {
+		wg.Add(1)
+		for _, r := range types {
+			offset := int32(0)
+			count := int32(e.Metrics.MaxBatchSize)
+			for count == int32(e.Metrics.MaxBatchSize) {
+				payload := goengage.ActivityRequestPayload{
+					Type:         r,
+					Offset:       offset,
+					Count:        e.Metrics.MaxBatchSize,
+					ModifiedFrom: "2000-01-01T00:00:00.000Z",
+				}
+				rqt := goengage.ActivityRequest{
+					Header:  goengage.RequestHeader{},
+					Payload: payload,
+				}
+				var resp goengage.FundraiseResponse
+				n := goengage.NetOp{
+					Host:     e.Host,
+					Method:   goengage.SearchMethod,
+					Endpoint: goengage.SearchActivity,
+					Token:    e.Token,
+					Request:  &rqt,
+					Response: &resp,
+				}
+				err = n.Do()
+				if err != nil {
+					panic(err)
+				}
+				c <- resp
+				count = resp.Payload.Count
+				offset += count
+				log.Printf("main: offset %d\n", offset)
+			}
+		}
+		close(c)
+		wg.Done()
+	}(e, c, &wg)
+	log.Print("main: started talker")
+	log.Print("main: waiting...")
+	wg.Wait()
+	log.Printf("main: done  Look for output files like '%s'\n", *csvFile)
 }
