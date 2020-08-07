@@ -4,26 +4,30 @@ package main
 //to the console.
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
+	"strings"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 func seeBaseResponse(resp goengage.BaseResponse, writer *csv.Writer) {
+	var cache [][]string
 	for _, a := range resp.Payload.Activities {
+		date := strings.Split(fmt.Sprintf("%v", a.ActivityDate), " ")[0]
 		record := []string{
 			a.SupporterID,
 			a.PersonName,
 			a.PersonEmail,
 			a.ActivityType,
-			a.ActivityFormName,
-			a.ActivityFormID,
+			date,
 		}
-		err := writer.Write(record)
-		if err != nil {
-			panic(err)
-		}
+		cache = append(cache, record)
+	}
+	err := writer.WriteAll(cache)
+	if err != nil {
+		panic(err)
 	}
 	writer.Flush()
 }
@@ -41,10 +45,10 @@ func main() {
 	}
 	types := []string{
 		// goengage.SubscriptionManagementType,
-		goengage.SubscriptionType,
+		//goengage.SubscriptionType,
 		// goengage.FundraiseType,
-		// goengage.PetitionType,
-		// goengage.TargetedLetterType,
+		goengage.PetitionType,
+		goengage.TargetedLetterType,
 		// goengage.TicketedEventType,
 		// goengage.P2PEventType,
 	}
@@ -53,16 +57,28 @@ func main() {
 		panic(err)
 	}
 	writer := csv.NewWriter(f)
+	headers := []string{
+		"SupporterID",
+		"PersonName",
+		"PersonEmail",
+		"ActivityType",
+		"ActivityDate",
+	}
+	err = writer.Write(headers)
+	if err != nil {
+		panic(err)
+	}
 	for _, r := range types {
 		offset := int32(0)
 		count := int32(e.Metrics.MaxBatchSize)
-		for count > 0 {
+		for count == int32(e.Metrics.MaxBatchSize) {
 			payload := goengage.ActivityRequestPayload{
 				Type:         r,
-				Offset:       0,
+				Offset:       offset,
 				Count:        e.Metrics.MaxBatchSize,
 				ModifiedFrom: "2000-01-01T00:00:00.000Z",
 			}
+			fmt.Printf("Payload: %+v\n", payload)
 			rqt := goengage.ActivityRequest{
 				Header:  goengage.RequestHeader{},
 				Payload: payload,
@@ -76,17 +92,10 @@ func main() {
 				Request:  &rqt,
 				Response: &resp,
 			}
-			// b, _ := json.MarshalIndent(n, "", "    ")
-			// fmt.Printf("NetOp: %+v\n", string(b))
-
 			err = n.Do()
 			if err != nil {
 				panic(err)
 			}
-			//b, _ = json.MarshalIndent(rqt, "", "    ")
-			//fmt.Printf("Request: %+v\n", string(b))
-			//b, _ = json.MarshalIndent(resp, "", "    ")
-			//fmt.Printf("Response: %+v\n", string(b))
 			seeBaseResponse(resp, writer)
 			count = resp.Payload.Count
 			offset += count
