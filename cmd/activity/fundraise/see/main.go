@@ -78,7 +78,7 @@ func main() {
 	var (
 		app     = kingpin.New("fundraise-see", "List all fundraising records")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
-		csvFile = app.Flag("output", "CSVf file for results").Required().Default("fundraise.csv").String()
+		csvFile = app.Flag("output", "CSVf file for results").Required().String()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
