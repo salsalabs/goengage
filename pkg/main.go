@@ -107,7 +107,7 @@ const (
 //Activity types
 const (
 	SubscriptionManagementType = "SUBSCRIPTION_MANAGEMENT"
-	SubscribeType              = "SUBSCRIBE"
+	SubscriptionType           = "SUBSCRIBE"
 	FundraiseType              = "FUNDRAISE"
 	PetitionType               = "PETITION"
 	TargetedLetterType         = "TARGETED_LETTER"

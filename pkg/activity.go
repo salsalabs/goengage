@@ -32,6 +32,9 @@ type BaseActivity struct {
 	ActivityFormName string     `json:"activityFormName,omitempty"`
 	ActivityFormID   string     `json:"activityFormId,omitempty"`
 	SupporterID      string     `json:"supporterId,omitempty"`
+	PersonName       string     `json:"personName,omitempty"`
+	PersonEmail      string     `json:"personEmail,omitempty"`
+	NewSupporter     bool       `json:"newSupporter,omitempty"`
 	ActivityDate     *time.Time `json:"activityDate,omitempty"`
 	LastModified     *time.Time `json:"lastModified,omitempty"`
 }
