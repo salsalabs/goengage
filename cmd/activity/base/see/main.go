@@ -135,9 +135,7 @@ func main() {
 				c <- resp
 				count = resp.Payload.Count
 				offset += count
-				if offset%1000 == 0 {
-					log.Printf("main: offset %d\n", offset)
-				}
+				log.Printf("main: offset %d\n", offset)
 			}
 		}
 		close(c)
