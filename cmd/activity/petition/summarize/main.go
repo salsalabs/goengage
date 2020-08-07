@@ -1,8 +1,9 @@
 package main
 
-//Application scan the activities database from top to bottom and write them
-//to the console.
+//Application reads all petitions and shows the petition
+//and the list of action takers.
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 	"sort"
@@ -11,7 +12,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-func seeBaseResponse(resp goengage.BaseResponse) {
+func seePetitionResponse(resp goengage.PetitionResponse) {
 	var unsorted []string
 	for _, a := range resp.Payload.Activities {
 		date := a.ActivityDate.Format("2006-01-02")
@@ -28,20 +29,20 @@ func seeBaseResponse(resp goengage.BaseResponse) {
 	}
 }
 
-func process(e *goengage.Environment, offset int32) (int32, error) {
+func process(e *goengage.Environment, writer *csv.Writer, offset int32) (int32, error) {
 	payload := goengage.ActivityRequestPayload{
-		Type:   goengage.TargetedLetterType,
+		Type:   goengage.PetitionType,
 		Offset: int32(offset),
 		Count:  e.Metrics.MaxBatchSize,
 		//Pagination does *not* work with activityFormIds at this writing.
 		ModifiedFrom: "2006-09-01T00:00:00.0Z",
-		ModifiedTo:   "2021-10-31T00:00:00.0Z",
+		ModifiedTo:   "2022-10-31T00:00:00.0Z",
 	}
 	rqt := goengage.ActivityRequest{
-		Header:  goengage.RequestHeader{RefID: "cmd/activity/targeted_letter/summarize"},
+		Header:  goengage.RequestHeader{RefID: "cmd/activity/petition/summarize"},
 		Payload: payload,
 	}
-	var resp goengage.BaseResponse
+	var resp goengage.PetitionResponse
 	logger, err := goengage.NewUtilLogger()
 	if err != nil {
 		return 0, err
@@ -64,23 +65,45 @@ func process(e *goengage.Environment, offset int32) (int32, error) {
 		rqt.Payload.Count,
 		resp.Payload.Total,
 		resp.Payload.Count)
+
+	for _, r := range resp.Payload.Activities {
+		record := []string{
+			r.SupporterID,
+			r.PersonName,
+			r.PersonEmail,
+			r.ActivityType,
+			r.ActivityFormName,
+		}
+		err := writer.Write(record)
+		if err != nil {
+			panic(err)
+		}
+	}
+	writer.Flush()
 	return resp.Payload.Count, nil
 }
 
 func main() {
 	var (
-		app   = kingpin.New("activity-see", "List all activities")
-		login = app.Flag("login", "YAML file with API token").Required().String()
+		app     = kingpin.New("activity-see", "List all activities")
+		login   = app.Flag("login", "YAML file with API token").Required().String()
+		csvFile = app.Flag("output", "CSVf file for results").Required().String()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
 	}
+
+	f, err := os.Create(*csvFile)
+	if err != nil {
+		panic(err)
+	}
+	writer := csv.NewWriter(f)
 	offset := int32(0)
 	count := int32(e.Metrics.MaxBatchSize)
 	for count > 0 {
-		count, err = process(e, offset)
+		count, err = process(e, writer, offset)
 		if err != nil {
 			panic(err)
 		}
