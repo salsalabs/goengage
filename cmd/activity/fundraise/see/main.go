@@ -31,6 +31,8 @@ func handle(c chan goengage.FundraiseResponse, writer *csv.Writer, id int) {
 				a.SupporterID,
 				a.ActivityID,
 				a.ActivityType,
+				a.PersonName,
+				a.PersonEmail,
 				oneTimeAmount,
 				totalReceivedAmount,
 				date,
@@ -63,6 +65,8 @@ func startHandler(c chan goengage.FundraiseResponse, filename string, n int) {
 		"SupporterID",
 		"ActivityID",
 		"ActivityType",
+		"PersonName",
+		"PersonEmail",
 		"OneTimeAmount",
 		"TotalReceivedAmount",
 		"Date",
@@ -78,7 +82,7 @@ func main() {
 	var (
 		app     = kingpin.New("fundraise-see", "List all fundraising records")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
-		csvFile = app.Flag("output", "CSVf file for results").Required().String()
+		csvFile = app.Flag("output", "CSVf file for results").Default("fundraise_analysis_data.csv").String()
 	)
 	app.Parse(os.Args[1:])
 	e, err := goengage.Credentials(*login)
