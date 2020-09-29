@@ -7,7 +7,6 @@ import (
 	"sort"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	supporter "github.com/salsalabs/goengage/pkg/supporter"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -22,6 +21,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	logger, err := goengage.NewUtilLogger()
 
 	f, err := os.Open(*csvFile)
 	if err != nil {
@@ -40,22 +40,23 @@ func main() {
 	var lines []string
 	for _, r := range a {
 		if r[0] != "InternalID" {
-			searchPayload := supporter.SupporterSearchPayload{
-				IdentifierType: supporter.SupporterIDType,
+			searchPayload := goengage.SupporterSearchPayload{
+				IdentifierType: goengage.SupporterIDType,
 				Identifiers:    []string{r[0]},
 			}
-			rqt := supporter.SupporterSearch{
+			rqt := goengage.SupporterSearch{
 				Header:  goengage.RequestHeader{},
 				Payload: searchPayload,
 			}
-			var resp supporter.SupporterSearchResults
+			var resp goengage.SupporterSearchResults
 			n := goengage.NetOp{
 				Host:     e.Host,
-				Endpoint: supporter.Search,
+				Endpoint: goengage.SearchSupporter,
 				Method:   goengage.SearchMethod,
 				Token:    e.Token,
 				Request:  &rqt,
 				Response: &resp,
+				Logger:   logger,
 			}
 			err = n.Do()
 			if err != nil {
