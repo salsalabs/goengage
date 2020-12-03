@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	goengage "github.com/salsalabs/goengage/pkg"
@@ -13,6 +15,9 @@ import (
 const (
 	//SegmentListeners is the number of listeners for segments info records.
 	SegmentListeners = 5
+	//RowsPerCSV is the maximum number of rows in a CSV.  Keeps the individual
+	//files to a reasonable number.
+	RowsPerCSV = 100_000
 )
 
 //OutputRecord contains segment and supporter info.
@@ -65,7 +70,7 @@ func ReadSegments(e *goengage.Environment, c chan goengage.Segment) (err error) 
 
 //ReadSupporters reads from the segment channel and writes the contents to
 //the log.  Used to test the segment driver.
-func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan OutputRecord, id int) (err error) {
+func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan OutputRecord, done chan bool, id int) (err error) {
 	log.Printf("ReadSupporters %v: begin\n", id)
 	for true {
 		r, ok := <-c1
@@ -114,7 +119,6 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan O
 				resp.Payload.Total)
 			offset += int32(count)
 		}
-		close(c2)
 		log.Println("ReadSegments: end")
 		return nil
 	}
@@ -129,16 +133,10 @@ func CSVWriter(e *goengage.Environment, c chan OutputRecord, csvFile string) (er
 		"SupporterID",
 		"Email",
 	}
-	f, err := os.Create(csvFile)
-	if err != nil {
-		return (err)
-	}
-	defer f.Close()
-	w := csv.NewWriter(f)
-	err = w.Write(headers)
-	if err != nil {
-		return (err)
-	}
+	rows := RowsPerCSV
+	current := 1
+	var f *os.File
+	var w *csv.Writer
 
 	log.Printf("CSVWriter: begin\n")
 	for true {
@@ -146,6 +144,32 @@ func CSVWriter(e *goengage.Environment, c chan OutputRecord, csvFile string) (er
 		if !ok {
 			break
 		}
+
+		// Open an output file as needed.
+		if rows >= RowsPerCSV {
+			if f != nil {
+				err := f.Close()
+				if err != nil {
+					return err
+				}
+				f = nil
+			}
+			parts := strings.Split(csvFile, ".")
+			s := fmt.Sprintf("%s-%03d.csv", parts[0], current)
+			current++
+			f, err := os.Create(s)
+			if err != nil {
+				return err
+			}
+			w := csv.NewWriter(f)
+			err = w.Write(headers)
+			if err != nil {
+				log.Fatal(err)
+			}
+			rows = 0
+			log.Printf("CSVWriter: opened %s\n", s)
+		}
+
 		var a []string
 		a = append(a, r.Segment.SegmentID)
 		a = append(a, r.Segment.Name)
@@ -160,6 +184,16 @@ func CSVWriter(e *goengage.Environment, c chan OutputRecord, csvFile string) (er
 	w.Flush()
 	log.Printf("CSVWriter: end\n")
 	return nil
+}
+
+//WaitDone waits for "SegmentListeners" supporter readers to complete.
+func WaitDone(c2 chan OutputRecord, done chan bool) {
+	remaining := SegmentListeners
+	for remaining > 0 {
+		log.Printf("WaitDone: waiting for")
+		_ = <-done
+		remaining--
+	}
 }
 
 //Program entry point.  Summarize segments.  No details.
@@ -185,6 +219,7 @@ func main() {
 
 	segChan := make(chan goengage.Segment)
 	outChan := make(chan OutputRecord)
+	done := make(chan bool)
 	var wg sync.WaitGroup
 
 	//Start CSV writer.
@@ -199,16 +234,23 @@ func main() {
 
 	//Start segment listeners(s)
 	for id := 1; id <= SegmentListeners; id++ {
-		go (func(e *goengage.Environment, c1 chan goengage.Segment, c2 chan OutputRecord, id int, wg *sync.WaitGroup) {
+		go (func(e *goengage.Environment, c1 chan goengage.Segment, c2 chan OutputRecord, done chan bool, id int, wg *sync.WaitGroup) {
 			wg.Add(1)
 			defer wg.Done()
-			err := ReadSupporters(e, c1, c2, id)
+			err := ReadSupporters(e, c1, c2, done, id)
 			if err != nil {
 				panic(err)
 			}
-		})(e, segChan, outChan, id, &wg)
+		})(e, segChan, outChan, done, id, &wg)
 	}
 	log.Printf("main: %v listeners started\n", SegmentListeners)
+
+	//Start "done" listener to keep track of segment listeners.
+	go (func(c2 chan OutputRecord, done chan bool, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		WaitDone(c2, done)
+	})(outChan, done, &wg)
 
 	//Start segment reader.
 	go (func(e *goengage.Environment, c chan goengage.Segment, wg *sync.WaitGroup) {
