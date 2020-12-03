@@ -83,7 +83,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 		//Create a CSV filename for the group an see if the file exists.
 		filename := fmt.Sprintf("%v.csv", r.Name)
 		_, err := os.Stat(filename)
-		if os.IsExist(err) {
+		if err == nil || os.IsExist(err) {
 			log.Printf("ReadSupporters: %v already exists, ignoring group\n", filename)
 		} else {
 			f, err := os.Create(filename)
