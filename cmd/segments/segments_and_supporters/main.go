@@ -56,8 +56,11 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 			return err
 		}
 		for _, s := range resp.Payload.Segments {
-			c <- s
-			log.Printf("ReadSegments: pushed %v", s.Name)
+			switch s.Type {
+			case "CUSTOM", "DEFAULT":
+				c <- s
+				log.Printf("ReadSegments: pushed %-16v %v", s.Type, s.Name)
+			}
 		}
 		count = resp.Payload.Count
 		log.Printf("ReadSegments: %3d + %3d = %3d of %4d\n", offset, count, offset+int32(count), resp.Payload.Total)
@@ -112,7 +115,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan O
 				c2 <- a
 			}
 			count = resp.Payload.Count
-			log.Printf("ReadSupporters %v: %32v %3d + %3d = %3d of %4d\n",
+			log.Printf("ReadSupporters %v: %-32v %6d + %3d = %6d of %6d\n",
 				id,
 				r.Name,
 				offset,
