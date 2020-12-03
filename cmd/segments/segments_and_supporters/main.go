@@ -14,7 +14,7 @@ import (
 
 const (
 	//SegmentListeners is the number of listeners for segments info records.
-	SegmentListeners = 2
+	SegmentListeners = 5
 	//RowsPerCSV is the maximum number of rows in a CSV.  Keeps the individual
 	//files to a reasonable number.
 	RowsPerCSV = 100_000
@@ -112,7 +112,8 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan O
 				c2 <- a
 			}
 			count = resp.Payload.Count
-			log.Printf("ReadSupporters: %32v %3d + %3d = %3d of %4d\n",
+			log.Printf("ReadSupporters %v: %32v %3d + %3d = %3d of %4d\n",
+				id,
 				r.Name,
 				offset,
 				count,
@@ -120,8 +121,8 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, c2 chan O
 				resp.Payload.Total)
 			offset += int32(count)
 		}
-		log.Println("ReadSegments: end")
-		return nil
+		// log.Println("ReadSegments: end")
+		// return nil
 	}
 	done <- true
 	log.Printf("ReadSupporters %v: end\n", id)
