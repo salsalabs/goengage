@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -14,7 +15,7 @@ import (
 
 const (
 	//SegmentListeners is the number of listeners for segments info records.
-	SegmentListeners = 5
+	SegmentListeners = 1
 	//RowsPerCSV is the maximum number of rows in a CSV.  Keeps the individual
 	//files to a reasonable number.
 	RowsPerCSV = 100_000
@@ -56,11 +57,9 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 			name := strings.ToLower(s.Name)
 			if strings.Contains(name, "als") && !strings.Contains(name, "test") {
 				c <- s
-				log.Printf("ReadSegments: pushed %-16v %v", s.Type, s.Name)
 			}
 		}
 		count = resp.Payload.Count
-		log.Printf("ReadSegments: %3d + %3d = %3d of %4d\n", offset, count, offset+int32(count), resp.Payload.Total)
 		offset += int32(count)
 	}
 	close(c)
@@ -78,14 +77,14 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 		if !ok {
 			break
 		}
-		log.Printf("ReadSupporters %v: popped %v\n", id, r.Name)
-
 		//Create a CSV filename for the group an see if the file exists.
 		filename := fmt.Sprintf("%v.csv", r.Name)
+		filename = strings.Replace(filename, "/", "-", -1)
 		_, err := os.Stat(filename)
 		if err == nil || os.IsExist(err) {
-			log.Printf("ReadSupporters: %v already exists, ignoring group\n", filename)
+			log.Printf("ReadSupporters %v: %-32v skipped, file exists\n", id, r.Name)
 		} else {
+			log.Printf("ReadSupporters %v: %-32v start\n", id, r.Name)
 			f, err := os.Create(filename)
 			if err != nil {
 				return err
@@ -117,26 +116,28 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 					Request:  &rqt,
 					Response: &resp,
 				}
-				err = n.Do()
-				if err != nil {
-					return err
+				ok := false
+				for !ok {
+					err = n.Do()
+					if err != nil {
+						fmt.Printf("ReadSupporters %v: %-32v %v\n", id, r.Name, err)
+						time.Sleep(time.Second);
+					} else {
+						ok = true
+					}
 				}
 				for _, s := range resp.Payload.Supporters {
 					email := goengage.FirstEmail(s)
-					a := []string{*email}
-					w.Write(a)
+					if email !=nil {
+						a := []string{*email}
+						w.Write(a)
+					}
 				}
 				w.Flush()
 				count = resp.Payload.Count
-				log.Printf("ReadSupporters %v: %-32v %6d + %3d = %6d of %6d\n",
-					id,
-					r.Name,
-					offset,
-					count,
-					offset+int32(count),
-					resp.Payload.Total)
 				offset += int32(count)
 			}
+			log.Printf("ReadSupporters %v: %-32v done\n", id, r.Name)
 		}
 	}
 	done <- true
@@ -153,7 +154,6 @@ func WaitTerminations(done chan bool) {
 		remaining--
 	}
 }
-
 //Program entry point.
 func main() {
 	var (
@@ -212,6 +212,8 @@ func main() {
 	})(e, segChan, *offset, &wg)
 	log.Printf("main: segment reader started\n")
 
+	log.Printf("main: napping...\n")
+	time.Sleep(10*time.Second);
 	log.Printf("main: waiting...\n")
 	wg.Wait()
 	log.Printf("main: done")
