@@ -15,7 +15,7 @@ import (
 
 const (
 	//SegmentListeners is the number of listeners for segments info records.
-	SegmentListeners = 1
+	SegmentListeners = 5
 	//RowsPerCSV is the maximum number of rows in a CSV.  Keeps the individual
 	//files to a reasonable number.
 	RowsPerCSV = 100_000
@@ -85,7 +85,10 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 			log.Printf("ReadSupporters %v: %-32v skipped, file exists\n", id, r.Name)
 		} else {
 			log.Printf("ReadSupporters %v: %-32v start\n", id, r.Name)
-			f, err := os.Create(filename)
+			// Create a file using the ID and write to it.  We'll rename it to the group
+			// when all of the supporters are gathered.
+			temp := fmt.Sprintf("%v.csv", r.SegmentID)
+			f, err := os.Create(temp)
 			if err != nil {
 				return err
 			}
@@ -121,14 +124,14 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 					err = n.Do()
 					if err != nil {
 						fmt.Printf("ReadSupporters %v: %-32v %v\n", id, r.Name, err)
-						time.Sleep(time.Second);
+						time.Sleep(time.Second)
 					} else {
 						ok = true
 					}
 				}
 				for _, s := range resp.Payload.Supporters {
 					email := goengage.FirstEmail(s)
-					if email !=nil {
+					if email != nil {
 						a := []string{*email}
 						w.Write(a)
 					}
@@ -136,6 +139,10 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 				w.Flush()
 				count = resp.Payload.Count
 				offset += int32(count)
+			}
+			err = os.Rename(temp, filename)
+			if err != nil {
+				return err
 			}
 			log.Printf("ReadSupporters %v: %-32v done\n", id, r.Name)
 		}
@@ -154,6 +161,7 @@ func WaitTerminations(done chan bool) {
 		remaining--
 	}
 }
+
 //Program entry point.
 func main() {
 	var (
@@ -213,7 +221,7 @@ func main() {
 	log.Printf("main: segment reader started\n")
 
 	log.Printf("main: napping...\n")
-	time.Sleep(10*time.Second);
+	time.Sleep(10 * time.Second)
 	log.Printf("main: waiting...\n")
 	wg.Wait()
 	log.Printf("main: done")
