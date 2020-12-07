@@ -50,6 +50,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	withDistricts := int32(0)
 	count := e.Metrics.MaxBatchSize
 	offset := int32(0)
 	for count == e.Metrics.MaxBatchSize {
@@ -78,13 +79,25 @@ func main() {
 		}
 		for _, s := range resp.Payload.Supporters {
 			email := goengage.FirstEmail(s)
+			emailTemp := ""
+			if email != nil {
+				emailTemp = *email
+			}
 			if s.Result != goengage.Found {
-				fmt.Printf("%v %v %v %v\n",
-					s.FirstName,
-					s.LastName,
-					email,
-					s.Result)
+				// log.Printf("%v %v %v %v\n",
+				// 	s.FirstName,
+				// 	s.LastName,
+				// 	emailTemp,
+				// 	s.Result)
 				continue
+			}
+			if len(s.Address.StateHouseDistrict) == 0 && len(s.Address.StateSenateDistrict) == 0 {
+				// log.Printf("%v %v %v %v\n",
+				// 	s.FirstName,
+				// 	s.LastName,
+				// 	emailTemp,
+				// 	"no districts")
+				// continue
 			}
 			phone := goengage.FirstPhone(s)
 			var a []string
@@ -123,9 +136,13 @@ func main() {
 				}
 			}
 			w.Write(a)
+			withDistricts++
 		}
 		count = resp.Payload.Count
+		offset += count
+		log.Printf("Status: %6d of %6d with districts out of  %6d total\n", withDistricts, offset, resp.Payload.Total)
+
 	}
 	w.Flush()
-	fmt.Printf("Done.  Output is in %v\n", fn)
+	log.Printf("Done.  Output is in %v\n", fn)
 }
