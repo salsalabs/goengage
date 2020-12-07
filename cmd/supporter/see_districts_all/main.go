@@ -79,11 +79,11 @@ func main() {
 		}
 		for _, s := range resp.Payload.Supporters {
 			email := goengage.FirstEmail(s)
-			emailTemp := ""
-			if email != nil {
-				emailTemp = *email
-			}
 			if s.Result != goengage.Found {
+				// emailTemp := ""
+				// if email != nil {
+				// 	emailTemp = *email
+				// }
 				// log.Printf("%v %v %v %v\n",
 				// 	s.FirstName,
 				// 	s.LastName,
