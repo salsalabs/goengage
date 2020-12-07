@@ -25,6 +25,24 @@ func FirstEmail(s Supporter) *string {
 	return nil
 }
 
+//FirstPhone returns the first phone number for the provided supporter.
+//Note that cell phones are not considered as they have a requirement of
+//Being opted-in
+//Returns nil if the supporter does not have an email.  (As if...)
+func FirstPhone(s Supporter) *string {
+	c := s.Contacts
+	if c == nil || len(c) == 0 {
+		return nil
+	}
+	for _, x := range c {
+		if x.Type == "PHONE" {
+			p := x.Value
+			return &p
+		}
+	}
+	return nil
+}
+
 //Date parses an Engage date and returns a Go time.
 func Date(s string) (t *time.Time) {
 	if len(s) == 0 {
