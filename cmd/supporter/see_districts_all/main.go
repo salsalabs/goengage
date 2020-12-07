@@ -97,7 +97,7 @@ func main() {
 				// 	s.LastName,
 				// 	emailTemp,
 				// 	"no districts")
-				// continue
+				continue
 			}
 			phone := goengage.FirstPhone(s)
 			var a []string
