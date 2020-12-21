@@ -7,8 +7,8 @@ import (
 //DedicationService is the Service proxy for a Fundraise record.
 type DedicationService = Fundraise
 
-//ActivityType returns the kind of activity being read.
-func (f DedicationService) ActivityType() string {
+//WhichActivity returns the kind of activity being read.
+func (f DedicationService) WhichActivity() string {
 	return FundraiseType
 }
 
