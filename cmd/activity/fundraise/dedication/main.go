@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	var service goengage.Service
+	service := goengage.NewDedicationService()
 	err = goengage.ReportFundraising(e, service)
 	if err != nil {
 		panic(err)

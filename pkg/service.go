@@ -17,7 +17,8 @@ type Service interface {
 	Filter() bool
 	//Headers returns column headers for a CSV file.
 	Headers() []string
-	//Line returns a list of strings to go in to the CSV file.
+	//Line returns a list of strings to go in to the CSV file for each
+	//fundraising record.
 	Line() []string
 	//Readers returns the number of readers to start.
 	Readers() int
@@ -28,16 +29,56 @@ type Service interface {
 //MaxRecords returns the maximum number of activity records
 //of a particular type.
 func MaxRecords(e *Environment, s Service) (int32, error) {
-	resp, err := ReadRecords(e, s, int32(0), int32(0))
+	resp, err := ReadBatch(e, s, int32(0), int32(0))
 	if err != nil {
 		return int32(0), err
 	}
-	return int32(resp.Payload.Total), err
+	return resp.Payload.Total, err
 }
 
-//ReadRecords is a utility function to read activity records. Returns the
+//ReadActivities retrieves activity records from Engage, filters them,
+//then writes them to the Service channel. The offset channel tells
+//us where to start reading.  When no items are available from the
+//offset channel, we'll write a true to the done channel.
+func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, serviceChan chan Service, doneChan chan bool) {
+	n := fmt.Sprintf("ReadActivities-%d", i)
+	log.Printf("%s begin", n)
+	for true {
+		offset, ok := <-offsetChan
+		if !ok {
+			break
+		}
+		resp, err := ReadBatch(e, s, offset, e.Metrics.MaxBatchSize)
+		if err != nil {
+			panic(err)
+		}
+		if !ok {
+			break
+		}
+		if resp.Payload.Count == 0 {
+			break
+		}
+		pass := int32(0)
+		for _, r := range resp.Payload.Activities {
+			if r.Filter() {
+				serviceChan <- r
+				pass++
+			}
+		}
+		log.Printf("%s: offset %6d, %3d passed + %3d skipped = %3d\n",
+			n,
+			offset,
+			pass,
+			resp.Payload.Count-pass,
+			resp.Payload.Count)
+	}
+	doneChan <- true
+	log.Printf("%s end", n)
+}
+
+//ReadBatch is a utility function to read activity records. Returns the
 //response object and an error code.
-func ReadRecords(e *Environment, s Service, offset int32, count int32) (resp *FundraiseResponse, err error) {
+func ReadBatch(e *Environment, s Service, offset int32, count int32) (resp *FundraiseResponse, err error) {
 	payload := ActivityRequestPayload{
 		Type:         s.WhichActivity(),
 		Offset:       offset,
@@ -60,32 +101,6 @@ func ReadRecords(e *Environment, s Service, offset int32, count int32) (resp *Fu
 	return resp, err
 }
 
-//ReadActivities retrieves activity records from Engage, filters them,
-//then writes them to the Service channel. The offset channel tells
-//us where to start reading.  When no items are available from the
-//offset channel, we'll write a true to the done channel.
-func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, serviceChan chan Service, doneChan chan bool) {
-	n := fmt.Sprintf("ReadActivities-%d", i)
-	log.Printf("%s begin", n)
-	for true {
-		offset, ok := <-offsetChan
-		resp, err := ReadRecords(e, s, offset, e.Metrics.MaxBatchSize)
-		if err != nil {
-			panic(err)
-		}
-		if !ok {
-			break
-		}
-		for _, r := range resp.Payload.Activities {
-			if r.Filter() {
-				serviceChan <- r
-			}
-		}
-	}
-	doneChan <- true
-	log.Printf("%s end", n)
-}
-
 // ReportFundraising on a Service by reading all records, filtering, then
 // writing survivors to a CSV file.
 func ReportFundraising(e *Environment, s Service) (err error) {
@@ -94,14 +109,16 @@ func ReportFundraising(e *Environment, s Service) (err error) {
 	offsetChan := make(chan int32, 100)
 	var wg sync.WaitGroup
 
-	//Start the reader waiter.
+	//Start the reader waiter.  It waits until all readers are done,
+	//then closes the service channel.
 	go (func(e *Environment, s Service, c chan Service, done chan bool, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		WaitForReaders(e, s, c, done)
 	})(e, s, serviceChan, doneChan, &wg)
 
-	//Start the CSV writer.
+	//Start the CSV writer. It receives Service records from readers and
+	//writes them to a CSV.
 	go (func(e *Environment, s Service, c chan Service, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
@@ -111,7 +128,8 @@ func ReportFundraising(e *Environment, s Service) (err error) {
 		}
 	})(e, s, serviceChan, &wg)
 
-	//Start the readers.
+	//Start the readers. Readers get offsets from the offset channel, read activities,
+	//filter then, then put them onto the Service channel.
 	for i := 0; i < s.Readers(); i++ {
 		go (func(e *Environment, s Service, i int, offset chan int32, c chan Service, done chan bool, wg *sync.WaitGroup) {
 			wg.Add(1)
@@ -120,16 +138,36 @@ func ReportFundraising(e *Environment, s Service) (err error) {
 		})(e, s, i, offsetChan, serviceChan, doneChan, &wg)
 	}
 
+	// Push offsets onto the offset channel.
 	maxRecords, err := MaxRecords(e, s)
-	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
-	for offset := int32(0); offset < maxRecords; offset += e.Metrics.MaxBatchSize {
+	// maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
+	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
 		offsetChan <- offset
 	}
 	log.Printf("ReportFundraising: processing %d %s records\n", maxRecords, FundraiseType)
+
+	//Wait...
 	log.Printf("ReportFundraising: waiting for terminations")
 	wg.Wait()
 	log.Printf("ReportFundraising done")
 	return err
+}
+
+//WaitForReaders waits for readers to send to a done channel.
+//The number of readers is specified in the provided Service.
+//Closes the csv channel when all readers are done.
+func WaitForReaders(e *Environment, s Service, c chan Service, done chan bool) {
+	count := s.Readers()
+	for count > 0 {
+		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
+		_, ok := <-done
+		if !ok {
+			break
+		}
+		count--
+	}
+	close(c)
+	log.Println("WaitForReaders: done")
 }
 
 //WriteCSV waits for Service records to appear on the queue, then
@@ -153,21 +191,4 @@ func WriteCSV(e *Environment, s Service, c chan Service) error {
 	f.Close()
 	log.Println("WriteCSV: done")
 	return err
-}
-
-//WaitForReaders waits for readers to send to a done channel.
-//The number of readers is specified in the provided Service.
-//Closes the csv channel when all readers are done.
-func WaitForReaders(e *Environment, s Service, c chan Service, done chan bool) {
-	count := s.Readers()
-	for count > 0 {
-		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
-		_, ok := <-done
-		if !ok {
-			break
-		}
-		count--
-	}
-	close(c)
-	log.Println("WaitForReaders: done")
 }

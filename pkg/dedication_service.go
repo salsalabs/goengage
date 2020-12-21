@@ -7,6 +7,12 @@ import (
 //DedicationService is the Service proxy for a Fundraise record.
 type DedicationService = Fundraise
 
+//NewDedicationService returns an record.
+func NewDedicationService() DedicationService {
+	f := Fundraise{}
+	return f
+}
+
 //WhichActivity returns the kind of activity being read.
 func (f DedicationService) WhichActivity() string {
 	return FundraiseType
@@ -29,22 +35,38 @@ func (f DedicationService) Headers() []string {
 		"Zip",
 		"TransactionDate",
 		"Amount",
+		"DedicationType",
 		"Dedication",
 	}
 }
 
 //Line returns a list of strings to go in to the CSV file.
 func (f DedicationService) Line() []string {
+	// log.Printf("Line: %+v", f)
+	addressLine1 := ""
+	addressLine2 := ""
+	city := ""
+	state := ""
+	postalCode := ""
+	s := &f.Supporter
+	if s == nil {
+		addressLine1 = f.Supporter.Address.AddressLine1
+		addressLine2 = f.Supporter.Address.AddressLine2
+		city = f.Supporter.Address.City
+		state = f.Supporter.Address.State
+		postalCode = f.Supporter.Address.PostalCode
+	}
 	return []string{
 		f.PersonName,
 		f.PersonEmail,
-		f.Supporter.Address.AddressLine1,
-		f.Supporter.Address.AddressLine2,
-		f.Supporter.Address.City,
-		f.Supporter.Address.State,
-		f.Supporter.Address.PostalCode,
+		addressLine1,
+		addressLine2,
+		city,
+		state,
+		postalCode,
 		fmt.Sprintf("%s", f.ActivityDate),
-		fmt.Sprintf("%.2f", f.OneTimeAmount),
+		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
+		f.DedicationType,
 		f.Dedication,
 	}
 }
