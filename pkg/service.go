@@ -42,7 +42,7 @@ func MaxRecords(e *Environment, s Service) (int32, error) {
 //offset channel, we'll write a true to the done channel.
 func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, serviceChan chan Service, doneChan chan bool) {
 	n := fmt.Sprintf("ReadActivities-%d", i)
-	log.Printf("%s begin", n)
+	log.Printf("%s: begin", n)
 	for true {
 		offset, ok := <-offsetChan
 		if !ok {
@@ -50,7 +50,9 @@ func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, ser
 		}
 		resp, err := ReadBatch(e, s, offset, e.Metrics.MaxBatchSize)
 		if err != nil {
-			panic(err)
+			// panic(err)
+			log.Printf("%s: offset %6d error %s\n", n, offset, err)
+			break
 		}
 		if !ok {
 			break
@@ -73,7 +75,7 @@ func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, ser
 			resp.Payload.Count)
 	}
 	doneChan <- true
-	log.Printf("%s end", n)
+	log.Printf("%s: end", n)
 }
 
 //ReadBatch is a utility function to read activity records. Returns the
@@ -140,11 +142,12 @@ func ReportFundraising(e *Environment, s Service) (err error) {
 
 	// Push offsets onto the offset channel.
 	maxRecords, err := MaxRecords(e, s)
-	// maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
+	log.Printf("ReportFundraising: processing %d %s records\n", maxRecords, FundraiseType)
+	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
 	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
 		offsetChan <- offset
 	}
-	log.Printf("ReportFundraising: processing %d %s records\n", maxRecords, FundraiseType)
+	close(offsetChan)
 
 	//Wait...
 	log.Printf("ReportFundraising: waiting for terminations")
@@ -187,6 +190,7 @@ func WriteCSV(e *Environment, s Service, c chan Service) error {
 			break
 		}
 		w.Write(r.Line())
+		w.Flush()
 	}
 	f.Close()
 	log.Println("WriteCSV: done")
