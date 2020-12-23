@@ -4,27 +4,27 @@ import (
 	"fmt"
 )
 
-//DedicationService is the Service proxy for a Fundraise record.
-type DedicationService = Fundraise
+//DedicationGuide is the Guide proxy for a Fundraise record.
+type DedicationGuide = Fundraise
 
-//NewDedicationService returns an record.
-func NewDedicationService() DedicationService {
+//NewDedicationGuide returns an record.
+func NewDedicationGuide() DedicationGuide {
 	f := Fundraise{}
 	return f
 }
 
 //WhichActivity returns the kind of activity being read.
-func (f DedicationService) WhichActivity() string {
+func (f DedicationGuide) WhichActivity() string {
 	return FundraiseType
 }
 
 //Filter returns true if the record should be used.
-func (f DedicationService) Filter() bool {
+func (f DedicationGuide) Filter() bool {
 	return len(f.Dedication) > 0
 }
 
 //Headers returns column headers for a CSV file.
-func (f DedicationService) Headers() []string {
+func (f DedicationGuide) Headers() []string {
 	return []string{
 		"PersonName",
 		"PersonEmail",
@@ -41,7 +41,7 @@ func (f DedicationService) Headers() []string {
 }
 
 //Line returns a list of strings to go in to the CSV file.
-func (f DedicationService) Line() []string {
+func (f DedicationGuide) Line() []string {
 	// log.Printf("Line: %+v", f)
 	addressLine1 := ""
 	addressLine2 := ""
@@ -72,11 +72,11 @@ func (f DedicationService) Line() []string {
 }
 
 //Readers returns the number of readers to start.
-func (f DedicationService) Readers() int {
+func (f DedicationGuide) Readers() int {
 	return 5
 }
 
 //Filename returns the CSV filename.
-func (f DedicationService) Filename() string {
+func (f DedicationGuide) Filename() string {
 	return "dedications.csv"
 }

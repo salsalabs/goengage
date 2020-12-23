@@ -15,19 +15,71 @@ import (
 const (
 	//TimeFormat is used to parse text into Go time.
 	TimeFormat = "2006-01-02"
+
+	//StartDuration is text to initialize a duration for start times.
+	//Used in converting Go time strings to Engage times.
+	StartDuration = "0h0m0.0s"
+
+	//EndDuration is text to initialize a duration for end times.
+	//Used in converting Go time strings to Engage times.
+	EndDuration = "23h59m59.999s"
 )
 
-func main() {
-	// Default end date is the most recent Monday at midnight.
-	// Default start date is the Monday before the end date.
-	// Easy text format like Classic, "YYYY-MM-DD"
+//DefaultDates computes the default start and end dates.
+//Default end date is just before the most recent Monday at midnight.
+// Default start date is the Monday before the end date at 00:00.
+// Easy text format like Classic, "YYYY-MM-DD"
+func DefaultDates() (start, end string) {
 	now := time.Now()
 	startDelta := 6 + int(now.Weekday())
 	startTime := now.AddDate(0, 0, -startDelta)
 	endTime := startTime.AddDate(0, 0, 6)
-	start := startTime.Format(TimeFormat)
-	end := endTime.Format(TimeFormat)
+	start = startTime.Format(TimeFormat)
+	end = endTime.Format(TimeFormat)
+	return start, end
+}
 
+//Parse accepts a date in TimeFormat and returns a Go timeThe duration text
+//defines the time-of-day to add to the date before converting to Engage
+//format. Errors are internal and fatal.
+func Parse(s string, loc *time.Location, durationText string) time.Time {
+	t, err := time.ParseInLocation(TimeFormat, s, loc)
+	d, _ := time.ParseDuration(StartDuration)
+	t = t.Add(d)
+	if err != nil {
+		log.Fatalf("%v'\n", err)
+	}
+	// Engage wants Zulu time.
+	_, offset := t.Zone()
+	zt := fmt.Sprintf("%ds", -offset)
+	d, err = time.ParseDuration(zt)
+	t = t.Add(d)
+	return t
+}
+
+//Validate validates the provided start and end dates.  Errors are fatal.
+//Converts the dates from the provided timezone to Zulu, then formats them
+//suitably for submission to Engage.  Return the validated and formatted dates.
+func Validate(startDate, endDate, timeZone string) (start, end string) {
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	st := Parse(startDate, loc, StartDuration)
+	et := Parse(endDate, loc, EndDuration)
+
+	if et.Before(st) {
+		start = st.Format(TimeFormat)
+		end = et.Format(TimeFormat)
+		log.Fatalf("end date (%v) is before start date (%v)", start, end)
+	}
+	start = st.Format(goengage.EngageDateFormat)
+	end = et.Format(goengage.EngageDateFormat)
+	return start, end
+}
+
+func main() {
+	start, end := DefaultDates()
 	var (
 		app       = kingpin.New("dedications", "Write dedications to a CSV")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
@@ -37,46 +89,14 @@ func main() {
 	)
 	app.Parse(os.Args[1:])
 
-	loc, err := time.LoadLocation(*timeZone)
-	if err != nil {
-		log.Fatalf("%v, '%v'\n", err, *timeZone)
-	}
-	startTime, err = time.ParseInLocation(TimeFormat, *startDate, loc)
-	d, _ := time.ParseDuration("0h0m0.0s")
-	startTime = startTime.Add(d)
-	if err != nil {
-		log.Fatalf("%v, '%v'\n", err, *startDate)
-	}
-	d, _ = time.ParseDuration("23h59m59.999s")
-	endTime, err = time.ParseInLocation(TimeFormat, *endDate, loc)
-	endTime = endTime.Add(d)
-	if err != nil {
-		log.Fatalf("%v, '%v'\n", err, *endDate)
-	}
-
-	if endTime.Before(startTime) {
-		start = endTime.Format(TimeFormat)
-		end = startTime.Format(TimeFormat)
-		log.Fatalf("End date (%v) is before start date (%v)", start, end)
-	}
-
-	//Engage expects Zulu time.
-	_, offset := startTime.Zone()
-	zt := fmt.Sprintf("%ds", -offset)
-	d, err = time.ParseDuration(zt)
-	startTime = startTime.Add(d)
-	endTime = endTime.Add(d)
-
-	//Convert to funky Engage format.
-	engageStart := startTime.Format(goengage.EngageDateFormat)
-	engageEnd := endTime.Format(goengage.EngageDateFormat)
-
 	e, err := goengage.Credentials(*login)
 	if err != nil {
 		panic(err)
 	}
-	service := goengage.NewDedicationService()
-	err = goengage.ReportFundraising(e, service, engageStart, engageEnd)
+	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
+
+	guide := goengage.NewDedicationGuide()
+	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		panic(err)
 	}

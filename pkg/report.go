@@ -75,11 +75,10 @@ func ReadActivities(e *Environment,
 				pass++
 			}
 		}
-		log.Printf("%s: offset %6d, %3d passed + %3d skipped = %3d\n",
+		log.Printf("%s: offset %6d, %3d of %3d passed\n",
 			n,
 			offset,
 			pass,
-			resp.Payload.Count-pass,
 			resp.Payload.Count)
 	}
 	dc <- true
