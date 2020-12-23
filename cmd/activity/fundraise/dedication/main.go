@@ -27,8 +27,8 @@ const (
 
 //DefaultDates computes the default start and end dates.
 //Default end date is just before the most recent Monday at midnight.
-// Default start date is the Monday before the end date at 00:00.
-// Easy text format like Classic, "YYYY-MM-DD"
+//Default start date is the Monday before the end date at 00:00.
+//Formatted like Classic, "YYYY-MM-DD".
 func DefaultDates() (start, end string) {
 	now := time.Now()
 	startDelta := 6 + int(now.Weekday())
@@ -39,16 +39,19 @@ func DefaultDates() (start, end string) {
 	return start, end
 }
 
-//Parse accepts a date in TimeFormat and returns a Go timeThe duration text
-//defines the time-of-day to add to the date before converting to Engage
-//format. Errors are internal and fatal.
+//Parse accepts a date in TimeFormat and returns a Go time. The
+// duration text defines the time-of-day to add to the date
+//before converting to Engage format. Errors are internal and fatal.
 func Parse(s string, loc *time.Location, durationText string) time.Time {
 	t, err := time.ParseInLocation(TimeFormat, s, loc)
-	d, _ := time.ParseDuration(StartDuration)
-	t = t.Add(d)
 	if err != nil {
-		log.Fatalf("%v'\n", err)
+		log.Fatalf("%v\n", err)
 	}
+	d, err := time.ParseDuration(StartDuration)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	t = t.Add(d)
 	// Engage wants Zulu time.
 	_, offset := t.Zone()
 	zt := fmt.Sprintf("%ds", -offset)
@@ -60,7 +63,7 @@ func Parse(s string, loc *time.Location, durationText string) time.Time {
 //Validate validates the provided start and end dates.  Errors are fatal.
 //Converts the dates from the provided timezone to Zulu, then formats them
 //suitably for submission to Engage.  Return the validated and formatted dates.
-func Validate(startDate, endDate, timeZone string) (start, end string) {
+func Validate(startDate, endDate, timeZone string) (string, string) {
 	loc, err := time.LoadLocation(timeZone)
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -69,13 +72,13 @@ func Validate(startDate, endDate, timeZone string) (start, end string) {
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
-		start = st.Format(TimeFormat)
-		end = et.Format(TimeFormat)
-		log.Fatalf("end date (%v) is before start date (%v)", start, end)
+		s := st.Format(TimeFormat)
+		e := et.Format(TimeFormat)
+		log.Fatalf("end date '%v' is before start date '%v'", s, e)
 	}
-	start = st.Format(goengage.EngageDateFormat)
-	end = et.Format(goengage.EngageDateFormat)
-	return start, end
+	s := st.Format(goengage.EngageDateFormat)
+	e := et.Format(goengage.EngageDateFormat)
+	return s, e
 }
 
 func main() {
@@ -85,19 +88,19 @@ func main() {
 		login     = app.Flag("login", "YAML file with API token").Required().String()
 		startDate = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
 		endDate   = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
-		timeZone  = app.Flag("timezone", "Client's timezone, defaults to New York").Default("America/New_York").String()
+		timeZone  = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
 	)
 	app.Parse(os.Args[1:])
 
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		panic(err)
+		log.Fatalf("%v", err)
 	}
 	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
 
 	guide := goengage.NewDedicationGuide()
 	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
-		panic(err)
+		log.Fatalf("%v", err)
 	}
 }
