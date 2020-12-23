@@ -1,7 +1,7 @@
 # Dedication report
 
 Go application to retrieve donations that have a dedication (in memory of or in honor of).
-The user provides an Engage token and a date range.  The app finds the donations with dedications and writes information to a CSV.
+The user provides an Engage token and a date range.  The app finds the donations with dedications and writes selected information to a CSV.
 
 The default date range is Monday to Sunday of last week.  See the Usage section for more information about using other date ranges.
 
