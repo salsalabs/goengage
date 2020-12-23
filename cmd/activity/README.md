@@ -1,4 +1,4 @@
-# `cmd\activity` 
+## `cmd\activity` 
 
 Activities in Engage are the things that supporters do.  Activities are divided into these general areas
 * Fundraising
