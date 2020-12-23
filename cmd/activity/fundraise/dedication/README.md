@@ -29,19 +29,14 @@ The package can be found in the `cmd/activity/fundraise/dedication` directory.
 
 ## Operation
 
-1. Open a terminal window.
-1. Navigate to the `goengage` directory.
+The best way to run this app is to start in a console window. Navigate to the `goengage` directory.
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
 ```
-1. Use this command to run the application.
-```bash
-go run cmd/activity/fundraise/dedication/main.go [options]
- ```
+All commands in this article assume that you're in the `goengage` directory.
 
-### Usage
+Use this command to to see the usage information.
 
-Type this to see the usage statement.
 ```bash
 go run cmd/activity/fundraise/dedication/main.go --help
 ```
@@ -83,7 +78,7 @@ go run cmd/activity/fundraise/dedication/main.go --login company.yaml
 ## Outputs
 ### Console
 
-Here's a sample of the console output.
+The application logs all status to the console.  Errors are really obvious.  Here's a sample of the console output for a successful application run.
 
 ```bash
 
@@ -115,7 +110,7 @@ Here's a sample of the console output.
 ```
 ### CSV output
 
-Output goes into `dedications.csv` in the current directory.  Here's a sample.
+Donations with dedications are stored in `dedications.csv` in the current directory.  Here's a sample.
 
 ```
 PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication
