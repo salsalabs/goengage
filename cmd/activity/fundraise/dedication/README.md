@@ -33,6 +33,9 @@ The package can be found in the `cmd/activity/fundraise/dedication` directory.
 1. Navigate to the `goengage` directory.
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
+```
+1. Use this command to run the application.
+```bash
 go run cmd/activity/fundraise/dedication/main.go [options]
  ```
 
