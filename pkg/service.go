@@ -28,8 +28,8 @@ type Service interface {
 
 //MaxRecords returns the maximum number of activity records
 //of a particular type.
-func MaxRecords(e *Environment, s Service) (int32, error) {
-	resp, err := ReadBatch(e, s, int32(0), int32(0))
+func MaxRecords(e *Environment, s Service, startDate string, endDate string) (int32, error) {
+	resp, err := ReadBatch(e, s, int32(0), int32(0), startDate, endDate)
 	if err != nil {
 		return int32(0), err
 	}
@@ -40,7 +40,7 @@ func MaxRecords(e *Environment, s Service) (int32, error) {
 //then writes them to the Service channel. The offset channel tells
 //us where to start reading.  When no items are available from the
 //offset channel, we'll write a true to the done channel.
-func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, serviceChan chan Service, doneChan chan bool) {
+func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, serviceChan chan Service, doneChan chan bool, startDate string, endDate string) {
 	n := fmt.Sprintf("ReadActivities-%d", i)
 	log.Printf("%s: begin", n)
 	for true {
@@ -48,7 +48,7 @@ func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, ser
 		if !ok {
 			break
 		}
-		resp, err := ReadBatch(e, s, offset, e.Metrics.MaxBatchSize)
+		resp, err := ReadBatch(e, s, offset, e.Metrics.MaxBatchSize, startDate, endDate)
 		if err != nil {
 			// panic(err)
 			log.Printf("%s: offset %6d error %s\n", n, offset, err)
@@ -80,12 +80,14 @@ func ReadActivities(e *Environment, s Service, i int, offsetChan chan int32, ser
 
 //ReadBatch is a utility function to read activity records. Returns the
 //response object and an error code.
-func ReadBatch(e *Environment, s Service, offset int32, count int32) (resp *FundraiseResponse, err error) {
+func ReadBatch(e *Environment, s Service, offset int32, count int32, startDate string, endDate string) (resp *FundraiseResponse, err error) {
+	// log.Printf("ReadBatch: offset %d, count %d, start %v, end %v\n", offset, count, startDate, endDate)
 	payload := ActivityRequestPayload{
 		Type:         s.WhichActivity(),
 		Offset:       offset,
 		Count:        count,
-		ModifiedFrom: "2000-01-01T00:00:00.000Z",
+		ModifiedFrom: startDate,
+		ModifiedTo:   endDate,
 	}
 	rqt := ActivityRequest{
 		Header:  RequestHeader{},
@@ -105,7 +107,7 @@ func ReadBatch(e *Environment, s Service, offset int32, count int32) (resp *Fund
 
 // ReportFundraising on a Service by reading all records, filtering, then
 // writing survivors to a CSV file.
-func ReportFundraising(e *Environment, s Service) (err error) {
+func ReportFundraising(e *Environment, s Service, engageStart string, engageEnd string) (err error) {
 	serviceChan := make(chan Service, 100)
 	doneChan := make(chan bool)
 	offsetChan := make(chan int32, 100)
@@ -133,15 +135,15 @@ func ReportFundraising(e *Environment, s Service) (err error) {
 	//Start the readers. Readers get offsets from the offset channel, read activities,
 	//filter then, then put them onto the Service channel.
 	for i := 0; i < s.Readers(); i++ {
-		go (func(e *Environment, s Service, i int, offset chan int32, c chan Service, done chan bool, wg *sync.WaitGroup) {
+		go (func(e *Environment, s Service, i int, offset chan int32, c chan Service, done chan bool, startDate string, endDate string, wg *sync.WaitGroup) {
 			wg.Add(1)
 			defer wg.Done()
-			ReadActivities(e, s, i, offsetChan, serviceChan, doneChan)
-		})(e, s, i, offsetChan, serviceChan, doneChan, &wg)
+			ReadActivities(e, s, i, offsetChan, serviceChan, doneChan, startDate, endDate)
+		})(e, s, i, offsetChan, serviceChan, doneChan, engageStart, engageEnd, &wg)
 	}
 
 	// Push offsets onto the offset channel.
-	maxRecords, err := MaxRecords(e, s)
+	maxRecords, err := MaxRecords(e, s, engageStart, engageEnd)
 	log.Printf("ReportFundraising: processing %d %s records\n", maxRecords, FundraiseType)
 	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
 	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {

@@ -6,7 +6,7 @@ import (
 )
 
 //EngageDateFormat is the Go date format for Engage.
-const EngageDateFormat = "2006-01-02T15:04:00.000Z"
+const EngageDateFormat = "2006-01-02T15:04:05.000Z"
 
 //TimeStamp wraps a time for marshalling into JSON.
 type TimeStamp struct {
