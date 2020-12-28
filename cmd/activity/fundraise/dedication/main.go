@@ -12,6 +12,85 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+//DedicationGuide is the Guide proxy for a Fundraise record.
+type DedicationGuide struct{}
+
+//NewDedicationGuide returns an record.
+func NewDedicationGuide() DedicationGuide {
+	e := DedicationGuide{}
+	return e
+}
+
+//WhichActivity returns the kind of activity being read.
+func (g DedicationGuide) WhichActivity() string {
+	return goengage.FundraiseType
+}
+
+//Filter returns true if the record should be used.
+func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
+	return len(f.Dedication) > 0
+}
+
+//Headers returns column headers for a CSV file.
+func (g DedicationGuide) Headers() []string {
+	return []string{
+		"PersonName",
+		"PersonEmail",
+		"AddressLine1",
+		"AddressLine2",
+		"City",
+		"State",
+		"Zip",
+		"TransactionDate",
+		"Amount",
+		"DedicationType",
+		"Dedication",
+		"Notify",
+	}
+}
+
+//Line returns a list of strings to go in to the CSV file.
+func (g DedicationGuide) Line(f goengage.Fundraise) []string {
+	// log.Printf("Line: %+v", f)
+	addressLine1 := ""
+	addressLine2 := ""
+	city := ""
+	state := ""
+	postalCode := ""
+	s := &f.Supporter
+	if s == nil {
+		addressLine1 = f.Supporter.Address.AddressLine1
+		addressLine2 = f.Supporter.Address.AddressLine2
+		city = f.Supporter.Address.City
+		state = f.Supporter.Address.State
+		postalCode = f.Supporter.Address.PostalCode
+	}
+	return []string{
+		f.PersonName,
+		f.PersonEmail,
+		addressLine1,
+		addressLine2,
+		city,
+		state,
+		postalCode,
+		fmt.Sprintf("%s", f.ActivityDate),
+		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
+		f.DedicationType,
+		f.Dedication,
+		f.Notify,
+	}
+}
+
+//Readers returns the number of readers to start.
+func (g DedicationGuide) Readers() int {
+	return 5
+}
+
+//Filename returns the CSV filename.
+func (g DedicationGuide) Filename() string {
+	return "dedications.csv"
+}
+
 const (
 	//TimeFormat is used to parse text into Go time.
 	TimeFormat = "2006-01-02"
@@ -98,7 +177,7 @@ func main() {
 	}
 	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
 
-	guide := goengage.NewDedicationGuide()
+	guide := NewDedicationGuide()
 	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		log.Fatalf("%v", err)

@@ -14,12 +14,12 @@ type Guide interface {
 	//WhichActivity returns the kind of activity being read.
 	WhichActivity() string
 	//Filter returns true if the record should be used.
-	Filter() bool
+	Filter(Fundraise) bool
 	//Headers returns column headers for a CSV file.
 	Headers() []string
 	//Line returns a list of strings to go in to the CSV file for each
 	//fundraising record.
-	Line() []string
+	Line(Fundraise) []string
 	//Readers returns the number of readers to start.
 	Readers() int
 	//Filename returns the CSV filename.
@@ -44,7 +44,7 @@ func ReadActivities(e *Environment,
 	guide Guide,
 	i int,
 	oc chan int32,
-	gc chan Guide,
+	gc chan Fundraise,
 	dc chan bool,
 	start string,
 	end string) {
@@ -70,7 +70,7 @@ func ReadActivities(e *Environment,
 		}
 		pass := int32(0)
 		for _, r := range resp.Payload.Activities {
-			if r.Filter() {
+			if guide.Filter(r) {
 				gc <- r
 				pass++
 			}
@@ -121,14 +121,14 @@ func ReadBatch(e *Environment,
 // ReportFundraising on a Guide by reading all records, filtering, then
 // writing survivors to a CSV file.
 func ReportFundraising(e *Environment, guide Guide, start string, end string) (err error) {
-	gc := make(chan Guide, 100)
+	gc := make(chan Fundraise, 100)
 	dc := make(chan bool)
 	oc := make(chan int32, 100)
 	var wg sync.WaitGroup
 
 	//Start the reader waiter.  It waits until all readers are done,
 	//then closes the service channel.
-	go (func(guide Guide, gc chan Guide, done chan bool, wg *sync.WaitGroup) {
+	go (func(guide Guide, gc chan Fundraise, done chan bool, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		WaitForReaders(guide, gc, done)
@@ -136,7 +136,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 
 	//Start the CSV writer. It receiveguide Guide records from readers and
 	//writes them to a CSV.
-	go (func(guide Guide, gc chan Guide, wg *sync.WaitGroup) {
+	go (func(guide Guide, gc chan Fundraise, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		err := WriteCSV(guide, gc)
@@ -152,7 +152,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 			guide Guide,
 			i int,
 			oc chan int32,
-			gc chan Guide,
+			gc chan Fundraise,
 			done chan bool,
 			start string,
 			end string,
@@ -183,7 +183,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 //WaitForReaders waits for readers to send to a done channel.
 //The number of readers is specified in the provided Guide.
 //Closes the csv channel when all readers are done.
-func WaitForReaders(guide Guide, gc chan Guide, done chan bool) {
+func WaitForReaders(guide Guide, gc chan Fundraise, done chan bool) {
 	count := guide.Readers()
 	for count > 0 {
 		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
@@ -199,7 +199,7 @@ func WaitForReaders(guide Guide, gc chan Guide, done chan bool) {
 
 //WriteCSV waits for Guide records to appear on the queue, then
 //Writes them to a CSV file.
-func WriteCSV(guide Guide, gc chan Guide) error {
+func WriteCSV(guide Guide, gc chan Fundraise) error {
 	log.Println("WriteCSV: begin")
 	f, err := os.Create(guide.Filename())
 	if err != nil {
@@ -213,7 +213,7 @@ func WriteCSV(guide Guide, gc chan Guide) error {
 		if !ok {
 			break
 		}
-		w.Write(r.Line())
+		w.Write(guide.Line(r))
 		w.Flush()
 	}
 	f.Close()
