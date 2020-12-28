@@ -27,7 +27,7 @@ func (g DedicationGuide) WhichActivity() string {
 }
 
 //Filter returns true if the record should be used.
-func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
+func (g DedicationGuide) Filter(f goengage.LongFundraise) bool {
 	return len(f.Dedication) > 0
 }
 
@@ -46,24 +46,27 @@ func (g DedicationGuide) Headers() []string {
 		"DedicationType",
 		"Dedication",
 		"Notify",
+		"DedicationAddress",
 	}
 }
 
 //Line returns a list of strings to go in to the CSV file.
-func (g DedicationGuide) Line(f goengage.Fundraise) []string {
+func (g DedicationGuide) Line(f goengage.LongFundraise) []string {
 	// log.Printf("Line: %+v", f)
 	addressLine1 := ""
 	addressLine2 := ""
 	city := ""
 	state := ""
 	postalCode := ""
+	dedicationAddress := ""
 	s := &f.Supporter
-	if s == nil {
+	if s != nil {
 		addressLine1 = f.Supporter.Address.AddressLine1
 		addressLine2 = f.Supporter.Address.AddressLine2
 		city = f.Supporter.Address.City
 		state = f.Supporter.Address.State
 		postalCode = f.Supporter.Address.PostalCode
+		dedicationAddress = f.DedicationAddress
 	}
 	return []string{
 		f.PersonName,
@@ -78,6 +81,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		f.DedicationType,
 		f.Dedication,
 		f.Notify,
+		dedicationAddress,
 	}
 }
 

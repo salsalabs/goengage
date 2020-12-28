@@ -8,18 +8,26 @@ import (
 	"sync"
 )
 
+//LongFundraise is used to carry a Fundraise record and its dedication address.
+//The dedication address is extracted from the supporter custom fields for the
+//supporter making the donaton.
+type LongFundraise struct {
+	Fundraise
+	DedicationAddress string
+}
+
 //Guide provides the basic tools to read and filter records then
 //write them to a CSV file.
 type Guide interface {
 	//WhichActivity returns the kind of activity being read.
 	WhichActivity() string
 	//Filter returns true if the record should be used.
-	Filter(Fundraise) bool
+	Filter(LongFundraise) bool
 	//Headers returns column headers for a CSV file.
 	Headers() []string
 	//Line returns a list of strings to go in to the CSV file for each
 	//fundraising record.
-	Line(Fundraise) []string
+	Line(LongFundraise) []string
 	//Readers returns the number of readers to start.
 	Readers() int
 	//Filename returns the CSV filename.
@@ -70,7 +78,8 @@ func ReadActivities(e *Environment,
 		}
 		pass := int32(0)
 		for _, r := range resp.Payload.Activities {
-			if guide.Filter(r) {
+			r2 := LongFundraise{r, ""}
+			if guide.Filter(r2) {
 				gc <- r
 				pass++
 			}
@@ -116,6 +125,47 @@ func ReadBatch(e *Environment,
 	}
 	err = n.Do()
 	return resp, err
+}
+
+// DedicationAddress retrieves the dedication address from the supporter record for
+// a client.  We need to do this in this branch so that the client can get that information
+// into an activity custom field.  (sigh)
+func DedicationAddress(e *Environment, f Fundraise) (*LongFundraise, error) {
+
+	payload := SupporterSearchPayload{
+		Identifiers:    []string{f.Supporter.SupporterID},
+		IdentifierType: SupporterIDType,
+		ModifiedFrom:   "2000-01-01T00:00:00.000Z",
+	}
+	rqt := SupporterSearch{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var resp SupporterSearchResults
+	n := NetOp{
+		Host:     e.Host,
+		Method:   SearchMethod,
+		Endpoint: SearchActivity,
+		Token:    e.Token,
+		Request:  &rqt,
+		Response: &resp,
+	}
+	longFundraise := LongFundraise{f, ""}
+	err := n.Do()
+	if err != nil {
+		return &longFundraise, err
+	}
+	if resp.Payload.Count < 1 {
+		return &longFundraise, err
+	}
+	s := resp.Payload.Supporters[0]
+	for _, c := range s.CustomFieldValues {
+		if c.Name == "Address of Recipient to Notify" {
+			longFundraise.DedicationAddress = c.Value
+			break
+		}
+	}
+	return &longFundraise, err
 }
 
 // ReportFundraising on a Guide by reading all records, filtering, then
@@ -213,7 +263,8 @@ func WriteCSV(guide Guide, gc chan Fundraise) error {
 		if !ok {
 			break
 		}
-		w.Write(guide.Line(r))
+		r2 := LongFundraise{r, ""}
+		w.Write(guide.Line(r2))
 		w.Flush()
 	}
 	f.Close()
