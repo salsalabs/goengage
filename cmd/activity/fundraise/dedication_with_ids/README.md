@@ -1,9 +1,18 @@
 # Dedication report
 
 Go application to retrieve donations that have a dedication (in memory of or in honor of).
-The user provides an Engage token and a date range.  The app finds the donations with dedications and writes selected information to a CSV.
+This is a client-specific app that does not have general application.
 
-The default date range is Monday to Sunday of last week.  See the Usage section for more information about using other date ranges.
+The user provides an Engage token and a date range.
+The default date range is Monday to Sunday of last week.
+See the Usage section for more information.
+
+The app finds the donations with dedications and writes information to a CSV.
+* Personal information (name, email, address)
+* Donation information (date, amount)
+* Dedication information (type, dedication, notify)
+* Dedication address information (custom field in the donor's supporter record)
+
 
 ## Prerequisites
 
@@ -24,8 +33,15 @@ $HOME
 
 ## Installation
 
-This package is part of the [GoEngage package on Github](https://github.com/salsalabs/goengage).
-The package can be found in the `cmd/activity/fundraise/dedication` directory.
+This package is part of the [GoEngage package on Github](https://github.com/salsalabs/goengage). 
+Use these steps to install `goengage`.
+
+```bash
+go get github.com/salsalabs/goengage
+go install github.com/salsalabs/goengage
+```
+
+The source for this package can be found in the `cmd/activity/fundraise/dedication` directory in `goengage`.
 
 ## Operation
 
@@ -64,7 +80,9 @@ Flags:
 
 ### YAML file
 
-This application needs an API token.  Tokens are are really long and typically hard to remember.  This application stores that problem by expecting a YAML file contining the API token.  Here's an example.
+This application needs an API token.
+Tokens are are really long and typically hard to remember.
+This application stores that problem by expecting a YAML file containing the API token.  Here's an example.
 
 ```yaml
 token: 82874335-aedd-4f9e-918d-8ad78088a811
@@ -113,20 +131,23 @@ The application logs all status to the console.  Errors are really obvious.  Her
 Donations with dedications are stored in `dedications.csv` in the current directory.  Here's a sample.
 
 ```
-PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication
-John Cheeseburger,john@cheeseburger.com.com,,,,,,2020-12-19 21:08:03.533 +0000 UTC,51.69,IN_HONOR_OF,The Cheeseburger Family
-Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,IN_HONOR_OF,Our wonderful Souvlaki family
+PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication,Notify,DedicationAddress
+John Cheeseburger,john@cheeseburger.com.com,,,,,,2020-12-19 21:08:03.533 +0000 UTC,51.69,IN_HONOR_OF,The Cheeseburger Family,Uncle Dan,404 Redbug, Baton Rouge, LA,12345
+Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,IN_HONOR_OF,Our wonderful Souvlaki family,,Aunt Mary,404 Tatziki, Jolie Blanc, LA,12345
 ```
 
 ## Advanced usage
 
-Typically, going to the `goengage` directory to run this app can be time-consuming.  A good way to get around that is to create an executable file.  If that appeals to you, then use this command.
+Typically, going to the `goengage` directory to run this app can be time-consuming.
+A good way to get around that is to create an executable file.
+If that appeals to you, then use this command.
 
 ```bash
 go build -o ~/go/bin/fundraising_dedication cmd/activity/fundraise/dedication/main.go
 ```
 
-The output will be an executable in `go/bin` in your home directory.  Add that directory to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
+The output will be an executable in `~/go/bin` in your home directory.
+Add `~/go/bin` to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
 
 ```bash
 fundraise_dedication --login company.yaml
