@@ -8,26 +8,18 @@ import (
 	"sync"
 )
 
-//LongFundraise is used to carry a Fundraise record and its dedication address.
-//The dedication address is extracted from the supporter custom fields for the
-//supporter making the donaton.
-type LongFundraise struct {
-	Fundraise
-	DedicationAddress string
-}
-
 //Guide provides the basic tools to read and filter records then
 //write them to a CSV file.
 type Guide interface {
 	//WhichActivity returns the kind of activity being read.
 	WhichActivity() string
 	//Filter returns true if the record should be used.
-	Filter(LongFundraise) bool
+	Filter(Fundraise) bool
 	//Headers returns column headers for a CSV file.
 	Headers() []string
 	//Line returns a list of strings to go in to the CSV file for each
 	//fundraising record.
-	Line(LongFundraise) []string
+	Line(Fundraise) []string
 	//Readers returns the number of readers to start.
 	Readers() int
 	//Filename returns the CSV filename.
@@ -78,8 +70,13 @@ func ReadActivities(e *Environment,
 		}
 		pass := int32(0)
 		for _, r := range resp.Payload.Activities {
-			r2 := LongFundraise{r, ""}
-			if guide.Filter(r2) {
+			if guide.Filter(r) {
+				log.Printf("ReadActivities: r %+v\n", r)
+				s, err := ReadSupporter(e, r)
+				if err != nil {
+					panic(err)
+				}
+				r.Supporter = *s
 				gc <- r
 				pass++
 			}
@@ -127,45 +124,35 @@ func ReadBatch(e *Environment,
 	return resp, err
 }
 
-// DedicationAddress retrieves the dedication address from the supporter record for
-// a client.  We need to do this in this branch so that the client can get that information
-// into an activity custom field.  (sigh)
-func DedicationAddress(e *Environment, f Fundraise) (*LongFundraise, error) {
-
+//ReadSupporter reads a supporter record for the specified ID.
+func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error) {
 	payload := SupporterSearchPayload{
 		Identifiers:    []string{f.Supporter.SupporterID},
 		IdentifierType: SupporterIDType,
-		ModifiedFrom:   "2000-01-01T00:00:00.000Z",
 	}
+
 	rqt := SupporterSearch{
 		Header:  RequestHeader{},
 		Payload: payload,
 	}
+	log.Printf("ReadSupporter: request %+v\n", rqt)
 	var resp SupporterSearchResults
 	n := NetOp{
 		Host:     e.Host,
 		Method:   SearchMethod,
-		Endpoint: SearchActivity,
+		Endpoint: SearchSupporter,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
 	}
-	longFundraise := LongFundraise{f, ""}
-	err := n.Do()
+	err = n.Do()
 	if err != nil {
-		return &longFundraise, err
+		return supporter, err
 	}
-	if resp.Payload.Count < 1 {
-		return &longFundraise, err
-	}
+	log.Printf("ReadSupporter: response %+v\n", resp)
 	s := resp.Payload.Supporters[0]
-	for _, c := range s.CustomFieldValues {
-		if c.Name == "Address of Recipient to Notify" {
-			longFundraise.DedicationAddress = c.Value
-			break
-		}
-	}
-	return &longFundraise, err
+	log.Printf("supporter: %+v\n", s)
+	return &s, err
 }
 
 // ReportFundraising on a Guide by reading all records, filtering, then
@@ -175,6 +162,12 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 	dc := make(chan bool)
 	oc := make(chan int32, 100)
 	var wg sync.WaitGroup
+
+	log.Println("")
+	log.Println("-------------------------------------------------------------------------------------------------")
+	log.Println("ReportFundraising:  This version reads Supporter because Fundraise does not have the right data.")
+	log.Println("-------------------------------------------------------------------------------------------------")
+	log.Println("")
 
 	//Start the reader waiter.  It waits until all readers are done,
 	//then closes the service channel.
@@ -263,8 +256,7 @@ func WriteCSV(guide Guide, gc chan Fundraise) error {
 		if !ok {
 			break
 		}
-		r2 := LongFundraise{r, ""}
-		w.Write(guide.Line(r2))
+		w.Write(guide.Line(r))
 		w.Flush()
 	}
 	f.Close()
