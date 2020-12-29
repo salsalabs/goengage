@@ -12,6 +12,12 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+const (
+	//DedicationAddressName is the supporter custom field name that contains
+	//the dedication address.
+	DedicationAddressName = "Address of Recipient to Notify"
+)
+
 //DedicationGuide is the Guide proxy for a Fundraise record.
 type DedicationGuide struct{}
 
@@ -27,8 +33,9 @@ func (g DedicationGuide) WhichActivity() string {
 }
 
 //Filter returns true if the record should be used.
-func (g DedicationGuide) Filter(f goengage.LongFundraise) bool {
-	return len(f.Dedication) > 0
+func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
+	return f.DonationType == goengage.OneTime && !f.WasImported && len(f.Supporter.SupporterID) > 0 && len(f.Dedication) > 0
+
 }
 
 //Headers returns column headers for a CSV file.
@@ -51,7 +58,10 @@ func (g DedicationGuide) Headers() []string {
 }
 
 //Line returns a list of strings to go in to the CSV file.
-func (g DedicationGuide) Line(f goengage.LongFundraise) []string {
+func (g DedicationGuide) Line(f goengage.Fundraise) []string {
+	if f.PersonName == "Alexandra Safchuk" {
+		log.Printf("fundraise: %+v\n", f)
+	}
 	// log.Printf("Line: %+v", f)
 	addressLine1 := ""
 	addressLine2 := ""
@@ -61,12 +71,23 @@ func (g DedicationGuide) Line(f goengage.LongFundraise) []string {
 	dedicationAddress := ""
 	s := &f.Supporter
 	if s != nil {
-		addressLine1 = f.Supporter.Address.AddressLine1
-		addressLine2 = f.Supporter.Address.AddressLine2
-		city = f.Supporter.Address.City
-		state = f.Supporter.Address.State
-		postalCode = f.Supporter.Address.PostalCode
-		dedicationAddress = f.DedicationAddress
+		if f.Supporter.Address != nil {
+			log.Printf("address: %+v\n", f.Supporter.Address)
+			addressLine1 = f.Supporter.Address.AddressLine1
+			addressLine2 = f.Supporter.Address.AddressLine2
+			city = f.Supporter.Address.City
+			state = f.Supporter.Address.State
+			postalCode = f.Supporter.Address.PostalCode
+		}
+		if f.Supporter.CustomFieldValues != nil {
+			log.Printf("custom fields: %+v\n", f.Supporter.CustomFieldValues)
+			for _, c := range f.Supporter.CustomFieldValues {
+				if c.Name == DedicationAddressName {
+					dedicationAddress = c.Value
+					break
+				}
+			}
+		}
 	}
 	return []string{
 		f.PersonName,
