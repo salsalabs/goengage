@@ -41,7 +41,7 @@ go get github.com/salsalabs/goengage
 go install github.com/salsalabs/goengage
 ```
 
-The source for this package can be found in the `cmd/activity/fundraise/dedication` directory in `goengage`.
+The source for this package can be found in the `cmd/activity/fundraise/dedication_with_ids` directory in `goengage`.
 
 ## Operation
 
@@ -54,7 +54,7 @@ All commands in this article assume that you're in the `goengage` directory.
 Use this command to to see the usage information.
 
 ```bash
-go run cmd/activity/fundraise/dedication/main.go --help
+go run cmd/activity/fundraise/dedication_with_ids/main.go --help
 ```
 ```
 usage: dedications --login=LOGIN [<flags>]
@@ -90,7 +90,7 @@ token: 82874335-aedd-4f9e-918d-8ad78088a811
 If you've stored your token in `company.yaml`, then you'll need to use a command like this to start the deduplication report.
 
 ```bash
-go run cmd/activity/fundraise/dedication/main.go --login company.yaml
+go run cmd/activity/fundraise/dedication_with_ids/main.go --login company.yaml
 ```
 
 ## Outputs
@@ -143,14 +143,14 @@ A good way to get around that is to create an executable file.
 If that appeals to you, then use this command.
 
 ```bash
-go build -o ~/go/bin/fundraising_dedication cmd/activity/fundraise/dedication/main.go
+go build -o ~/go/bin/fundraise_dedication_with_ids cmd/activity/fundraise/dedication_with_ids/main.go
 ```
 
 The output will be an executable in `~/go/bin` in your home directory.
 Add `~/go/bin` to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
 
 ```bash
-fundraise_dedication --login company.yaml
+fundraise_dedication_with_ids --login company.yaml
 ```
 
 ## Questions?  Comments?
