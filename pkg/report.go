@@ -71,7 +71,6 @@ func ReadActivities(e *Environment,
 		pass := int32(0)
 		for _, r := range resp.Payload.Activities {
 			if guide.Filter(r) {
-				log.Printf("ReadActivities: r %+v\n", r)
 				s, err := ReadSupporter(e, r)
 				if err != nil {
 					panic(err)
@@ -127,7 +126,7 @@ func ReadBatch(e *Environment,
 //ReadSupporter reads a supporter record for the specified ID.
 func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error) {
 	payload := SupporterSearchPayload{
-		Identifiers:    []string{f.Supporter.SupporterID},
+		Identifiers:    []string{f.SupporterID},
 		IdentifierType: SupporterIDType,
 	}
 
@@ -135,7 +134,6 @@ func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error
 		Header:  RequestHeader{},
 		Payload: payload,
 	}
-	log.Printf("ReadSupporter: request %+v\n", rqt)
 	var resp SupporterSearchResults
 	n := NetOp{
 		Host:     e.Host,
@@ -149,9 +147,7 @@ func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error
 	if err != nil {
 		return supporter, err
 	}
-	log.Printf("ReadSupporter: response %+v\n", resp)
 	s := resp.Payload.Supporters[0]
-	log.Printf("supporter: %+v\n", s)
 	return &s, err
 }
 
