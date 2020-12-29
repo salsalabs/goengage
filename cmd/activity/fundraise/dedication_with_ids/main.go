@@ -20,11 +20,13 @@ const (
 )
 
 //DedicationGuide is the Guide proxy for a Fundraise record.
-type DedicationGuide struct{}
+type DedicationGuide struct {
+	StartDate string
+}
 
 //NewDedicationGuide returns an record.
-func NewDedicationGuide() DedicationGuide {
-	e := DedicationGuide{}
+func NewDedicationGuide(startDate string) DedicationGuide {
+	e := DedicationGuide{startDate}
 	return e
 }
 
@@ -35,7 +37,7 @@ func (g DedicationGuide) WhichActivity() string {
 
 //Filter returns true if the record should be used.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
-	return len(f.Dedication) > 0
+	return len(f.Dedication) > 0 && f.DonationType == goengage.OneTime
 }
 
 //Headers returns column headers for a CSV file.
@@ -120,7 +122,7 @@ func (g DedicationGuide) Readers() int {
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	return "dedications.csv"
+	return fmt.Sprintf("%s_dedications.csv", g.StartDate)
 }
 
 const (
@@ -209,7 +211,7 @@ func main() {
 	}
 	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
 
-	guide := NewDedicationGuide()
+	guide := NewDedicationGuide(*startDate)
 	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		log.Fatalf("%v", err)
