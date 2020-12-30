@@ -161,20 +161,20 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 	var wg sync.WaitGroup
 
 	log.Println("")
-	log.Println("-------------------------------------------------------------------------------------------------")
+	log.Println("------------------------------------------------------------------------------------------------")
 	log.Println("ReportFundraising:  This version reads Supporter because Fundraise does not have the right data.")
-	log.Println("-------------------------------------------------------------------------------------------------")
+	log.Println("------------------------------------------------------------------------------------------------")
 	log.Println("")
 
 	//Start the reader waiter.  It waits until all readers are done,
-	//then closes the service channel.
+	//then closes the fundraise channel.
 	go (func(guide Guide, gc chan Fundraise, done chan bool, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		WaitForReaders(guide, gc, done)
 	})(guide, gc, dc, &wg)
 
-	//Start the CSV writer. It receiveguide Guide records from readers and
+	//Start the CSV writer. It receives fundraise records from readers and
 	//writes them to a CSV.
 	go (func(guide Guide, gc chan Fundraise, wg *sync.WaitGroup) {
 		wg.Add(1)
@@ -206,7 +206,9 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 
 	// Push offsets onto the offset channel.
 	maxRecords, err := MaxRecords(e, guide, start, end)
-	log.Printf("ReportFundraising: processing %d %s records\n", maxRecords, FundraiseType)
+	log.Printf("ReportFundraising: start date %s\n", start)
+	log.Printf("ReportFundraising: end date %s\n", end)
+	log.Printf("ReportFundraising: %d donations\n", maxRecords)
 	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
 	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
 		oc <- offset
@@ -216,7 +218,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 	//Wait...
 	log.Printf("ReportFundraising: waiting for terminations")
 	wg.Wait()
-	log.Printf("ReportFundraising done")
+	log.Printf("ReportFundraising: done")
 	return err
 }
 
