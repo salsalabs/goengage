@@ -69,6 +69,7 @@ func ReadActivities(e *Environment,
 			break
 		}
 		pass := int32(0)
+		total := resp.Payload.Total
 		for _, r := range resp.Payload.Activities {
 			if guide.Filter(r) {
 				s, err := ReadSupporter(e, r)
@@ -80,11 +81,11 @@ func ReadActivities(e *Environment,
 				pass++
 			}
 		}
-		log.Printf("%s: offset %6d, %3d of %3d passed\n",
+		log.Printf("%s: offset %6d of %6d, %3d adds\n",
 			n,
 			offset,
-			pass,
-			resp.Payload.Count)
+			total,
+			pass)
 	}
 	dc <- true
 	log.Printf("%s: end", n)

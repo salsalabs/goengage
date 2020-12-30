@@ -89,31 +89,46 @@ go run cmd/activity/fundraise/dedication/main.go --login company.yaml
 The application logs all status to the console.  Errors are really obvious.  Here's a sample of the console output for a successful application run.
 
 ```
-2020/12/23 15:48:46 WaitForReaders: Waiting for 5 readers
-2020/12/23 15:48:46 ReadActivities-2: begin
-2020/12/23 15:48:46 ReadActivities-1: begin
-2020/12/23 15:48:46 ReadActivities-3: begin
-2020/12/23 15:48:46 ReadActivities-4: begin
-2020/12/23 15:48:46 WriteCSV: begin
-2020/12/23 15:48:46 ReadActivities-0: begin
-2020/12/23 15:48:46 ReportFundraising: processing 164 FUNDRAISE records
-2020/12/23 15:48:46 ReportFundraising: waiting for terminations
-2020/12/23 15:48:46 ReadActivities-4: offset    150,   1 of  14 passed
-2020/12/23 15:48:46 ReadActivities-4: end
-2020/12/23 15:48:46 WaitForReaders: Waiting for 4 readers
-2020/12/23 15:48:46 ReadActivities-2: offset      0,   1 of  50 passed
-2020/12/23 15:48:46 ReadActivities-2: end
-2020/12/23 15:48:46 WaitForReaders: Waiting for 3 readers
-2020/12/23 15:48:48 ReadActivities-1: offset     50,   0 of  50 passed
-2020/12/23 15:48:48 ReadActivities-1: end
-2020/12/23 15:48:48 WaitForReaders: Waiting for 2 readers
-2020/12/23 15:48:48 ReadActivities-3: offset    100,   0 of  50 passed
-2020/12/23 15:48:48 ReadActivities-3: end
-2020/12/23 15:48:48 WaitForReaders: Waiting for 1 readers
-2020/12/23 15:48:49 ReadActivities-0: end
-2020/12/23 15:48:49 WaitForReaders: done
-2020/12/23 15:48:49 WriteCSV: done
-2020/12/23 15:48:49 ReportFundraising done
+2020/12/30 09:58:33 WaitForReaders: Waiting for 5 readers
+2020/12/30 09:58:33 ReadActivities-1: begin
+2020/12/30 09:58:33 ReadActivities-0: begin
+2020/12/30 09:58:33 ReadActivities-2: begin
+2020/12/30 09:58:33 ReadActivities-3: begin
+2020/12/30 09:58:33 WriteCSV: begin
+2020/12/30 09:58:33 ReadActivities-4: begin
+2020/12/30 09:58:33 ReportFundraising: processing 366 FUNDRAISE records
+2020/12/30 09:58:33 ReportFundraising: waiting for terminations
+2020/12/30 09:58:37 ReadActivities-2: offset     40 of    366,   6 adds
+2020/12/30 09:58:39 ReadActivities-3: offset     60 of    366,   5 adds
+2020/12/30 09:58:40 ReadActivities-4: offset     80 of    366,  13 adds
+2020/12/30 09:58:42 ReadActivities-4: offset    140 of    366,   9 adds
+2020/12/30 09:58:44 ReadActivities-3: offset    120 of    366,  11 adds
+2020/12/30 09:58:46 ReadActivities-2: offset    100 of    366,  11 adds
+2020/12/30 09:58:46 ReadActivities-3: offset    180 of    366,   8 adds
+2020/12/30 09:58:48 ReadActivities-2: offset    200 of    366,   7 adds
+2020/12/30 09:58:51 ReadActivities-0: offset     20 of    366,  10 adds
+2020/12/30 09:58:51 ReadActivities-4: offset    160 of    366,  16 adds
+2020/12/30 09:58:52 ReadActivities-3: offset    220 of    366,  17 adds
+2020/12/30 09:58:55 ReadActivities-4: offset    280 of    366,   8 adds
+2020/12/30 09:58:55 ReadActivities-3: offset    300 of    366,  11 adds
+2020/12/30 09:58:58 ReadActivities-3: offset    340 of    366,   9 adds
+2020/12/30 09:58:58 ReadActivities-4: offset    320 of    366,   8 adds
+2020/12/30 09:58:58 ReadActivities-3: offset    360 of    366,   2 adds
+2020/12/30 09:58:58 ReadActivities-3: end
+2020/12/30 09:58:58 WaitForReaders: Waiting for 4 readers
+2020/12/30 09:58:59 ReadActivities-4: end
+2020/12/30 09:58:59 WaitForReaders: Waiting for 3 readers
+2020/12/30 09:59:01 ReadActivities-1: offset      0 of    366,   9 adds
+2020/12/30 09:59:01 ReadActivities-1: end
+2020/12/30 09:59:01 WaitForReaders: Waiting for 2 readers
+2020/12/30 09:59:02 ReadActivities-0: offset    260 of    366,  12 adds
+2020/12/30 09:59:02 ReadActivities-0: end
+2020/12/30 09:59:02 WaitForReaders: Waiting for 1 readers
+2020/12/30 09:59:03 ReadActivities-2: offset    240 of    366,  10 adds
+2020/12/30 09:59:03 ReadActivities-2: end
+2020/12/30 09:59:03 WaitForReaders: done
+2020/12/30 09:59:03 WriteCSV: done
+2020/12/30 09:59:03 ReportFundraising done
 ```
 
 ### CSV output
