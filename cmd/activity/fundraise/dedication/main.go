@@ -20,11 +20,14 @@ const (
 )
 
 //DedicationGuide is the Guide proxy for a Fundraise record.
-type DedicationGuide struct{}
+type DedicationGuide struct {
+	StartDate string
+	AddKeys   bool
+}
 
 //NewDedicationGuide returns an record.
-func NewDedicationGuide() DedicationGuide {
-	e := DedicationGuide{}
+func NewDedicationGuide(startDate string, addKeys bool) DedicationGuide {
+	e := DedicationGuide{startDate, addKeys}
 	return e
 }
 
@@ -40,7 +43,7 @@ func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
 
 //Headers returns column headers for a CSV file.
 func (g DedicationGuide) Headers() []string {
-	return []string{
+	a := []string{
 		"PersonName",
 		"PersonEmail",
 		"AddressLine1",
@@ -49,12 +52,19 @@ func (g DedicationGuide) Headers() []string {
 		"State",
 		"Zip",
 		"TransactionDate",
+		"DonationType",
 		"Amount",
 		"DedicationType",
 		"Dedication",
 		"Notify",
 		"DedicationAddress",
 	}
+	if g.AddKeys {
+		a = append(a, "ActivityID")
+		a = append(a, "DonationID")
+		a = append(a, "SupporterID")
+	}
+	return a
 }
 
 //Line returns a list of strings to go in to the CSV file.
@@ -90,7 +100,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 			}
 		}
 	}
-	return []string{
+	a := []string{
 		f.PersonName,
 		f.PersonEmail,
 		addressLine1,
@@ -99,12 +109,19 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		state,
 		postalCode,
 		fmt.Sprintf("%s", f.ActivityDate),
+		f.DonationType,
 		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
 		f.DedicationType,
 		f.Dedication,
 		f.Notify,
 		dedicationAddress,
 	}
+	if g.AddKeys {
+		a = append(a, f.ActivityID)
+		a = append(a, f.DonationID)
+		a = append(a, f.SupporterID)
+	}
+	return a
 }
 
 //Readers returns the number of readers to start.
@@ -114,7 +131,7 @@ func (g DedicationGuide) Readers() int {
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	return "dedications.csv"
+	return fmt.Sprintf("%s_dedications.csv", g.StartDate)
 }
 
 const (
@@ -194,6 +211,7 @@ func main() {
 		startDate = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
 		endDate   = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
 		timeZone  = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
+		addKeys   = app.Flag("keys", "Export activity, donation and supporter IDs").Bool()
 	)
 	app.Parse(os.Args[1:])
 
@@ -203,7 +221,7 @@ func main() {
 	}
 	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
 
-	guide := NewDedicationGuide()
+	guide := NewDedicationGuide(*startDate, *addKeys)
 	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		log.Fatalf("%v", err)
