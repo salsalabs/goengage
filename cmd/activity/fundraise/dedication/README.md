@@ -62,10 +62,10 @@ Flags:
 
 |Argument|Description|
 |--------|-----------|
-|login| LOGIN is a yaml filename containing the API token.  See next topic.|
+|login| LOGIN is a yaml filename containing the API token.  See [YAML file](#yaml-file), below.|
 |startDate | Start of the date range for this report.  `startDate` must be formatted as "YYYY-MM-DD".  The default start date is "Monday a week ago".  The default date appears in the usage.|
-|endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. It, too, apepars in the usage.|
-|timeZone|The official timezone designation for the client.  The defualt is US Eastern.  You can more timezone names by [clickinging here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).|
+|endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. It, too, appears in the usage.|
+|timeZone|The official timezone designation for the client.  The default is US Eastern.  You can see more timezone names by [clicking here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).|
 |keys|Use this to append the ActivityID, DonationID and SupporterID to each donation.|
 
 ### YAML file
