@@ -18,18 +18,8 @@ The app finds the donations with dedications and writes information to a CSV.
 
 1. A current version of Go.  There are lots of articles on the web about
 installing Go.  The official installation steps can be found by [clicking here](https://golang.org/doc/install).
-
 1. An [Engage API token](https://help.salsalabs.com/hc/en-us/articles/224470007-Salsa-Engage-Integration-API-Overview).
 
-Note that Go *requires* a directory structure in your home directory.
-
-```
-$HOME
-  + bin
-  + pkg
-  + src
-```
-  Make sure that exists before you start using Go.
 
 ## Installation
 
@@ -45,17 +35,15 @@ The source for this package can be found in the `cmd/activity/fundraise/dedicati
 
 ## Operation
 
-The best way to run this app is to start in a console window. Navigate to the `goengage` directory.
+The easiest way to run this app is to start in a console window. Navigate to the `goengage` directory.
+Use this to see the usage.
+
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
-```
-All commands in this article assume that you're in the `goengage` directory.
-
-Use this command to to see the usage information.
-
-```bash
 go run cmd/activity/fundraise/dedication/main.go --help
 ```
+
+The application will write this to the console.
 ```
 usage: dedications --login=LOGIN [<flags>]
 
@@ -67,16 +55,18 @@ Flags:
   --startDate="2020-12-14"       Start date, YYYY-MM-YY, default is Monday of last week at midnight
   --endDate="2020-12-20"         End date, YYYY-MM-YY, default is the most recent Monday at midnight
   --timezone="America/New_York"  Client's timezone, defaults to EST/EDT
+   --keys                        Export activity, donation and supporter IDs
 ```
 
 ### Command-line arguments
 
 |Argument|Description|
 |--------|-----------|
-|login| LOGIN is a yaml filename containing the API token.  More on that below|
-|startDate | Start of the date range for this report.  `startDate` must be formatted as "YYYY-MM-DD".  The default start date is "Monday a week ago".|
-|endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. |
+|login| LOGIN is a yaml filename containing the API token.  See next topic.|
+|startDate | Start of the date range for this report.  `startDate` must be formatted as "YYYY-MM-DD".  The default start date is "Monday a week ago".  The default date appears in the usage.|
+|endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. It, too, apepars in the usage.|
 |timeZone|The official timezone designation for the client.  The defualt is US Eastern.  You can more timezone names by [clickinging here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).|
+|keys|Use this to append the ActivityID, DonationID and SupporterID to each donation.|
 
 ### YAML file
 
@@ -98,8 +88,7 @@ go run cmd/activity/fundraise/dedication/main.go --login company.yaml
 
 The application logs all status to the console.  Errors are really obvious.  Here's a sample of the console output for a successful application run.
 
-```bash
-
+```
 2020/12/23 15:48:46 WaitForReaders: Waiting for 5 readers
 2020/12/23 15:48:46 ReadActivities-2: begin
 2020/12/23 15:48:46 ReadActivities-1: begin
@@ -126,6 +115,7 @@ The application logs all status to the console.  Errors are really obvious.  Her
 2020/12/23 15:48:49 WriteCSV: done
 2020/12/23 15:48:49 ReportFundraising done
 ```
+
 ### CSV output
 
 Donations with dedications are stored in `dedications.csv` in the current directory.  Here's a sample.
@@ -138,9 +128,7 @@ Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,I
 
 ## Advanced usage
 
-Typically, going to the `goengage` directory to run this app can be time-consuming.
-A good way to get around that is to create an executable file.
-If that appeals to you, then use this command.
+If you'll be using this app a lot, then it will be a good idea to create a native program.
 
 ```bash
 go build -o ~/go/bin/fundraise_dedication cmd/activity/fundraise/dedication/main.go
