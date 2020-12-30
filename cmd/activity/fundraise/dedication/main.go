@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -17,17 +18,29 @@ const (
 	//DedicationAddressName is the supporter custom field name that contains
 	//the dedication address.
 	DedicationAddressName = "Address of Recipient to Notify"
+
+	//TimeFormat is used to parse text into Go time.
+	TimeFormat = "2006-01-02"
+
+	//StartDuration is text to initialize a duration for start times.
+	//Used in converting Go time strings to Engage times.
+	StartDuration = "0h0m0.0s"
+
+	//EndDuration is text to initialize a duration for end times.
+	//Used in converting Go time strings to Engage times.
+	EndDuration = "23h59m59.999s"
 )
 
 //DedicationGuide is the Guide proxy for a Fundraise record.
 type DedicationGuide struct {
-	StartDate string
+	StartDate time.Time
+	EndDate   time.Time
 	AddKeys   bool
 }
 
-//NewDedicationGuide returns an record.
-func NewDedicationGuide(startDate string, addKeys bool) DedicationGuide {
-	e := DedicationGuide{startDate, addKeys}
+//NewDedicationGuide returns an initialized DedicationGuide.
+func NewDedicationGuide(start time.Time, end time.Time, addKeys bool) DedicationGuide {
+	e := DedicationGuide{start, end, addKeys}
 	return e
 }
 
@@ -38,7 +51,7 @@ func (g DedicationGuide) WhichActivity() string {
 
 //Filter returns true if the record should be used.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
-	return len(f.Dedication) > 0
+	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.StartDate) && !f.ActivityDate.After(g.EndDate)
 }
 
 //Headers returns column headers for a CSV file.
@@ -79,7 +92,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	dedication := strings.Replace(f.Dedication, "\n", " ", -1)
 	dedication = strings.Replace(dedication, "\r", " ", -1)
 	dedication = strings.Replace(dedication, "\t", " ", -1)
-
+	transactionDate := f.ActivityDate.Format(TimeFormat)
 	s := &f.Supporter
 	if s != nil {
 		if f.Supporter.Address != nil {
@@ -95,6 +108,8 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 					dedicationAddress = strings.Replace(c.Value, "\n", " ", -1)
 					dedicationAddress = strings.Replace(dedicationAddress, "\r", " ", -1)
 					dedicationAddress = strings.Replace(dedicationAddress, "\t", " ", -1)
+					re := regexp.MustCompile("[\r\n\t ]+")
+					dedicationAddress = re.ReplaceAllString(dedicationAddress, " ")
 					break
 				}
 			}
@@ -108,7 +123,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		city,
 		state,
 		postalCode,
-		fmt.Sprintf("%s", f.ActivityDate),
+		transactionDate,
 		f.DonationType,
 		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
 		f.DedicationType,
@@ -131,21 +146,9 @@ func (g DedicationGuide) Readers() int {
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	return fmt.Sprintf("%s_dedications.csv", g.StartDate)
+	s := g.StartDate.Format(TimeFormat)
+	return fmt.Sprintf("%s_dedications.csv", s)
 }
-
-const (
-	//TimeFormat is used to parse text into Go time.
-	TimeFormat = "2006-01-02"
-
-	//StartDuration is text to initialize a duration for start times.
-	//Used in converting Go time strings to Engage times.
-	StartDuration = "0h0m0.0s"
-
-	//EndDuration is text to initialize a duration for end times.
-	//Used in converting Go time strings to Engage times.
-	EndDuration = "23h59m59.999s"
-)
 
 //DefaultDates computes the default start and end dates.
 //Default end date is just before the most recent Monday at midnight.
@@ -185,7 +188,7 @@ func Parse(s string, loc *time.Location, durationText string) time.Time {
 //Validate validates the provided start and end dates.  Errors are fatal.
 //Converts the dates from the provided timezone to Zulu, then formats them
 //suitably for submission to Engage.  Return the validated and formatted dates.
-func Validate(startDate, endDate, timeZone string) (string, string) {
+func Validate(startDate, endDate, timeZone string) (time.Time, time.Time) {
 	loc, err := time.LoadLocation(timeZone)
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -198,9 +201,7 @@ func Validate(startDate, endDate, timeZone string) (string, string) {
 		e := et.Format(TimeFormat)
 		log.Fatalf("end date '%v' is before start date '%v'", s, e)
 	}
-	s := st.Format(goengage.EngageDateFormat)
-	e := et.Format(goengage.EngageDateFormat)
-	return s, e
+	return st, et
 }
 
 func main() {
@@ -219,9 +220,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	engageStart, engageEnd := Validate(*startDate, *endDate, *timeZone)
+	startTime, endTime := Validate(*startDate, *endDate, *timeZone)
 
-	guide := NewDedicationGuide(*startDate, *addKeys)
+	guide := NewDedicationGuide(startTime, endTime, *addKeys)
+
+	engageStart := startTime.Format(goengage.EngageDateFormat)
+	engageEnd := endTime.Format(goengage.EngageDateFormat)
+
 	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		log.Fatalf("%v", err)
