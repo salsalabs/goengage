@@ -35,15 +35,15 @@ The source for this package can be found in the `cmd/activity/fundraise/dedicati
 
 ## Operation
 
-The easiest way to run this app is to start in a console window. Navigate to the `goengage` directory.
-Use this to see the usage.
+The easiest way to run this app is to start in a console window. 
 
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
 go run cmd/activity/fundraise/dedication/main.go --help
 ```
 
-The application will write this to the console.
+Use `--help` shows the usage summary.
+
 ```
 usage: dedications --login=LOGIN [<flags>]
 
