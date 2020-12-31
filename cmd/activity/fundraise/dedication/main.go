@@ -20,8 +20,8 @@ const (
 	//the dedication address.
 	DedicationAddressName = "Address of Recipient to Notify"
 
-	//TimeFormat is used to parse text into Go time.
-	TimeFormat = "2006-01-02"
+	//BriefFormat is used to parse text into Classic-looking time.
+	BriefFormat = "2006-01-02"
 
 	//StartDuration is text to initialize a duration for start times.
 	//Used in converting Go time strings to Engage times.
@@ -32,33 +32,37 @@ const (
 	EndDuration = "23h59m59.999s"
 )
 
-//DedicationGuide is the Guide proxy for a Fundraise record.
+//DedicationGuide is the Guide proxy.
 type DedicationGuide struct {
-	StartDate time.Time
-	EndDate   time.Time
+	StartTime time.Time
+	EndTime   time.Time
 	AddKeys   bool
 }
 
 //NewDedicationGuide returns an initialized DedicationGuide.
-func NewDedicationGuide(start time.Time, end time.Time, addKeys bool) DedicationGuide {
-	e := DedicationGuide{start, end, addKeys}
-	return e
+func NewDedicationGuide(start, end time.Time, addKeys bool) DedicationGuide {
+	return DedicationGuide{
+		StartTime: start,
+		EndTime:   end,
+		AddKeys:   addKeys,
+	}
 }
 
-//WhichActivity returns the kind of activity being read.
-func (g DedicationGuide) WhichActivity() string {
+//TypeActivity returns the kind of activity being read.
+func (g DedicationGuide) TypeActivity() string {
 	return goengage.FundraiseType
 }
 
 //Filter returns true if the record should be used.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
-	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.StartDate) && !f.ActivityDate.After(g.EndDate)
+	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.StartTime) && !f.ActivityDate.After(g.EndTime)
 }
 
 //Headers returns column headers for a CSV file.
 func (g DedicationGuide) Headers() []string {
 	a := []string{
-		"PersonName",
+		"FirstName",
+		"LastName",
 		"PersonEmail",
 		"AddressLine1",
 		"AddressLine2",
@@ -67,6 +71,8 @@ func (g DedicationGuide) Headers() []string {
 		"Zip",
 		"TransactionDate",
 		"DonationType",
+		"ActivityType",
+		"TransactionType",
 		"Amount",
 		"DedicationType",
 		"Dedication",
@@ -76,6 +82,7 @@ func (g DedicationGuide) Headers() []string {
 	if g.AddKeys {
 		a = append(a, "ActivityID")
 		a = append(a, "DonationID")
+		a = append(a, "TransactionID")
 		a = append(a, "SupporterID")
 	}
 	return a
@@ -93,7 +100,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	dedication := strings.Replace(f.Dedication, "\n", " ", -1)
 	dedication = strings.Replace(dedication, "\r", " ", -1)
 	dedication = strings.Replace(dedication, "\t", " ", -1)
-	transactionDate := f.ActivityDate.Format(TimeFormat)
+	transactionDate := f.ActivityDate.Format(BriefFormat)
 	s := &f.Supporter
 	if s != nil {
 		if f.Supporter.Address != nil {
@@ -117,7 +124,8 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		}
 	}
 	a := []string{
-		f.PersonName,
+		f.Supporter.FirstName,
+		f.Supporter.LastName,
 		f.PersonEmail,
 		addressLine1,
 		addressLine2,
@@ -125,9 +133,11 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		state,
 		postalCode,
 		transactionDate,
-		f.DonationType,
+		ToTitle(f.DonationType),
+		ToTitle(f.ActivityType),
+		ToTitle(f.Transactions[0].Type),
 		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
-		f.DedicationType,
+		ToTitle(f.DedicationType),
 		f.Dedication,
 		f.Notify,
 		dedicationAddress,
@@ -135,6 +145,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	if g.AddKeys {
 		a = append(a, f.ActivityID)
 		a = append(a, f.DonationID)
+		a = append(a, f.Transactions[0].TransactionID)
 		a = append(a, f.SupporterID)
 	}
 	return a
@@ -142,12 +153,12 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 
 //Readers returns the number of readers to start.
 func (g DedicationGuide) Readers() int {
-	return 5
+	return 3
 }
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	s := g.StartDate.Format(TimeFormat)
+	s := g.StartTime.Format(BriefFormat)
 	return fmt.Sprintf("%s_dedications.csv", s)
 }
 
@@ -160,25 +171,27 @@ func DefaultDates() (start, end string) {
 	startDelta := 6 + int(now.Weekday())
 	startTime := now.AddDate(0, 0, -startDelta)
 	endTime := startTime.AddDate(0, 0, 6)
-	start = startTime.Format(TimeFormat)
-	end = endTime.Format(TimeFormat)
+	start = startTime.Format(BriefFormat)
+	end = endTime.Format(BriefFormat)
 	return start, end
 }
 
-//Parse accepts a date in TimeFormat and returns a Go time. The
-// duration text defines the time-of-day to add to the date
-//before converting to Engage format. Errors are internal and fatal.
-func Parse(s string, loc *time.Location, durationText string) time.Time {
-	t, err := time.ParseInLocation(TimeFormat, s, loc)
+//Parse accepts a date in BriefFormat and returns a Go time. Engage
+//needs a date and time.  Parameter "todText" defines the time to add.
+//Errors are internal and fatal.
+func Parse(s string, loc *time.Location, todText string) time.Time {
+	t, err := time.ParseInLocation(BriefFormat, s, loc)
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
-	d, err := time.ParseDuration(StartDuration)
+	d, err := time.ParseDuration(todText)
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
 	t = t.Add(d)
+
 	// Engage wants Zulu time.
+	// TODO: handle positive offsets correctly.
 	_, offset := t.Zone()
 	zt := fmt.Sprintf("%ds", -offset)
 	d, err = time.ParseDuration(zt)
@@ -186,9 +199,20 @@ func Parse(s string, loc *time.Location, durationText string) time.Time {
 	return t
 }
 
+//ToTitle converts engage constants to title-case.  Underbars
+//are treated as word separators.
+func ToTitle(s string) string {
+	parts := strings.Split(s, "_")
+	var a []string
+	for _, x := range parts {
+		a = append(a, strings.Title(strings.ToLower(x)))
+	}
+	return strings.Join(a, "_")
+}
+
 //Validate validates the provided start and end dates.  Errors are fatal.
-//Converts the dates from the provided timezone to Zulu, then formats them
-//suitably for submission to Engage.  Return the validated and formatted dates.
+//Converts the dates from the provided timezone to Zulu, checks for start
+//time before end time, then returns Time objects.
 func Validate(startDate, endDate, timeZone string) (time.Time, time.Time) {
 	loc, err := time.LoadLocation(timeZone)
 	if err != nil {
@@ -198,8 +222,8 @@ func Validate(startDate, endDate, timeZone string) (time.Time, time.Time) {
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
-		s := st.Format(TimeFormat)
-		e := et.Format(TimeFormat)
+		s := st.Format(BriefFormat)
+		e := et.Format(BriefFormat)
 		log.Fatalf("end date '%v' is before start date '%v'", s, e)
 	}
 	return st, et
@@ -213,7 +237,7 @@ func main() {
 		startDate = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
 		endDate   = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
 		timeZone  = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
-		addKeys   = app.Flag("keys", "Export activity, donation and supporter IDs").Bool()
+		addKeys   = app.Flag("keys", "Export activity, donation, transaction and supporter IDs").Bool()
 	)
 	app.Parse(os.Args[1:])
 
@@ -224,11 +248,9 @@ func main() {
 	startTime, endTime := Validate(*startDate, *endDate, *timeZone)
 
 	guide := NewDedicationGuide(startTime, endTime, *addKeys)
+	ts := report.NewTimeSpan(startTime, endTime)
 
-	engageStart := startTime.Format(goengage.EngageDateFormat)
-	engageEnd := endTime.Format(goengage.EngageDateFormat)
-
-	err = report.ReportFundraising(e, guide, engageStart, engageEnd)
+	err = report.ReportFundraising(e, guide, ts)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

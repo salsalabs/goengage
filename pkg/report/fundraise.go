@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 )
@@ -13,8 +14,8 @@ import (
 //Guide provides the basic tools to read and filter records then
 //write them to a CSV file.
 type Guide interface {
-	//WhichActivity returns the kind of activity being read.
-	WhichActivity() string
+	//TypeActivity returns the kind of activity being read.
+	TypeActivity() string
 	//Filter returns true if the record should be used.
 	Filter(goengage.Fundraise) bool
 	//Headers returns column headers for a CSV file.
@@ -28,10 +29,24 @@ type Guide interface {
 	Filename() string
 }
 
+//TimeSpan contains a start and end time in Engage time format.
+type TimeSpan struct {
+	Start string
+	End   string
+}
+
+//NewTimeSpan creates a Timespan using two Time objects.
+func NewTimeSpan(s, e time.Time) TimeSpan {
+	return TimeSpan{
+		Start: s.Format(goengage.EngageDateFormat),
+		End:   e.Format(goengage.EngageDateFormat),
+	}
+}
+
 //MaxRecords returns the maximum number of activity records
 //of a particular type.
-func MaxRecords(e *goengage.Environment, guide Guide, start string, end string) (int32, error) {
-	resp, err := ReadBatch(e, guide, int32(0), int32(0), start, end)
+func MaxRecords(e *goengage.Environment, guide Guide, ts TimeSpan) (int32, error) {
+	resp, err := ReadBatch(e, guide, int32(0), ts)
 	if err != nil {
 		return int32(0), err
 	}
@@ -48,8 +63,7 @@ func ReadActivities(e *goengage.Environment,
 	oc chan int32,
 	gc chan goengage.Fundraise,
 	dc chan bool,
-	start string,
-	end string) {
+	ts TimeSpan) {
 
 	n := fmt.Sprintf("ReadActivities-%d", i)
 	log.Printf("%s: begin", n)
@@ -58,7 +72,7 @@ func ReadActivities(e *goengage.Environment,
 		if !ok {
 			break
 		}
-		resp, err := ReadBatch(e, guide, offset, e.Metrics.MaxBatchSize, start, end)
+		resp, err := ReadBatch(e, guide, offset, ts)
 		if err != nil {
 			// panic(err)
 			log.Printf("%s: offset %6d error %s\n", n, offset, err)
@@ -80,11 +94,7 @@ func ReadActivities(e *goengage.Environment,
 				pass++
 			}
 		}
-		log.Printf("%s: offset %6d of %6d, %3d adds\n",
-			n,
-			offset,
-			total,
-			pass)
+		log.Printf("%s: offset %6d of %6d, %3d adds\n", n, offset, total, pass)
 	}
 	dc <- true
 	log.Printf("%s: end", n)
@@ -95,17 +105,14 @@ func ReadActivities(e *goengage.Environment,
 func ReadBatch(e *goengage.Environment,
 	guide Guide,
 	offset int32,
-	count int32,
-	start string,
-	end string) (resp *goengage.FundraiseResponse, err error) {
+	ts TimeSpan) (resp *goengage.FundraiseResponse, err error) {
 
-	// log.Printf("ReadBatch: offset %d, count %d, start %v, end %v\n", offset, count, start, end)
 	payload := goengage.ActivityRequestPayload{
-		Type:         guide.WhichActivity(),
+		Type:         guide.TypeActivity(),
 		Offset:       offset,
-		Count:        count,
-		ModifiedFrom: start,
-		ModifiedTo:   end,
+		Count:        e.Metrics.MaxBatchSize,
+		ModifiedFrom: ts.Start,
+		ModifiedTo:   ts.End,
 	}
 	rqt := goengage.ActivityRequest{
 		Header:  goengage.RequestHeader{},
@@ -153,7 +160,7 @@ func ReadSupporter(e *goengage.Environment, f goengage.Fundraise) (supporter *go
 
 // ReportFundraising on a Guide by reading all records, filtering, then
 // writing survivors to a CSV file.
-func ReportFundraising(e *goengage.Environment, guide Guide, start string, end string) (err error) {
+func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err error) {
 	gc := make(chan goengage.Fundraise, 100)
 	dc := make(chan bool)
 	oc := make(chan int32, 100)
@@ -193,20 +200,19 @@ func ReportFundraising(e *goengage.Environment, guide Guide, start string, end s
 			oc chan int32,
 			gc chan goengage.Fundraise,
 			done chan bool,
-			start string,
-			end string,
+			ts TimeSpan,
 			wg *sync.WaitGroup) {
 
 			wg.Add(1)
 			defer wg.Done()
-			ReadActivities(e, guide, i, oc, gc, dc, start, end)
-		})(e, guide, i, oc, gc, dc, start, end, &wg)
+			ReadActivities(e, guide, i, oc, gc, dc, ts)
+		})(e, guide, i, oc, gc, dc, ts, &wg)
 	}
 
 	// Push offsets onto the offset channel.
-	maxRecords, err := MaxRecords(e, guide, start, end)
-	log.Printf("ReportFundraising: start date %s\n", start)
-	log.Printf("ReportFundraising: end date %s\n", end)
+	maxRecords, err := MaxRecords(e, guide, ts)
+	log.Printf("ReportFundraising: reporting on start time %s\n", ts.Start)
+	log.Printf("ReportFundraising:              end   time %s\n", ts.End)
 	log.Printf("ReportFundraising: %d donations\n", maxRecords)
 	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
 	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
