@@ -11,6 +11,7 @@ import (
 	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
+	report "github.com/salsalabs/goengage/pkg/report"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -227,7 +228,7 @@ func main() {
 	engageStart := startTime.Format(goengage.EngageDateFormat)
 	engageEnd := endTime.Format(goengage.EngageDateFormat)
 
-	err = goengage.ReportFundraising(e, guide, engageStart, engageEnd)
+	err = report.ReportFundraising(e, guide, engageStart, engageEnd)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}

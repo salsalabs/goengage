@@ -1,26 +1,13 @@
 package goengage
 
-import (
-	"time"
-)
-
 //Petition contains information about a petition being signed.
 //Note that PetitionActivity starts with the contents of BaseActivity...
 type Petition struct {
-	ActivityID               string     `json:"activityId,omitempty"`
-	ActivityFormName         string     `json:"activityFormName,omitempty"`
-	ActivityFormID           string     `json:"activityFormId,omitempty"`
-	SupporterID              string     `json:"supporterId,omitempty"`
-	PersonName               string     `json:"personName,omitEmpty"`
-	PersonEmail              string     `json:"personEmail,omitEmpty"`
-	NewSupporter             bool       `json:"newSupporter,omitEmtpy"`
-	ActivityDate             *time.Time `json:"activityDate,omitempty"`
-	ActivityType             string     `json:"activityType,omitempty"`
-	LastModified             *time.Time `json:"lastModified,omitempty"`
-	Comment                  string     `json:"comment,omitempty"`
-	ModerationState          string     `json:"moderationState,omitempty"`
-	DisplaySignaturePublicly bool       `json:"displaySignaturePublicly,omitempty"`
-	DisplayCommentPublicly   bool       `json:"displayCommentPublicly,omitempty"`
+	BaseActivity
+	Comment                  string `json:"comment,omitempty"`
+	ModerationState          string `json:"moderationState,omitempty"`
+	DisplaySignaturePublicly bool   `json:"displaySignaturePublicly,omitempty"`
+	DisplayCommentPublicly   bool   `json:"displayCommentPublicly,omitempty"`
 }
 
 //Target describes the recipient of a targeted letter or call.
@@ -55,17 +42,8 @@ type Letter struct {
 
 //TargetedLetter describes the action taken for a targeted letter.
 type TargetedLetter struct {
-	ActivityID       string     `json:"activityId,omitempty"`
-	ActivityFormName string     `json:"activityFormName,omitempty"`
-	ActivityFormID   string     `json:"activityFormId,omitempty"`
-	SupporterID      string     `json:"supporterId,omitempty"`
-	PersonName       string     `json:"personName,omitEmpty"`
-	PersonEmail      string     `json:"personEmail,omitEmpty"`
-	NewSupporter     bool       `json:"newSupporter,omitEmtpy"`
-	ActivityDate     *time.Time `json:"activityDate,omitempty"`
-	ActivityType     string     `json:"activityType,omitempty"`
-	LastModified     *time.Time `json:"lastModified,omitempty"`
-	Letters          []Letter   `json:"letters,omitempty"`
+	BaseActivity
+	Letters []Letter `json:"letters,omitempty"`
 }
 
 //PetitionResponse is returned when the request type is "PETITION".

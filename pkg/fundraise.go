@@ -24,16 +24,7 @@ type Transaction struct {
 //Note:  Fundraise also contains recurring fields.  Those will be
 //automatically populated when the ActivityType is "Recurring".
 type Fundraise struct {
-	ActivityID             string        `json:"activityId,omitempty"`
-	ActivityFormName       string        `json:"activityFormName,omitempty"`
-	ActivityFormID         string        `json:"activityFormId,omitempty"`
-	SupporterID            string        `json:"supporterId,omitempty" gorm:"foreignkey:supporter_id"`
-	PersonName             string        `json:"personName,omitEmpty"`
-	PersonEmail            string        `json:"personEmail,omitEmpty"`
-	NewSupporter           bool          `json:"newSupporter,omitEmtpy"`
-	ActivityDate           *time.Time    `json:"activityDate,omitempty"`
-	ActivityType           string        `json:"activityType,omitempty"`
-	LastModified           *time.Time    `json:"lastModified,omitempty"`
+	BaseActivity
 	DonationID             string        `json:"donationId,omitempty"`
 	TotalReceivedAmount    float64       `json:"totalReceivedAmount,omitempty"`
 	RecurringAmount        float64       `json:"recurringAmount,omitempty"`

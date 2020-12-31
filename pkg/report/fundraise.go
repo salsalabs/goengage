@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"sync"
+
+	goengage "github.com/salsalabs/goengage/pkg"
 )
 
 //Guide provides the basic tools to read and filter records then
@@ -14,12 +16,12 @@ type Guide interface {
 	//WhichActivity returns the kind of activity being read.
 	WhichActivity() string
 	//Filter returns true if the record should be used.
-	Filter(Fundraise) bool
+	Filter(goengage.Fundraise) bool
 	//Headers returns column headers for a CSV file.
 	Headers() []string
 	//Line returns a list of strings to go in to the CSV file for each
 	//fundraising record.
-	Line(Fundraise) []string
+	Line(goengage.Fundraise) []string
 	//Readers returns the number of readers to start.
 	Readers() int
 	//Filename returns the CSV filename.
@@ -28,7 +30,7 @@ type Guide interface {
 
 //MaxRecords returns the maximum number of activity records
 //of a particular type.
-func MaxRecords(e *Environment, guide Guide, start string, end string) (int32, error) {
+func MaxRecords(e *goengage.Environment, guide Guide, start string, end string) (int32, error) {
 	resp, err := ReadBatch(e, guide, int32(0), int32(0), start, end)
 	if err != nil {
 		return int32(0), err
@@ -40,11 +42,11 @@ func MaxRecords(e *Environment, guide Guide, start string, end string) (int32, e
 //then writes them to the Guide channel. The offset channel tells
 //us where to start reading.  When no items are available from the
 //offset channel, we'll write a true to the done channel.
-func ReadActivities(e *Environment,
+func ReadActivities(e *goengage.Environment,
 	guide Guide,
 	i int,
 	oc chan int32,
-	gc chan Fundraise,
+	gc chan goengage.Fundraise,
 	dc chan bool,
 	start string,
 	end string) {
@@ -60,9 +62,6 @@ func ReadActivities(e *Environment,
 		if err != nil {
 			// panic(err)
 			log.Printf("%s: offset %6d error %s\n", n, offset, err)
-			break
-		}
-		if !ok {
 			break
 		}
 		if resp.Payload.Count == 0 {
@@ -93,29 +92,29 @@ func ReadActivities(e *Environment,
 
 //ReadBatch is a utility function to read activity records. Returns the
 //response object and an error code.
-func ReadBatch(e *Environment,
+func ReadBatch(e *goengage.Environment,
 	guide Guide,
 	offset int32,
 	count int32,
 	start string,
-	end string) (resp *FundraiseResponse, err error) {
+	end string) (resp *goengage.FundraiseResponse, err error) {
 
 	// log.Printf("ReadBatch: offset %d, count %d, start %v, end %v\n", offset, count, start, end)
-	payload := ActivityRequestPayload{
+	payload := goengage.ActivityRequestPayload{
 		Type:         guide.WhichActivity(),
 		Offset:       offset,
 		Count:        count,
 		ModifiedFrom: start,
 		ModifiedTo:   end,
 	}
-	rqt := ActivityRequest{
-		Header:  RequestHeader{},
+	rqt := goengage.ActivityRequest{
+		Header:  goengage.RequestHeader{},
 		Payload: payload,
 	}
-	n := NetOp{
+	n := goengage.NetOp{
 		Host:     e.Host,
-		Method:   SearchMethod,
-		Endpoint: SearchActivity,
+		Method:   goengage.SearchMethod,
+		Endpoint: goengage.SearchActivity,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -125,21 +124,21 @@ func ReadBatch(e *Environment,
 }
 
 //ReadSupporter reads a supporter record for the specified ID.
-func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error) {
-	payload := SupporterSearchPayload{
+func ReadSupporter(e *goengage.Environment, f goengage.Fundraise) (supporter *goengage.Supporter, err error) {
+	payload := goengage.SupporterSearchPayload{
 		Identifiers:    []string{f.SupporterID},
-		IdentifierType: SupporterIDType,
+		IdentifierType: goengage.SupporterIDType,
 	}
 
-	rqt := SupporterSearch{
-		Header:  RequestHeader{},
+	rqt := goengage.SupporterSearch{
+		Header:  goengage.RequestHeader{},
 		Payload: payload,
 	}
-	var resp SupporterSearchResults
-	n := NetOp{
+	var resp goengage.SupporterSearchResults
+	n := goengage.NetOp{
 		Host:     e.Host,
-		Method:   SearchMethod,
-		Endpoint: SearchSupporter,
+		Method:   goengage.SearchMethod,
+		Endpoint: goengage.SearchSupporter,
 		Token:    e.Token,
 		Request:  &rqt,
 		Response: &resp,
@@ -154,8 +153,8 @@ func ReadSupporter(e *Environment, f Fundraise) (supporter *Supporter, err error
 
 // ReportFundraising on a Guide by reading all records, filtering, then
 // writing survivors to a CSV file.
-func ReportFundraising(e *Environment, guide Guide, start string, end string) (err error) {
-	gc := make(chan Fundraise, 100)
+func ReportFundraising(e *goengage.Environment, guide Guide, start string, end string) (err error) {
+	gc := make(chan goengage.Fundraise, 100)
 	dc := make(chan bool)
 	oc := make(chan int32, 100)
 	var wg sync.WaitGroup
@@ -168,7 +167,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 
 	//Start the reader waiter.  It waits until all readers are done,
 	//then closes the fundraise channel.
-	go (func(guide Guide, gc chan Fundraise, done chan bool, wg *sync.WaitGroup) {
+	go (func(guide Guide, gc chan goengage.Fundraise, done chan bool, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		WaitForReaders(guide, gc, done)
@@ -176,10 +175,10 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 
 	//Start the CSV writer. It receives fundraise records from readers and
 	//writes them to a CSV.
-	go (func(guide Guide, gc chan Fundraise, wg *sync.WaitGroup) {
+	go (func(guide Guide, gc chan goengage.Fundraise, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
-		err := WriteCSV(guide, gc)
+		err := Store(guide, gc)
 		if err != nil {
 			panic(err)
 		}
@@ -188,11 +187,11 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 	//Start the readers. Readers get offsets from the offset channel, read activities,
 	//filter them, then put them onto the Guide channel.
 	for i := 0; i < guide.Readers(); i++ {
-		go (func(e *Environment,
+		go (func(e *goengage.Environment,
 			guide Guide,
 			i int,
 			oc chan int32,
-			gc chan Fundraise,
+			gc chan goengage.Fundraise,
 			done chan bool,
 			start string,
 			end string,
@@ -225,7 +224,7 @@ func ReportFundraising(e *Environment, guide Guide, start string, end string) (e
 //WaitForReaders waits for readers to send to a done channel.
 //The number of readers is specified in the provided Guide.
 //Closes the csv channel when all readers are done.
-func WaitForReaders(guide Guide, gc chan Fundraise, done chan bool) {
+func WaitForReaders(guide Guide, gc chan goengage.Fundraise, done chan bool) {
 	count := guide.Readers()
 	for count > 0 {
 		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
@@ -239,10 +238,10 @@ func WaitForReaders(guide Guide, gc chan Fundraise, done chan bool) {
 	log.Println("WaitForReaders: done")
 }
 
-//WriteCSV waits for Guide records to appear on the queue, then
+//Store waits for Guide records to appear on the queue, then
 //Writes them to a CSV file.
-func WriteCSV(guide Guide, gc chan Fundraise) error {
-	log.Println("WriteCSV: begin")
+func Store(guide Guide, gc chan goengage.Fundraise) error {
+	log.Println("Store: begin")
 	f, err := os.Create(guide.Filename())
 	if err != nil {
 		return err
@@ -259,6 +258,6 @@ func WriteCSV(guide Guide, gc chan Fundraise) error {
 		w.Flush()
 	}
 	f.Close()
-	log.Println("WriteCSV: done")
+	log.Println("Store: done")
 	return err
 }
