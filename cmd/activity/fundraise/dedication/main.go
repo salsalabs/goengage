@@ -30,6 +30,13 @@ const (
 	//EndDuration is text to initialize a duration for end times.
 	//Used in converting Go time strings to Engage times.
 	EndDuration = "23h59m59.999s"
+
+	//DayDuration is used to scan a Span for new months.
+	DayDuration = "24h"
+
+	//BackupDuration is used to back a date up to the last
+	//millisecond in the previous day.
+	BackupDuration = "-1ms"
 )
 
 //DedicationGuide is the Guide proxy.
@@ -231,8 +238,8 @@ func Validate(startDate, endDate, timeZone string) []Span {
 		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
 	}
 	var a []Span
-	day, _ := time.ParseDuration("24h")
-	yesterday, err := time.ParseDuration("-1ms")
+	day, _ := time.ParseDuration(DayDuration)
+	yesterday, err := time.ParseDuration(BackupDuration)
 	if err != nil {
 		panic(err)
 	}
