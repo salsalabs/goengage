@@ -34,18 +34,22 @@ const (
 
 //DedicationGuide is the Guide proxy.
 type DedicationGuide struct {
-	StartTime time.Time
-	EndTime   time.Time
-	AddKeys   bool
+	Span    Span
+	AddKeys bool
 }
 
 //NewDedicationGuide returns an initialized DedicationGuide.
-func NewDedicationGuide(start, end time.Time, addKeys bool) DedicationGuide {
+func NewDedicationGuide(span Span, addKeys bool) DedicationGuide {
 	return DedicationGuide{
-		StartTime: start,
-		EndTime:   end,
-		AddKeys:   addKeys,
+		Span:    span,
+		AddKeys: addKeys,
 	}
+}
+
+//Span is a pair of Time objects for the start and end of a time span.
+type Span struct {
+	S time.Time
+	E time.Time
 }
 
 //TypeActivity returns the kind of activity being read.
@@ -55,7 +59,7 @@ func (g DedicationGuide) TypeActivity() string {
 
 //Filter returns true if the record should be used.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
-	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.StartTime) && !f.ActivityDate.After(g.EndTime)
+	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.Span.S) && !f.ActivityDate.After(g.Span.E)
 }
 
 //Headers returns column headers for a CSV file.
@@ -158,7 +162,7 @@ func (g DedicationGuide) Readers() int {
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	s := g.StartTime.Format(BriefFormat)
+	s := g.Span.S.Format(BriefFormat)
 	return fmt.Sprintf("%s_dedications.csv", s)
 }
 
@@ -210,10 +214,13 @@ func ToTitle(s string) string {
 	return strings.Join(a, "_")
 }
 
-//Validate validates the provided start and end dates.  Errors are fatal.
-//Converts the dates from the provided timezone to Zulu, checks for start
-//time before end time, then returns Time objects.
-func Validate(startDate, endDate, timeZone string) (time.Time, time.Time) {
+// Validate validates the provided start and end dates.
+// Converts the dates from the provided timezone to Zulu, checks for start
+// time before end time, then returns a slice of Span objects.  Typically,
+// the Slice is 1 entry.  It becomes multiple entries when interval between
+// startDate and endDate crosses month boundaries.
+// Errors are internal and fatal.
+func Validate(startDate, endDate, timeZone string) []Span {
 	loc, err := time.LoadLocation(timeZone)
 	if err != nil {
 		log.Fatalf("%v\n", err)
@@ -222,11 +229,26 @@ func Validate(startDate, endDate, timeZone string) (time.Time, time.Time) {
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
-		s := st.Format(BriefFormat)
-		e := et.Format(BriefFormat)
-		log.Fatalf("end date '%v' is before start date '%v'", s, e)
+		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
 	}
-	return st, et
+	var a []Span
+	day, _ := time.ParseDuration("24h")
+	yesterday, err := time.ParseDuration("-1ms")
+	if err != nil {
+		panic(err)
+	}
+	for ct := st; ct.Before(et); ct = ct.Add(day) {
+		fmt.Printf("st: %s, ct:%s, et:%s\n", st, ct, et)
+		if ct.Month() != st.Month() {
+			span := Span{st, ct.Add(yesterday)}
+			a = append(a, span)
+			st = ct
+		}
+	}
+	span := Span{st, et}
+	a = append(a, span)
+	log.Printf("Validate returning %+v\n", a)
+	return a
 }
 
 func main() {
@@ -245,13 +267,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	startTime, endTime := Validate(*startDate, *endDate, *timeZone)
+	spans := Validate(*startDate, *endDate, *timeZone)
 
-	guide := NewDedicationGuide(startTime, endTime, *addKeys)
-	ts := report.NewTimeSpan(startTime, endTime)
+	for _, span := range spans {
+		guide := NewDedicationGuide(span, *addKeys)
+		ts := report.NewTimeSpan(span.S, span.E)
+		log.Printf("Current span: %+v\n", span)
+		log.Printf("Current ts:   %+v\n", ts)
 
-	err = report.ReportFundraising(e, guide, ts)
-	if err != nil {
-		log.Fatalf("%v", err)
+		err = report.ReportFundraising(e, guide, ts)
+		if err != nil {
+			log.Fatalf("%v", err)
+		}
 	}
 }
