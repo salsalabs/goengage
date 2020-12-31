@@ -94,7 +94,6 @@ func (g DedicationGuide) Headers() []string {
 
 //Line returns a list of strings to go in to the CSV file.
 func (g DedicationGuide) Line(f goengage.Fundraise) []string {
-	// log.Printf("Line: %+v", f)
 	addressLine1 := ""
 	addressLine2 := ""
 	city := ""
@@ -238,7 +237,6 @@ func Validate(startDate, endDate, timeZone string) []Span {
 		panic(err)
 	}
 	for ct := st; ct.Before(et); ct = ct.Add(day) {
-		fmt.Printf("st: %s, ct:%s, et:%s\n", st, ct, et)
 		if ct.Month() != st.Month() {
 			span := Span{st, ct.Add(yesterday)}
 			a = append(a, span)
@@ -247,7 +245,6 @@ func Validate(startDate, endDate, timeZone string) []Span {
 	}
 	span := Span{st, et}
 	a = append(a, span)
-	log.Printf("Validate returning %+v\n", a)
 	return a
 }
 
@@ -272,9 +269,6 @@ func main() {
 	for _, span := range spans {
 		guide := NewDedicationGuide(span, *addKeys)
 		ts := report.NewTimeSpan(span.S, span.E)
-		log.Printf("Current span: %+v\n", span)
-		log.Printf("Current ts:   %+v\n", ts)
-
 		err = report.ReportFundraising(e, guide, ts)
 		if err != nil {
 			log.Fatalf("%v", err)
