@@ -41,15 +41,17 @@ const (
 
 //DedicationGuide is the Guide proxy.
 type DedicationGuide struct {
-	Span    Span
-	AddKeys bool
+	Span     Span
+	AddKeys  bool
+	Timezone *time.Location
 }
 
 //NewDedicationGuide returns an initialized DedicationGuide.
-func NewDedicationGuide(span Span, addKeys bool) DedicationGuide {
+func NewDedicationGuide(span Span, addKeys bool, location *time.Location) DedicationGuide {
 	return DedicationGuide{
-		Span:    span,
-		AddKeys: addKeys,
+		Span:     span,
+		AddKeys:  addKeys,
+		Timezone: location,
 	}
 }
 
@@ -110,7 +112,9 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	dedication := strings.Replace(f.Dedication, "\n", " ", -1)
 	dedication = strings.Replace(dedication, "\r", " ", -1)
 	dedication = strings.Replace(dedication, "\t", " ", -1)
-	transactionDate := f.ActivityDate.Format(BriefFormat)
+	activityDate := f.ActivityDate.In(g.Location())
+	transactionDate := activityDate.Format(BriefFormat)
+
 	s := &f.Supporter
 	if s != nil {
 		if f.Supporter.Address != nil {
@@ -159,6 +163,11 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		a = append(a, f.SupporterID)
 	}
 	return a
+}
+
+//Location returns the local location. Useful for date conversions.
+func (g DedicationGuide) Location() *time.Location {
+	return g.Timezone
 }
 
 //Readers returns the number of readers to start.
@@ -221,16 +230,12 @@ func ToTitle(s string) string {
 }
 
 // Validate validates the provided start and end dates.
-// Converts the dates from the provided timezone to Zulu, checks for start
+// Converts the dates from the provided location to Zulu, checks for start
 // time before end time, then returns a slice of Span objects.  Typically,
 // the Slice is 1 entry.  It becomes multiple entries when interval between
 // startDate and endDate crosses month boundaries.
 // Errors are internal and fatal.
-func Validate(startDate, endDate, timeZone string) []Span {
-	loc, err := time.LoadLocation(timeZone)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
+func Validate(startDate string, endDate string, loc *time.Location) []Span {
 	st := Parse(startDate, loc, StartDuration)
 	et := Parse(endDate, loc, EndDuration)
 
@@ -271,10 +276,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	spans := Validate(*startDate, *endDate, *timeZone)
-
+	location, err := time.LoadLocation(*timeZone)
+	spans := Validate(*startDate, *endDate, location)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 	for _, span := range spans {
-		guide := NewDedicationGuide(span, *addKeys)
+		guide := NewDedicationGuide(span, *addKeys, location)
 		ts := report.NewTimeSpan(span.S, span.E)
 		err = report.ReportFundraising(e, guide, ts)
 		if err != nil {

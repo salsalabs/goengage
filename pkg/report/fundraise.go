@@ -27,6 +27,9 @@ type Guide interface {
 	Readers() int
 	//Filename returns the CSV filename.
 	Filename() string
+	//Location returns the location used to adjust transactions.
+	//Transactions are Zulu.  Timezone is used to covert them to local.
+	Location() *time.Location
 }
 
 //TimeSpan contains a start and end time in Engage time format.
