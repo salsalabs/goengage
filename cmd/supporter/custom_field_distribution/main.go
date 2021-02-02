@@ -23,6 +23,7 @@ type Runtime struct {
 	InChan    chan goengage.Supporter
 	DoneChan  chan bool
 	Cache     Cache
+	Keys      []string
 	FieldName string
 }
 
@@ -40,6 +41,7 @@ func NewRuntime(env *goengage.Environment, f string) Runtime {
 		InChan:    make(chan goengage.Supporter),
 		DoneChan:  make(chan bool),
 		Cache:     c,
+		Keys:      []string{Null, NotEquipped},
 		FieldName: f,
 	}
 	return r
@@ -53,7 +55,7 @@ const (
 
 //Visit implements SupporterGuide.Visit and does something with
 //a supporter record
-func (r Runtime) Visit(s goengage.Supporter) error {
+func (r *Runtime) Visit(s goengage.Supporter) error {
 	for _, f := range s.CustomFieldValues {
 		if f.Name == r.FieldName {
 			if len(f.Value) == 0 {
@@ -61,11 +63,11 @@ func (r Runtime) Visit(s goengage.Supporter) error {
 				// log.Printf("Visit: %s: %d\n", Null, r.Cache[Null])
 				return nil
 			}
-			p := int32(0)
-			_, ok := r.Cache[f.Value]
+			p, ok := r.Cache[f.Value]
 			if ok {
 				p = r.Cache[f.Value]
 			} else {
+				r.Keys = append(r.Keys, f.Value)
 				p = 0
 			}
 			r.Cache[f.Value] = p + 1
@@ -80,31 +82,37 @@ func (r Runtime) Visit(s goengage.Supporter) error {
 
 //Finalize implements SupporterGuide.Filnalize and outputs the
 //distribution results.
-func (r Runtime) Finalize() error {
+func (r *Runtime) Finalize() error {
+	fmt.Println("Value,Count")
+	for _, k := range r.Keys {
+		fmt.Printf("%s,%d\n", k, r.Cache[k])
+	}
 	log.Printf("%v\n", r.Cache)
 	return nil
 }
 
 //Payload implements SupporterGuide.Payload and provides a payload
 //that will retrieve all supporters.
-func (r Runtime) Payload() goengage.SupporterSearchPayload {
+func (r *Runtime) Payload() goengage.SupporterSearchPayload {
 	payload := goengage.SupporterSearchPayload{
 		IdentifierType: goengage.SupporterIDType,
 		ModifiedFrom:   "2000-01-01T00:00:00.00000Z",
 		ModifiedTo:     "2050-01-01T00:00:00.00000Z",
+		Offset:         0,
+		Count:          0,
 	}
 	return payload
 }
 
 //Channel implements SupporterGuide.Channnel and provides the
 //supporter channel.
-func (r Runtime) Channel() chan goengage.Supporter {
+func (r *Runtime) Channel() chan goengage.Supporter {
 	return r.InChan
 }
 
 //DoneChannel implements SupporterGuide.DoneChannel to provide
 // a channel that  receives a true when the listener is done.
-func (r Runtime) DoneChannel() chan bool {
+func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
 }
 
@@ -130,25 +138,25 @@ func main() {
 
 	//Start supporter listener. Only one of these because Visit is quick
 	//in this app. More than one cases "concurrent map writes" errors.
-	go (func(e *goengage.Environment, r Runtime, wg *sync.WaitGroup) {
+	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		reportSupporter.ProcessSupporters(r.E, r)
-	})(e, r, &wg)
+	})(e, &r, &wg)
 
 	//Start done listener.
-	go (func(r Runtime, n int, wg *sync.WaitGroup) {
+	go (func(r *Runtime, n int, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		goengage.DoneListener(r.DoneChan, n)
-	})(r, 1, &wg)
+	})(&r, 1, &wg)
 
 	//Start supporter reader.
-	go (func(e *goengage.Environment, r Runtime, wg *sync.WaitGroup) {
+	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
 		reportSupporter.ReadSupporters(r.E, r)
-	})(e, r, &wg)
+	})(e, &r, &wg)
 
 	d, err := time.ParseDuration("10s")
 	if err != nil {
@@ -156,6 +164,7 @@ func main() {
 	}
 	log.Printf("main: sleeping for %s", d)
 	time.Sleep(d)
+	log.Printf("main:  waiting...")
 	wg.Wait()
 	log.Printf("main: done")
 }
