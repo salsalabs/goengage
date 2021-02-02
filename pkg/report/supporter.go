@@ -43,6 +43,7 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 	for count == int32(e.Metrics.MaxBatchSize) {
 		payload := g.Payload()
 		payload.Offset = offset
+		payload.Count = count
 		rqt := goengage.SupporterSearch{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
