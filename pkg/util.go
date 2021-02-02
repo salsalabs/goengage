@@ -97,3 +97,18 @@ func (t TimeStamp) MarshalJSON() ([]byte, error) {
 	s = fmt.Sprintf(`"%v"`, s)
 	return []byte(s), nil
 }
+
+//DoneListener waits for 'n' messages on the provided channel.
+func DoneListener(c chan bool, n int) {
+	log.Println("DoneListener: start")
+	for n > 0 {
+		_, ok := <-c
+		if !ok {
+			break
+		}
+		n--
+		log.Printf("DoneListener: waiting for %d\n", n)
+	}
+	log.Println("DoneListener: end")
+	close(c)
+}
