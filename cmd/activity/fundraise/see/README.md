@@ -46,6 +46,8 @@ Flags:
   --startDate="2020-12-14"       Start date, YYYY-MM-YY, default is Monday of last week at midnight
   --endDate="2020-12-20"         End date, YYYY-MM-YY, default is the most recent Monday at midnight
   --timezone="America/New_York"  Client's timezone, defaults to EST/EDT
+  --donationType="All"           Choose All, One_Time or Recurring
+
 ```
 
 ### Command-line arguments
@@ -56,6 +58,7 @@ Flags:
 |startDate | Start of the date range for this report.  `startDate` must be formatted as "YYYY-MM-DD".  The default start date is "Monday a week ago".  The default date appears in the usage.|
 |endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. It, too, appears in the usage.|
 |timeZone|The official timezone designation for the client.  The default is US Eastern.  You can see more timezone names by [clicking here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).|
+|donationType|Choose one of "All", "One_Time" or "Recurring".  An error is thrown if you do not choose wisely.|
 
 ### YAML file
 
