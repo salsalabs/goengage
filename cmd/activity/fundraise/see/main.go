@@ -1,155 +1,264 @@
 package main
 
-//Application scan for donations and keep details *without* PII.
+//Application to scan for fundraising activities and write them to a CSV.
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
 	"strings"
-	"sync"
+	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	report "github.com/salsalabs/goengage/pkg/report"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-//handle retrieves responses from the channel, formats them, and
-//writes them to the handle's own CSV file.
-func handle(c chan goengage.FundraiseResponse, writer *csv.Writer, id int) {
-	log.Printf("handle-%d: begin\n", id)
-	for true {
-		resp, ok := <-c
-		if !ok {
-			break
-		}
-		var cache [][]string
-		for _, a := range resp.Payload.Activities {
-			date := strings.Split(fmt.Sprintf("%v", a.ActivityDate), " ")[0]
-			oneTimeAmount := fmt.Sprintf("%v", a.OneTimeAmount)
-			totalReceivedAmount := fmt.Sprintf("%v", a.TotalReceivedAmount)
-			record := []string{
-				a.SupporterID,
-				a.ActivityID,
-				a.ActivityType,
-				a.PersonName,
-				a.PersonEmail,
-				oneTimeAmount,
-				totalReceivedAmount,
-				date,
-			}
-			cache = append(cache, record)
-		}
-		err := writer.WriteAll(cache)
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("handle-%d: write %d\n", id, len(cache))
-		writer.Flush()
-	}
-	log.Printf("handle-%d: end\n", id)
+const (
+	//See2AddressName is the supporter custom field name that contains
+	//the dedication address.
+	See2AddressName = "Address of Recipient to Notify"
+
+	//BriefFormat is used to parse text into Classic-looking time.
+	BriefFormat = "2006-01-02"
+
+	//StartDuration is text to initialize a duration for start times.
+	//Used in converting Go time strings to Engage times.
+	StartDuration = "0h0m0.0s"
+
+	//EndDuration is text to initialize a duration for end times.
+	//Used in converting Go time strings to Engage times.
+	EndDuration = "23h59m59.999s"
+
+	//DayDuration is used to scan a Span for new months.
+	DayDuration = "24h"
+
+	//BackupDuration is used to back a date up to the last
+	//millisecond in the previous day.
+	BackupDuration = "-1ms"
+)
+
+//See2Guide is the Guide proxy.
+type See2Guide struct {
+	Span         Span
+	Timezone     *time.Location
+	DonationType string
 }
 
-//startHandler creates a handler that reads from a channel of responses
-//and writes to the 'n'th output file. Output files have "-n" just before
-//the dot that separates the name from the extension (whatever-1.csv,
-//whatever-2.csv, etc.)  Errors panic.
-func startHandler(c chan goengage.FundraiseResponse, filename string, n int) {
-	parts := strings.Split(filename, ".")
-	csvFile := fmt.Sprintf("%s-%d.%s", parts[0], n, parts[1])
-	f, err := os.Create(csvFile)
-	if err != nil {
-		panic(err)
+//NewSee2Guide returns an initialized See2Guide.
+func NewSee2Guide(span Span, location *time.Location, donationType string) See2Guide {
+	return See2Guide{
+		Span:         span,
+		Timezone:     location,
+		DonationType: donationType,
 	}
-	writer := csv.NewWriter(f)
-	headers := []string{
+}
+
+//Span is a pair of Time objects for the start and end of a time span.
+type Span struct {
+	S time.Time
+	E time.Time
+}
+
+//TypeActivity returns the kind of activity being read.
+func (g See2Guide) TypeActivity() string {
+	return goengage.FundraiseType
+}
+
+//Filter returns true if the record should be used.
+func (g See2Guide) Filter(f goengage.Fundraise) bool {
+	switch g.DonationType {
+	case "All":
+		return true
+	case goengage.OneTime:
+		return f.DonationType == goengage.OneTime
+	case goengage.Recurring:
+		return f.DonationType == goengage.Recurring
+	}
+	return false
+}
+
+//Headers returns column headers for a CSV file.
+func (g See2Guide) Headers() []string {
+	a := []string{
 		"SupporterID",
-		"ActivityID",
-		"ActivityType",
-		"PersonName",
+		"FirstName",
+		"LastName",
 		"PersonEmail",
-		"OneTimeAmount",
-		"TotalReceivedAmount",
-		"Date",
+		"TransactionDate",
+		"DonationType",
+		"DonationID",
+		"ActivityType",
+		"ActivityID",
+		"TransactionType",
+		"TransactionID",
+		"Amount",
 	}
-	err = writer.Write(headers)
+	return a
+}
+
+//Line returns a list of strings to go in to the CSV file.
+func (g See2Guide) Line(f goengage.Fundraise) []string {
+	activityDate := f.ActivityDate.In(g.Location())
+	transactionDate := activityDate.Format(BriefFormat)
+
+	a := []string{
+		f.SupporterID,
+		f.Supporter.FirstName,
+		f.Supporter.LastName,
+		f.PersonEmail,
+		transactionDate,
+		ToTitle(f.DonationType),
+		f.DonationID,
+		ToTitle(f.ActivityType),
+		f.ActivityID,
+		ToTitle(f.Transactions[0].Type),
+		f.Transactions[0].TransactionID,
+		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
+	}
+	return a
+}
+
+//Location returns the local location. Useful for date conversions.
+func (g See2Guide) Location() *time.Location {
+	return g.Timezone
+}
+
+//Readers returns the number of readers to start.
+func (g See2Guide) Readers() int {
+	return 5
+}
+
+//Filename returns the CSV filename.
+func (g See2Guide) Filename() string {
+	s := g.Span.S.Format(BriefFormat)
+	return fmt.Sprintf("%s_see2.csv", s)
+}
+
+//DefaultDates computes the default start and end dates.
+//Default end date is just before the most recent Monday at midnight.
+//Default start date is the Monday before the end date at 00:00.
+//Formatted like Classic, "YYYY-MM-DD".
+func DefaultDates() (start, end string) {
+	now := time.Now()
+	startDelta := 6 + int(now.Weekday())
+	startTime := now.AddDate(0, 0, -startDelta)
+	endTime := startTime.AddDate(0, 0, 6)
+	start = startTime.Format(BriefFormat)
+	end = endTime.Format(BriefFormat)
+	return start, end
+}
+
+//Parse accepts a date in BriefFormat and returns a Go time. Engage
+//needs a date and time.  Parameter "todText" defines the time to add.
+//Errors are internal and fatal.
+func Parse(s string, loc *time.Location, todText string) time.Time {
+	t, err := time.ParseInLocation(BriefFormat, s, loc)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	d, err := time.ParseDuration(todText)
+	if err != nil {
+		log.Fatalf("%v\n", err)
+	}
+	t = t.Add(d)
+
+	// Engage wants Zulu time.
+	// TODO: handle positive offsets correctly.
+	_, offset := t.Zone()
+	zt := fmt.Sprintf("%ds", -offset)
+	d, err = time.ParseDuration(zt)
+	t = t.Add(d)
+	return t
+}
+
+//ToTitle converts engage constants to title-case.  Underbars
+//are treated as word separators.
+func ToTitle(s string) string {
+	parts := strings.Split(s, "_")
+	var a []string
+	for _, x := range parts {
+		a = append(a, strings.Title(strings.ToLower(x)))
+	}
+	return strings.Join(a, "_")
+}
+
+// Validate validates the provided start and end dates.
+// Converts the dates from the provided location to Zulu, checks for start
+// time before end time, then returns a slice of Span objects.  Typically,
+// the Slice is 1 entry.  It becomes multiple entries when interval between
+// startDate and endDate crosses month boundaries.
+// Errors are internal and fatal.
+func Validate(startDate string, endDate string, loc *time.Location) []Span {
+	st := Parse(startDate, loc, StartDuration)
+	et := Parse(endDate, loc, EndDuration)
+
+	if et.Before(st) {
+		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
+	}
+	var a []Span
+	day, _ := time.ParseDuration(DayDuration)
+	yesterday, err := time.ParseDuration(BackupDuration)
 	if err != nil {
 		panic(err)
 	}
-	handle(c, writer, n)
+	for ct := st; ct.Before(et); ct = ct.Add(day) {
+		if ct.Month() != st.Month() {
+			span := Span{st, ct.Add(yesterday)}
+			a = append(a, span)
+			st = ct
+		}
+	}
+	span := Span{st, et}
+	a = append(a, span)
+	return a
 }
 
+//ValidateDonationType returns an error if the provided
+//donation type is invalid.
+func ValidateDonationType(d string) error {
+	switch d {
+	case "All":
+		return nil
+	case ToTitle(goengage.OneTime):
+		return nil
+	case ToTitle(goengage.Recurring):
+		return nil
+	}
+	return fmt.Errorf("Not a valid donation type, '%s'", d)
+
+}
 func main() {
+	start, end := DefaultDates()
+	donationTypePrompt := fmt.Sprintf("Choose All, %s or %s", ToTitle(goengage.OneTime), ToTitle(goengage.Recurring))
 	var (
-		app     = kingpin.New("fundraise-see", "List all fundraising records")
-		login   = app.Flag("login", "YAML file with API token").Required().String()
-		csvFile = app.Flag("output", "CSVf file for results").Default("fundraise_analysis_data.csv").String()
+		app          = kingpin.New("see2", "Write donations to a CSV")
+		login        = app.Flag("login", "YAML file with API token").Required().String()
+		startDate    = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
+		endDate      = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
+		timeZone     = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
+		donationType = app.Flag("donationType", donationTypePrompt).Default("All").String()
 	)
 	app.Parse(os.Args[1:])
+
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		panic(err)
+		log.Fatalf("%v", err)
 	}
-	types := []string{
-		// goengage.SubscriptionManagementType,
-		// goengage.SubscriptionType,
-		goengage.FundraiseType,
-		// goengage.PetitionType,
-		// goengage.TargetedLetterType,
-		// goengage.TicketedEventType,
-		// goengage.P2PEventType,
+	err = ValidateDonationType(*donationType)
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
-	c := make(chan goengage.FundraiseResponse, 1000)
-	var wg sync.WaitGroup
-	for i := 1; i < 6; i++ {
-		go func(c chan goengage.FundraiseResponse, filename string, id int, wg *sync.WaitGroup) {
-			wg.Add(1)
-			startHandler(c, *csvFile, id)
-			wg.Done()
-		}(c, *csvFile, i, &wg)
-		log.Printf("main: started handler %d\n", i)
+	location, err := time.LoadLocation(*timeZone)
+	spans := Validate(*startDate, *endDate, location)
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
-
-	// Listeners are all ready.  Start the talker.
-	go func(e *goengage.Environment, c chan<- goengage.FundraiseResponse, wg *sync.WaitGroup) {
-		wg.Add(1)
-		for _, r := range types {
-			offset := int32(0)
-			count := int32(e.Metrics.MaxBatchSize)
-			for count == int32(e.Metrics.MaxBatchSize) {
-				payload := goengage.ActivityRequestPayload{
-					Type:         r,
-					Offset:       offset,
-					Count:        e.Metrics.MaxBatchSize,
-					ModifiedFrom: "2000-01-01T00:00:00.000Z",
-				}
-				rqt := goengage.ActivityRequest{
-					Header:  goengage.RequestHeader{},
-					Payload: payload,
-				}
-				var resp goengage.FundraiseResponse
-				n := goengage.NetOp{
-					Host:     e.Host,
-					Method:   goengage.SearchMethod,
-					Endpoint: goengage.SearchActivity,
-					Token:    e.Token,
-					Request:  &rqt,
-					Response: &resp,
-				}
-				err = n.Do()
-				if err != nil {
-					panic(err)
-				}
-				c <- resp
-				count = resp.Payload.Count
-				offset += count
-				log.Printf("main: offset %d\n", offset)
-			}
+	for _, span := range spans {
+		guide := NewSee2Guide(span, location, *donationType)
+		ts := report.NewTimeSpan(span.S, span.E)
+		err = report.ReportFundraising(e, guide, ts)
+		if err != nil {
+			log.Fatalf("%v", err)
 		}
-		close(c)
-		wg.Done()
-	}(e, c, &wg)
-	log.Print("main: started talker")
-	log.Print("main: waiting...")
-	wg.Wait()
-	log.Printf("main: done  Look for output files like '%s'\n", *csvFile)
+	}
 }
