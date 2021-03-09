@@ -35,6 +35,9 @@ const (
 	//BackupDuration is used to back a date up to the last
 	//millisecond in the previous day.
 	BackupDuration = "-1ms"
+
+	//ReaderCount is the number of Engage reaaders to start.
+	ReaderCount = 3
 )
 
 //SupporterGuide is the Guide proxy.
@@ -117,7 +120,7 @@ func (g SupporterGuide) Location() *time.Location {
 
 //Readers returns the number of readers to start.
 func (g SupporterGuide) Readers() int {
-	return 5
+	return ReaderCount
 }
 
 //Filename returns the CSV filename.
