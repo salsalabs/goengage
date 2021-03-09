@@ -134,7 +134,7 @@ func (g See2Guide) Readers() int {
 //Filename returns the CSV filename.
 func (g See2Guide) Filename() string {
 	s := g.Span.S.Format(BriefFormat)
-	return fmt.Sprintf("%s_see2.csv", s)
+	return fmt.Sprintf("%s_see.csv", s)
 }
 
 //DefaultDates computes the default start and end dates.
@@ -216,7 +216,7 @@ func main() {
 	start, end := DefaultDates()
 	donationTypePrompt := fmt.Sprintf("Choose All, %s or %s", ToTitle(goengage.OneTime), ToTitle(goengage.Recurring))
 	var (
-		app          = kingpin.New("see2", "Write donations to a CSV")
+		app          = kingpin.New("see", "Write all donations for a timeframe to a CSV")
 		login        = app.Flag("login", "YAML file with API token").Required().String()
 		startDate    = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
 		endDate      = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
