@@ -1,8 +1,8 @@
 # Dedication report
 
-Go application to retrieve donations for a specified supporterID in a timeframe and output them as a CSV.
+Go application to retrieve donations in a timeframe and output them as a CSV.
 
-The user provides an Engage token, a supporterID and a date range.
+The user provides an Engage token and a date range.
 See the Usage section for more information.
 
 ## Prerequisites
@@ -22,7 +22,7 @@ go get github.com/salsalabs/goengage
 go install github.com/salsalabs/goengage
 ```
 
-The source for this package can be found in the `cmd/activity/fundraise/supporter` directory in `goengage`.
+The source for this package can be found in the `cmd/activity/fundraise/see2` directory in `goengage`.
 
 ## Operation
 
@@ -30,13 +30,13 @@ The easiest way to run this app is to start in a console window.
 
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
-go run cmd/activity/fundraise/supporter/main.go --help
+go run cmd/activity/fundraise/see2/main.go --help
 ```
 
 Use `--help` shows the usage summary.
 
 ```
-usage: supporter --login=LOGIN [<flags>]
+usage: see2 --login=LOGIN [<flags>]
 
 Write donations to a CSV
 
@@ -46,8 +46,7 @@ Flags:
   --startDate="2020-12-14"       Start date, YYYY-MM-YY, default is Monday of last week at midnight
   --endDate="2020-12-20"         End date, YYYY-MM-YY, default is the most recent Monday at midnight
   --timezone="America/New_York"  Client's timezone, defaults to EST/EDT
-  --donationType="All"           Choose All, One_Time or Recurring
-  --supporterID                  Show donations for this supporter.
+  --supporterID=SUPPORTERID      Show donations for this supporter
 ```
 
 ### Command-line arguments
@@ -58,8 +57,7 @@ Flags:
 |startDate | Start of the date range for this report.  `startDate` must be formatted as "YYYY-MM-DD".  The default start date is "Monday a week ago".  The default date appears in the usage.|
 |endDate | End of the date range for this report.  `endDate` must be formatted as "YYYY-MM-DD".  The default is 7 days after `startDate`. It, too, appears in the usage.|
 |timeZone|The official timezone designation for the client.  The default is US Eastern.  You can see more timezone names by [clicking here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).|
-|donationType|Choose one of "All", "One_Time" or "Recurring".  An error is thrown if you do not choose wisely.|
-|supporterID|Supporter UUID to search for.  Type carefully.|
+|supporterID|Show donations for this supporter.  Usually a very long list of numbers and letters.  Type carefully.|
 
 ### YAML file
 
@@ -73,7 +71,7 @@ token: 82874335-aedd-4f9e-918d-8ad78088a811
 If you've stored your token in `company.yaml`, then you'll need to use a command like this to start the deduplication report.
 
 ```bash
-go run cmd/activity/fundraise/supporter/main.go --login company.yaml
+go run cmd/activity/fundraise/see2/main.go --login company.yaml
 ```
 
 ## Outputs
@@ -126,7 +124,7 @@ The application logs all status to the console.  Errors are really obvious.  Her
 
 ### CSV output
 
-Donations with supporter are stored in `supporter.csv` in the current directory.  Here's a sample.
+Donations with see2 are stored in `see2.csv` in the current directory.  Here's a sample.
 
 ```
 PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication,Notify,DedicationAddress
@@ -139,14 +137,14 @@ Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,I
 If you'll be using this app a lot, then it will be a good idea to create a native program.
 
 ```bash
-go build -o ~/go/bin/fundraise_supporter cmd/activity/fundraise/supporter/main.go
+go build -o ~/go/bin/fundraise_see2 cmd/activity/fundraise/see2/main.go
 ```
 
 The output will be an executable in `~/go/bin` in your home directory.
 Add `~/go/bin` to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
 
 ```bash
-fundraise_supporter --login company.yaml
+fundraise_see2 --login company.yaml
 ```
 
 ## Questions?  Comments?
