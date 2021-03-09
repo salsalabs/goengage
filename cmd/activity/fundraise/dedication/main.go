@@ -62,16 +62,19 @@ type Span struct {
 }
 
 //TypeActivity returns the kind of activity being read.
+//Implements goengage.report.Guide.
 func (g DedicationGuide) TypeActivity() string {
 	return goengage.FundraiseType
 }
 
 //Filter returns true if the record should be used.
+//Implements goengage.report.Guide.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
 	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.Span.S) && !f.ActivityDate.After(g.Span.E)
 }
 
 //Headers returns column headers for a CSV file.
+//Implements goengage.report.Guide.
 func (g DedicationGuide) Headers() []string {
 	a := []string{
 		"FirstName",
@@ -102,6 +105,7 @@ func (g DedicationGuide) Headers() []string {
 }
 
 //Line returns a list of strings to go in to the CSV file.
+//Implements goengage.report.Guide.
 func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	addressLine1 := ""
 	addressLine2 := ""

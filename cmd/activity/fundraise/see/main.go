@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	//See2AddressName is the supporter custom field name that contains
+	//SeeAddressName is the supporter custom field name that contains
 	//the dedication address.
-	See2AddressName = "Address of Recipient to Notify"
+	SeeAddressName = "Address of Recipient to Notify"
 
 	//BriefFormat is used to parse text into Classic-looking time.
 	BriefFormat = "2006-01-02"
@@ -40,16 +40,16 @@ const (
 	ReaderCount = 3
 )
 
-//See2Guide is the Guide proxy.
-type See2Guide struct {
+//SeeGuide is the Guide proxy.
+type SeeGuide struct {
 	Span         Span
 	Timezone     *time.Location
 	DonationType string
 }
 
-//NewSee2Guide returns an initialized See2Guide.
-func NewSee2Guide(span Span, location *time.Location, donationType string) See2Guide {
-	return See2Guide{
+//NewSeeGuide returns an initialized SeeGuide.
+func NewSeeGuide(span Span, location *time.Location, donationType string) SeeGuide {
+	return SeeGuide{
 		Span:         span,
 		Timezone:     location,
 		DonationType: donationType,
@@ -63,12 +63,14 @@ type Span struct {
 }
 
 //TypeActivity returns the kind of activity being read.
-func (g See2Guide) TypeActivity() string {
+//Implements goengage.report.Guide.
+func (g SeeGuide) TypeActivity() string {
 	return goengage.FundraiseType
 }
 
 //Filter returns true if the record should be used.
-func (g See2Guide) Filter(f goengage.Fundraise) bool {
+//Implements goengage.report.Guide.
+func (g SeeGuide) Filter(f goengage.Fundraise) bool {
 	switch g.DonationType {
 	case "All":
 		return true
@@ -81,7 +83,8 @@ func (g See2Guide) Filter(f goengage.Fundraise) bool {
 }
 
 //Headers returns column headers for a CSV file.
-func (g See2Guide) Headers() []string {
+//Implements goengage.report.Guide.
+func (g SeeGuide) Headers() []string {
 	a := []string{
 		"SupporterID",
 		"FirstName",
@@ -100,7 +103,8 @@ func (g See2Guide) Headers() []string {
 }
 
 //Line returns a list of strings to go in to the CSV file.
-func (g See2Guide) Line(f goengage.Fundraise) []string {
+//Implements goengage.report.Guide.
+func (g SeeGuide) Line(f goengage.Fundraise) []string {
 	activityDate := f.ActivityDate.In(g.Location())
 	transactionDate := activityDate.Format(BriefFormat)
 
@@ -122,17 +126,17 @@ func (g See2Guide) Line(f goengage.Fundraise) []string {
 }
 
 //Location returns the local location. Useful for date conversions.
-func (g See2Guide) Location() *time.Location {
+func (g SeeGuide) Location() *time.Location {
 	return g.Timezone
 }
 
 //Readers returns the number of readers to start.
-func (g See2Guide) Readers() int {
+func (g SeeGuide) Readers() int {
 	return ReaderCount
 }
 
 //Filename returns the CSV filename.
-func (g See2Guide) Filename() string {
+func (g SeeGuide) Filename() string {
 	s := g.Span.S.Format(BriefFormat)
 	return fmt.Sprintf("%s_see.csv", s)
 }
@@ -187,7 +191,7 @@ func ToTitle(s string) string {
 
 // Validate validates the provided start and end dates.
 // Errors are internal and fatal.
-func Validate(startDate string, endDate string, loc *time.Location) Span {
+func ValidateSpan(startDate string, endDate string, loc *time.Location) Span {
 	st := Parse(startDate, loc, StartDuration)
 	et := Parse(endDate, loc, EndDuration)
 
@@ -237,8 +241,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	span := Validate(*startDate, *endDate, location)
-	guide := NewSee2Guide(span, location, *donationType)
+	span := ValidateSpan(*startDate, *endDate, location)
+	guide := NewSeeGuide(span, location, *donationType)
 	ts := report.NewTimeSpan(span.S, span.E)
 	err = report.ReportFundraising(e, guide, ts)
 	if err != nil {
