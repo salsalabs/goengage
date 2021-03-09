@@ -35,6 +35,9 @@ const (
 	//BackupDuration is used to back a date up to the last
 	//millisecond in the previous day.
 	BackupDuration = "-1ms"
+
+	//ReaderCount is the number of Engage reaaders to start.
+	ReaderCount = 3
 )
 
 //See2Guide is the Guide proxy.
@@ -125,7 +128,7 @@ func (g See2Guide) Location() *time.Location {
 
 //Readers returns the number of readers to start.
 func (g See2Guide) Readers() int {
-	return 5
+	return ReaderCount
 }
 
 //Filename returns the CSV filename.
@@ -183,34 +186,16 @@ func ToTitle(s string) string {
 }
 
 // Validate validates the provided start and end dates.
-// Converts the dates from the provided location to Zulu, checks for start
-// time before end time, then returns a slice of Span objects.  Typically,
-// the Slice is 1 entry.  It becomes multiple entries when interval between
-// startDate and endDate crosses month boundaries.
 // Errors are internal and fatal.
-func Validate(startDate string, endDate string, loc *time.Location) []Span {
+func Validate(startDate string, endDate string, loc *time.Location) Span {
 	st := Parse(startDate, loc, StartDuration)
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
 		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
 	}
-	var a []Span
-	day, _ := time.ParseDuration(DayDuration)
-	yesterday, err := time.ParseDuration(BackupDuration)
-	if err != nil {
-		panic(err)
-	}
-	for ct := st; ct.Before(et); ct = ct.Add(day) {
-		if ct.Month() != st.Month() {
-			span := Span{st, ct.Add(yesterday)}
-			a = append(a, span)
-			st = ct
-		}
-	}
 	span := Span{st, et}
-	a = append(a, span)
-	return a
+	return span
 }
 
 //ValidateDonationType returns an error if the provided
@@ -249,16 +234,14 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 	location, err := time.LoadLocation(*timeZone)
-	spans := Validate(*startDate, *endDate, location)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	for _, span := range spans {
-		guide := NewSee2Guide(span, location, *donationType)
-		ts := report.NewTimeSpan(span.S, span.E)
-		err = report.ReportFundraising(e, guide, ts)
-		if err != nil {
-			log.Fatalf("%v", err)
-		}
+	span := Validate(*startDate, *endDate, location)
+	guide := NewSee2Guide(span, location, *donationType)
+	ts := report.NewTimeSpan(span.S, span.E)
+	err = report.ReportFundraising(e, guide, ts)
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
 }
