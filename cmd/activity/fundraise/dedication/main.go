@@ -185,6 +185,11 @@ func (g DedicationGuide) Filename() string {
 	return fmt.Sprintf("%s_dedications.csv", s)
 }
 
+//Offset returns the starting offset for the first read.
+func (g DedicationGuide) Offset() int32 {
+	return int32(0)
+}
+
 //DefaultDates computes the default start and end dates.
 //Default end date is just before the most recent Monday at midnight.
 //Default start date is the Monday before the end date at 00:00.

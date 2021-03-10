@@ -45,14 +45,16 @@ type SupporterGuide struct {
 	Span        Span
 	Timezone    *time.Location
 	SupporterID string
+	ReadOffset  int32
 }
 
 //NewSupporterGuide returns an initialized SupporterGuide.
-func NewSupporterGuide(span Span, location *time.Location, supporterID string) SupporterGuide {
+func NewSupporterGuide(span Span, location *time.Location, supporterID string, offset int32) SupporterGuide {
 	return SupporterGuide{
 		Span:        span,
 		Timezone:    location,
 		SupporterID: supporterID,
+		ReadOffset:  offset,
 	}
 }
 
@@ -129,6 +131,12 @@ func (g SupporterGuide) Filename() string {
 	return fmt.Sprintf("%s_supporter.csv", s)
 }
 
+//Offset returns the starting offset.  Useful for
+//restarting after a service interruption.
+func (g SupporterGuide) Offset() int32 {
+	return g.ReadOffset
+}
+
 //DefaultDates computes the default start and end dates.
 //Default end date is just before the most recent Monday at midnight.
 //Default start date is the Monday before the end date at 00:00.
@@ -193,12 +201,13 @@ func Validate(startDate string, endDate string, loc *time.Location) Span {
 func main() {
 	start, end := DefaultDates()
 	var (
-		app         = kingpin.New("see2", "Write donations to a CSV")
+		app         = kingpin.New("see2", "Write donations for a supporter to a CSV")
 		login       = app.Flag("login", "YAML file with API token").Required().String()
 		startDate   = app.Flag("startDate", "Start date, YYYY-MM-YY, default is Monday of last week at midnight").Default(start).String()
 		endDate     = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
 		timeZone    = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
 		supporterID = app.Flag("supporterID", "Show donations for this supporter").Required().String()
+		readOffset  = app.Flag("readOffset", "Start reading here.  Useful for restarts").Default("0").Int32()
 	)
 	app.Parse(os.Args[1:])
 
@@ -211,7 +220,7 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 	span := Validate(*startDate, *endDate, location)
-	guide := NewSupporterGuide(span, location, *supporterID)
+	guide := NewSupporterGuide(span, location, *supporterID, *readOffset)
 	ts := report.NewTimeSpan(span.S, span.E)
 	err = report.ReportFundraising(e, guide, ts)
 	if err != nil {

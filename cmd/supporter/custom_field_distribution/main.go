@@ -19,12 +19,13 @@ import (
 
 //Runtime area for this app.
 type Runtime struct {
-	E         *goengage.Environment
-	InChan    chan goengage.Supporter
-	DoneChan  chan bool
-	Cache     Cache
-	Keys      []string
-	FieldName string
+	E          *goengage.Environment
+	InChan     chan goengage.Supporter
+	DoneChan   chan bool
+	Cache      Cache
+	Keys       []string
+	FieldName  string
+	ReadOffset int32
 }
 
 //Cache is used to store values and counts.
@@ -37,12 +38,13 @@ func NewRuntime(env *goengage.Environment, f string) Runtime {
 		NotEquipped: 0,
 	}
 	r := Runtime{
-		E:         env,
-		InChan:    make(chan goengage.Supporter),
-		DoneChan:  make(chan bool),
-		Cache:     c,
-		Keys:      []string{Null, NotEquipped},
-		FieldName: f,
+		E:          env,
+		InChan:     make(chan goengage.Supporter),
+		DoneChan:   make(chan bool),
+		Cache:      c,
+		Keys:       []string{Null, NotEquipped},
+		FieldName:  f,
+		ReadOffset: int32(0),
 	}
 	return r
 }
@@ -114,6 +116,12 @@ func (r *Runtime) Channel() chan goengage.Supporter {
 // a channel that  receives a true when the listener is done.
 func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
+}
+
+//Offset returns the offset for the first read.
+//Useful for restarts.
+func (r *Runtime) Offset() int32 {
+	return r.ReadOffset
 }
 
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.

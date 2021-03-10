@@ -30,6 +30,9 @@ type Guide interface {
 	//Location returns the location used to adjust transactions.
 	//Transactions are Zulu.  Timezone is used to covert them to local.
 	Location() *time.Location
+	//Offset() returns the offset to start reading.  Useful for
+	//restarting after a service interruption.
+	Offset() int32
 }
 
 //TimeSpan contains a start and end time in Engage time format.
@@ -218,7 +221,7 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 	log.Printf("ReportFundraising:              end   time %s\n", ts.End)
 	log.Printf("ReportFundraising: %d donations\n", maxRecords)
 	maxRecords = maxRecords + int32(e.Metrics.MaxBatchSize-1)
-	for offset := int32(0); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
+	for offset := int32(guide.Offset()); offset <= maxRecords; offset += e.Metrics.MaxBatchSize {
 		oc <- offset
 	}
 	close(oc)

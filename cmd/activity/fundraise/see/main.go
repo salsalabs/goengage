@@ -45,14 +45,16 @@ type SeeGuide struct {
 	Span         Span
 	Timezone     *time.Location
 	DonationType string
+	ReadOffset   int32
 }
 
 //NewSeeGuide returns an initialized SeeGuide.
-func NewSeeGuide(span Span, location *time.Location, donationType string) SeeGuide {
+func NewSeeGuide(span Span, location *time.Location, donationType string, readOffset int32) SeeGuide {
 	return SeeGuide{
 		Span:         span,
 		Timezone:     location,
 		DonationType: donationType,
+		ReadOffset:   readOffset,
 	}
 }
 
@@ -141,6 +143,12 @@ func (g SeeGuide) Filename() string {
 	return fmt.Sprintf("%s_see.csv", s)
 }
 
+//Offset returns the offset for the first read.
+//Useful for restarting after a service interruption.
+func (g SeeGuide) Offset() int32 {
+	return g.ReadOffset
+}
+
 //DefaultDates computes the default start and end dates.
 //Default end date is just before the most recent Monday at midnight.
 //Default start date is the Monday before the end date at 00:00.
@@ -189,7 +197,7 @@ func ToTitle(s string) string {
 	return strings.Join(a, "_")
 }
 
-// Validate validates the provided start and end dates.
+// ValidateSpan validates the provided start and end dates.
 // Errors are internal and fatal.
 func ValidateSpan(startDate string, endDate string, loc *time.Location) Span {
 	st := Parse(startDate, loc, StartDuration)
@@ -226,6 +234,7 @@ func main() {
 		endDate      = app.Flag("endDate", "End date, YYYY-MM-YY, default is the most recent Monday at midnight").Default(end).String()
 		timeZone     = app.Flag("timezone", "Client's timezone, defaults to EST/EDT").Default("America/New_York").String()
 		donationType = app.Flag("donationType", donationTypePrompt).Default("All").String()
+		readOffset   = app.Flag("readOffset", "Read reading here, useful for restarts").Default("0").Int32()
 	)
 	app.Parse(os.Args[1:])
 
@@ -242,7 +251,7 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 	span := ValidateSpan(*startDate, *endDate, location)
-	guide := NewSeeGuide(span, location, *donationType)
+	guide := NewSeeGuide(span, location, *donationType, *readOffset)
 	ts := report.NewTimeSpan(span.S, span.E)
 	err = report.ReportFundraising(e, guide, ts)
 	if err != nil {

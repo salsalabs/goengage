@@ -31,6 +31,11 @@ type SupporterGuide interface {
 
 	//DoneChannel() receives a true when the listener is done.
 	DoneChannel() chan bool
+
+	//Offset() returns the offset to start reading.  Useful for
+	//restarting after a service interruption.
+
+	Offset() int32
 }
 
 //ReadSupporters reads all supporters and pushes them onto a channel.
@@ -39,7 +44,7 @@ type SupporterGuide interface {
 func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 	log.Println("ReadSupporters: start")
 	count := int32(e.Metrics.MaxBatchSize)
-	offset := int32(0)
+	offset := int32(g.Offset())
 	for count == int32(e.Metrics.MaxBatchSize) {
 		payload := g.Payload()
 		payload.Offset = offset
