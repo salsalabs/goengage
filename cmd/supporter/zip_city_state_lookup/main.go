@@ -82,7 +82,10 @@ func process(rt Runtime, s goengage.Supporter) {
 			PostalCode: "",
 		}
 	}
-	if len(a.PostalCode) != 0 && (len(a.City) == 0 || len(a.State) == 0) {
+	zipCheck := len(a.PostalCode) != 0
+	cityStateCheck := (len(a.City) == 0 || len(a.State) == 0)
+	countryCheck := len(a.Country) == 0 || (len(a.Country) != 0 && strings.ToUpper(a.Country) != "US")
+	if zipCheck && cityStateCheck && countryCheck {
 		c := a.City
 		st := a.State
 		fixWithZip(a)
@@ -97,6 +100,7 @@ func process(rt Runtime, s goengage.Supporter) {
 				a.State,
 				st,
 				a.PostalCode,
+				a.Country,
 			}
 			err := rt.W.Write(record)
 			log.Printf("%v\n", record)
@@ -172,7 +176,7 @@ func main() {
 		panic(err)
 	}
 	w := csv.NewWriter(f)
-	h := strings.Split("SupporterID,Email,City,OriginalCity,State,OriginalState,PostalCode", ",")
+	h := strings.Split("SupporterID,Email,City,OriginalCity,State,OriginalState,PostalCode,Country", ",")
 	w.Write(h)
 
 	rt := Runtime{
