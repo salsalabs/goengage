@@ -93,10 +93,10 @@ func process(rt Runtime, s goengage.Supporter) {
 				s.SupporterID,
 				e,
 				a.City,
+				c,
 				a.State,
+				st,
 				a.PostalCode,
-				fmt.Sprintf("%v", cityModified),
-				fmt.Sprintf("%v", stateModified),
 			}
 			err := rt.W.Write(record)
 			log.Printf("%v\n", record)
@@ -133,7 +133,7 @@ func drive(rt Runtime) {
 			Response: &resp,
 		}
 		if offset%1000 == int32(0) {
-			log.Printf("main: %5d of %5d supporters\n", offset, resp.Payload.Total)
+			log.Printf("main: %5d\n", offset)
 		}
 		err := n.Do()
 		if err != nil {
@@ -144,7 +144,6 @@ func drive(rt Runtime) {
 			process(rt, s)
 		}
 		offset += count
-		log.Printf("main: %d\n", offset)
 	}
 }
 
@@ -173,7 +172,7 @@ func main() {
 		panic(err)
 	}
 	w := csv.NewWriter(f)
-	h := strings.Split("SupporterID,Email,City,State,PostalCode,CityModified,StateModifled", ",")
+	h := strings.Split("SupporterID,Email,City,OriginalCity,State,OriginalState,PostalCode", ",")
 	w.Write(h)
 
 	rt := Runtime{
