@@ -14,6 +14,14 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
+//Runtime is used to pass arguments between methods.
+type Runtime struct {
+	E         *goengage.Environment
+	StartDate string
+	EndDate   string
+	W         *csv.Writer
+}
+
 //Zippopatamus is the record that's returned for a postalcode lookup.
 type Zippopatamus struct {
 	PostCode            string `json:"post code"`
@@ -60,9 +68,9 @@ func fixWithZip(a *goengage.Address) (*goengage.Address, error) {
 //Process one supporter record by fixing city and/or state using a lookup from
 //zippopatm.us.  Outputs a CSV row if either the city or state changes. Errors
 //trigger panics.
-func process(s goengage.Supporter, w *csv.Writer) {
-	email := goengage.FirstEmail(s)
+func process(rt Runtime, s goengage.Supporter) {
 	e := ""
+	email := goengage.FirstEmail(s)
 	if email != nil {
 		e = *email
 	}
@@ -90,12 +98,53 @@ func process(s goengage.Supporter, w *csv.Writer) {
 				fmt.Sprintf("%v", cityModified),
 				fmt.Sprintf("%v", stateModified),
 			}
-			err := w.Write(record)
+			err := rt.W.Write(record)
 			log.Printf("%v\n", record)
 			if err != nil {
 				panic(err)
 			}
 		}
+	}
+}
+
+//Drives the process by processing all supporters. Errors panic.
+func drive(rt Runtime) {
+	count := int32(rt.E.Metrics.MaxBatchSize)
+	offset := int32(0)
+	for count == int32(rt.E.Metrics.MaxBatchSize) {
+		payload := goengage.SupporterSearchPayload{
+			IdentifierType: goengage.EmailAddressType,
+			Offset:         offset,
+			Count:          rt.E.Metrics.MaxBatchSize,
+			ModifiedFrom:   rt.StartDate,
+			ModifiedTo:     rt.EndDate,
+		}
+		rqt := goengage.SupporterSearch{
+			Header:  goengage.RequestHeader{},
+			Payload: payload,
+		}
+		var resp goengage.SupporterSearchResults
+		n := goengage.NetOp{
+			Host:     rt.E.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: goengage.SearchSupporter,
+			Token:    rt.E.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		if offset%1000 == int32(0) {
+			log.Printf("main: %5d of %5d supporters\n", offset, resp.Payload.Total)
+		}
+		err := n.Do()
+		if err != nil {
+			panic(err)
+		}
+		count = resp.Payload.Count
+		for _, s := range resp.Payload.Supporters {
+			process(rt, s)
+		}
+		offset += count
+		log.Printf("main: %d\n", offset)
 	}
 }
 
@@ -127,41 +176,11 @@ func main() {
 	h := strings.Split("SupporterID,Email,City,State,PostalCode,CityModified,StateModifled", ",")
 	w.Write(h)
 
-	count := int32(e.Metrics.MaxBatchSize)
-	offset := int32(0)
-	for count == int32(e.Metrics.MaxBatchSize) {
-		payload := goengage.SupporterSearchPayload{
-			IdentifierType: goengage.EmailAddressType,
-			Offset:         offset,
-			Count:          e.Metrics.MaxBatchSize,
-			ModifiedFrom:   *startDate,
-			ModifiedTo:     *endDate,
-		}
-		rqt := goengage.SupporterSearch{
-			Header:  goengage.RequestHeader{},
-			Payload: payload,
-		}
-		var resp goengage.SupporterSearchResults
-		n := goengage.NetOp{
-			Host:     e.Host,
-			Method:   goengage.SearchMethod,
-			Endpoint: goengage.SearchSupporter,
-			Token:    e.Token,
-			Request:  &rqt,
-			Response: &resp,
-		}
-		if offset%1000 == int32(0) {
-			log.Printf("main: %5d of %5d supporters\n", offset, resp.Payload.Total)
-		}
-		err = n.Do()
-		if err != nil {
-			panic(err)
-		}
-		count = resp.Payload.Count
-		for _, s := range resp.Payload.Supporters {
-			process(s, w)
-		}
-		offset += count
-		log.Printf("main: %d\n", offset)
+	rt := Runtime{
+		E:         e,
+		StartDate: *startDate,
+		EndDate:   *endDate,
+		W:         w,
 	}
+	drive(rt)
 }
