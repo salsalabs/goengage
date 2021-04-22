@@ -138,6 +138,7 @@ func drive(rt Runtime) {
 		}
 		if offset%1000 == int32(0) {
 			log.Printf("main: %5d\n", offset)
+			rt.W.Flush()
 		}
 		err := n.Do()
 		if err != nil {
@@ -186,5 +187,5 @@ func main() {
 		W:         w,
 	}
 	drive(rt)
-	close(w)
+	f.Close()
 }
