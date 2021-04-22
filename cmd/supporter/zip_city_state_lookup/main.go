@@ -186,4 +186,5 @@ func main() {
 		W:         w,
 	}
 	drive(rt)
+	close(w)
 }
