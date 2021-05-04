@@ -93,7 +93,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 				return err
 			}
 			w := csv.NewWriter(f)
-			headers := []string{"Email"}
+			headers := []string{"Group", "Email"}
 			w.Write(headers)
 
 			// Read all supporters and write info to the group's CSV.
@@ -132,7 +132,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 				for _, s := range resp.Payload.Supporters {
 					email := goengage.FirstEmail(s)
 					if email != nil {
-						a := []string{*email}
+						a := []string{r.Name, *email}
 						w.Write(a)
 					}
 				}
