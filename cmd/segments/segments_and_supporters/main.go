@@ -50,12 +50,7 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 		if err != nil {
 			return err
 		}
-		//Criteria for the first pass is to take groups containing "ALS" and
-		//to ignore gruops that contain "test".  That gives us a chance to get
-		//the useful data done more quickly.
 		for _, s := range resp.Payload.Segments {
-			name := strings.ToLower(s.Name)
-			if strings.Contains(name, "als") && !strings.Contains(name, "test") {
 				c <- s
 			}
 		}
