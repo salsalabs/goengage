@@ -24,7 +24,7 @@ type SupporterGuide interface {
 	Finalize() error
 
 	//Payload is the request payload defining which supporters to retrieve.
-	Payload() goengage.SupporterSearchPayload
+	Payload() goengage.SupporterSearchRequestPayload
 
 	//Channel is the listener channel to use.
 	Channel() chan goengage.Supporter
@@ -49,7 +49,7 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 		payload := g.Payload()
 		payload.Offset = offset
 		payload.Count = count
-		rqt := goengage.SupporterSearch{
+		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}

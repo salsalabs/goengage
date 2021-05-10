@@ -40,11 +40,11 @@ func main() {
 	var lines []string
 	for _, r := range a {
 		if r[0] != "InternalID" {
-			searchPayload := goengage.SupporterSearchPayload{
+			searchPayload := goengage.SupporterSearchRequestPayload{
 				IdentifierType: goengage.SupporterIDType,
 				Identifiers:    []string{r[0]},
 			}
-			rqt := goengage.SupporterSearch{
+			rqt := goengage.SupporterSearchRequest{
 				Header:  goengage.RequestHeader{},
 				Payload: searchPayload,
 			}

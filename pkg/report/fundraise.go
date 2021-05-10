@@ -138,12 +138,12 @@ func ReadBatch(e *goengage.Environment,
 
 //ReadSupporter reads a supporter record for the specified ID.
 func ReadSupporter(e *goengage.Environment, f goengage.Fundraise) (supporter *goengage.Supporter, err error) {
-	payload := goengage.SupporterSearchPayload{
+	payload := goengage.SupporterSearchRequestPayload{
 		Identifiers:    []string{f.SupporterID},
 		IdentifierType: goengage.SupporterIDType,
 	}
 
-	rqt := goengage.SupporterSearch{
+	rqt := goengage.SupporterSearchRequest{
 		Header:  goengage.RequestHeader{},
 		Payload: payload,
 	}

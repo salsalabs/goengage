@@ -51,8 +51,7 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 			return err
 		}
 		for _, s := range resp.Payload.Segments {
-				c <- s
-			}
+			c <- s
 		}
 		count = resp.Payload.Count
 		offset += int32(count)
@@ -95,21 +94,21 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 			count := e.Metrics.MaxBatchSize
 			offset := int32(0)
 			for count == e.Metrics.MaxBatchSize {
-				payload := goengage.SupporterSearchRequestPayload{
-					SegmentID: r.SegmentID,
+				payload := goengage.SegmentMembershipRequestPayload{
+					SegmentId: r.SegmentID,
 					Offset:    offset,
 					Count:     count,
 				}
-				rqt := goengage.SupporterSearchRequest{
+				rqt := goengage.SegmentMembershipRequest{
 					Header:  goengage.RequestHeader{},
 					Payload: payload,
 				}
-				var resp goengage.SupporterSearchResponse
+				var resp goengage.SegmentMembershipResponse
 
 				n := goengage.NetOp{
 					Host:     e.Host,
 					Method:   goengage.SearchMethod,
-					Endpoint: goengage.SupporterSearchSegment,
+					Endpoint: goengage.SegmentSearchMembers,
 					Token:    e.Token,
 					Request:  &rqt,
 					Response: &resp,

@@ -54,12 +54,12 @@ func main() {
 	count := e.Metrics.MaxBatchSize
 	offset := int32(0)
 	for count == e.Metrics.MaxBatchSize {
-		payload := goengage.SupporterSearchPayload{
+		payload := goengage.SupporterSearchRequestPayload{
 			ModifiedFrom: "2006-01-01T00:00:00.000Z",
 			Offset:       offset,
 			Count:        e.Metrics.MaxBatchSize,
 		}
-		rqt := goengage.SupporterSearch{
+		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}

@@ -116,14 +116,14 @@ func drive(rt Runtime) {
 	count := int32(rt.E.Metrics.MaxBatchSize)
 	offset := int32(0)
 	for count == int32(rt.E.Metrics.MaxBatchSize) {
-		payload := goengage.SupporterSearchPayload{
+		payload := goengage.SupporterSearchRequestPayload{
 			IdentifierType: goengage.EmailAddressType,
 			Offset:         offset,
 			Count:          rt.E.Metrics.MaxBatchSize,
 			ModifiedFrom:   rt.StartDate,
 			ModifiedTo:     rt.EndDate,
 		}
-		rqt := goengage.SupporterSearch{
+		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}

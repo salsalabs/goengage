@@ -6,10 +6,10 @@ import (
 
 //Constants for Engage endpoints.
 const (
-	SearchSegment          = "/api/integration/ext/v1/segments/search"
-	SupporterSearchSegment = "/api/integration/ext/v1/segments/members/search"
-	UpsertSegment          = "/api/integration/ext/v1/segments"
-	DeleteSegment          = "/api/integration/ext/v1/segments"
+	SearchSegment        = "/api/integration/ext/v1/segments/search"
+	SegmentSearchMembers = "/api/integration/ext/v1/segments/members/search"
+	UpsertSegment        = "/api/integration/ext/v1/segments"
+	DeleteSegment        = "/api/integration/ext/v1/segments"
 )
 
 //Constants to drive counting, or not counting, supporters on a segment read.
@@ -24,6 +24,18 @@ const (
 	TypeDefault = "DEFAULT"
 	TypeCustom  = "CUSTOM"
 )
+
+//Segment contains the information for a single Segment (group)>
+type Segment struct {
+	SegmentID        string  `json:"segmentId,omitempty"`
+	Name             string  `json:"name"`
+	Description      string  `json:"description"`
+	Type             string  `json:"type,omitempty"`
+	TotalSupporters  int     `json:"totalSupporters,omitempty"`
+	ExternalSystemID string  `json:"externalSystemId,omitempty"`
+	Result           string  `json:"result,omitempty"`
+	Errors           []Error `json:"errors,omitempty"`
+}
 
 //UpsertRequest is used to add or modify segments.
 type UpsertRequest struct {
@@ -44,18 +56,6 @@ type UpsertResponse struct {
 	Payload struct {
 		Segments []Segment `json:"segments"`
 	} `json:"payload"`
-}
-
-//Segment contains the results of an upsert.
-type Segment struct {
-	SegmentID        string  `json:"segmentId,omitempty"`
-	Name             string  `json:"name"`
-	Description      string  `json:"description"`
-	Type             string  `json:"type,omitempty"`
-	TotalSupporters  int     `json:"totalSupporters,omitempty"`
-	ExternalSystemID string  `json:"externalSystemId,omitempty"`
-	Result           string  `json:"result,omitempty"`
-	Errors           []Error `json:"errors,omitempty"`
 }
 
 //SegmentDeleteRequest is used to remove a group.
@@ -110,6 +110,35 @@ type SegmentSearchResponse struct {
 	} `json:"payload"`
 }
 
+//SegmentMembershipRequest contains parameters for searching for segment
+//(group) members.
+type SegmentMembershipRequest struct {
+	Header  RequestHeader                   `json:"header,omitempty"`
+	Payload SegmentMembershipRequestPayload `json:"payload,omitempty"`
+}
+
+//SegmentMembershipRequestPayload contains the payload for searching for
+// segment members.
+type SegmentMembershipRequestPayload struct {
+	SegmentId    string        `json:"segmentId,omitempty"`
+	SupporterIds []interface{} `json:"supporterIds,omitempty"`
+	JoinedSince  time.Time     `json:"joinedSince,omitempty"`
+	Offset       int32         `json:"offset,omitempty"`
+	Count        int32         `json:"count,omitempty"`
+	SortOrder    string        `json:"sortOrder,omitempty"`
+}
+
+//SegmentMembershipResponse contains the results returned by searching for
+//segment members.
+type SegmentMembershipResponse struct {
+	Payload struct {
+		Count      int32       `json:"count"`
+		Offset     int32       `json:"offset"`
+		Total      int32       `json:"total"`
+		Supporters []Supporter `json:"segments"`
+	} `json:"payload"`
+}
+
 //AssignSupportersRequest provides the segment and list of supporter IDs
 //that need to be added.
 type AssignSupportersRequest struct {
@@ -149,34 +178,5 @@ type DeleteSupportersResponse struct {
 			Result      string `json:"result"`
 		} `json:"supporters"`
 		Count int32 `json:"count"`
-	} `json:"payload"`
-}
-
-//SupporterSearchRequest requests a list of supporters.  Supplying
-//"supporterIds" constrains the results to just those supporters.
-type SupporterSearchRequest struct {
-	Header  RequestHeader                 `json:"header,omitempty"`
-	Payload SupporterSearchRequestPayload `json:"payload"`
-}
-
-//SupporterSearchRequestPayload contains the request details when
-//searching for supporters in a segment.
-type SupporterSearchRequestPayload struct {
-	SegmentID    string   `json:"segmentId"`
-	Offset       int32    `json:"offset"`
-	Count        int32    `json:"count"`
-	SupporterIds []string `json:"supporterIds"`
-}
-
-//SupporterSearchResponse contains a list of supporters that match
-//the search criteria.
-type SupporterSearchResponse struct {
-	ID        string     `json:"id"`
-	Timestamp *time.Time `json:"timestamp"`
-	Header    Header     `json:"header"`
-	Payload   struct {
-		Total      int32       `json:"total"`
-		Supporters []Supporter `json:"supporters"`
-		Count      int32       `json:"count"`
 	} `json:"payload"`
 }

@@ -36,13 +36,13 @@ func main() {
 	// to := goengage.Date("2100-01-01T00:00:00.000Z")
 	emails := strings.Split(*email, ",")
 	for count == int32(e.Metrics.MaxBatchSize) {
-		payload := goengage.SupporterSearchPayload{
+		payload := goengage.SupporterSearchRequestPayload{
 			Identifiers:    emails,
 			IdentifierType: goengage.EmailAddressType,
 			Offset:         offset,
 			Count:          e.Metrics.MaxBatchSize,
 		}
-		rqt := goengage.SupporterSearch{
+		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}

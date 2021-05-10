@@ -95,8 +95,8 @@ func (r *Runtime) Finalize() error {
 
 //Payload implements SupporterGuide.Payload and provides a payload
 //that will retrieve all supporters.
-func (r *Runtime) Payload() goengage.SupporterSearchPayload {
-	payload := goengage.SupporterSearchPayload{
+func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
+	payload := goengage.SupporterSearchRequestPayload{
 		IdentifierType: goengage.SupporterIDType,
 		ModifiedFrom:   "2000-01-01T00:00:00.00000Z",
 		ModifiedTo:     "2050-01-01T00:00:00.00000Z",

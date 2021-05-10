@@ -13,7 +13,7 @@ import (
 //Returns nil if the supporter does not have an email.  (As if...)
 func FirstEmail(s Supporter) *string {
 	c := s.Contacts
-	if c == nil || len(c) == 0 {
+	if len(c) == 0 {
 		return nil
 	}
 	for _, x := range c {
@@ -31,7 +31,7 @@ func FirstEmail(s Supporter) *string {
 //Returns nil if the supporter does not have an email.  (As if...)
 func FirstPhone(s Supporter) *string {
 	c := s.Contacts
-	if c == nil || len(c) == 0 {
+	if len(c) == 0 {
 		return nil
 	}
 	for _, x := range c {

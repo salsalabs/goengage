@@ -14,9 +14,10 @@ const (
 
 //Engage endpoints for supporters.
 const (
-	SearchSupporter = "/api/integration/ext/v1/supporters/search"
-	UpsertSupporter = "/api/integration/ext/v1/supporters"
-	DeleteSupporter = "/api/integration/ext/v1/supporters"
+	SearchSupporter       = "/api/integration/ext/v1/supporters/search"
+	UpsertSupporter       = "/api/integration/ext/v1/supporters"
+	DeleteSupporter       = "/api/integration/ext/v1/supporters"
+	SupporterSearchGroups = "/integration/ext/v1/supporters/groups"
 )
 
 //Contact types.
@@ -111,19 +112,19 @@ type Supporter struct {
 	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitEmpty"`
 }
 
-//SupporterSearch provides the criteria to match when searching
+//SupporterSearchRequest provides the criteria to match when searching
 //for supporters.  Providing no criterria will return all supporters.
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
 //by identifiers.
-type SupporterSearch struct {
-	Header  RequestHeader          `json:"header,omitempty"`
-	Payload SupporterSearchPayload `json:"payload,omitempty"`
+type SupporterSearchRequest struct {
+	Header  RequestHeader                 `json:"header,omitempty"`
+	Payload SupporterSearchRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterSearchPayload holds the search criteria.  There are rules
+//SupporterSearchRequestPayload holds the search criteria.  There are rules
 //that you need to know about.  See those here
 //https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
-type SupporterSearchPayload struct {
+type SupporterSearchRequestPayload struct {
 	Identifiers    []string `json:"identifiers,omitempty"`
 	IdentifierType string   `json:"identifierType,omitempty"`
 	ModifiedFrom   string   `json:"modifiedFrom,omitempty"`
@@ -135,15 +136,19 @@ type SupporterSearchPayload struct {
 //SupporterSearchResults lists the supporters that match the search criteria.
 //Note that Supporter is common throughout Engage.
 type SupporterSearchResults struct {
-	ID        string     `json:"id"`
-	Timestamp *time.Time `json:"timestamp"`
-	Header    Header     `json:"header"`
-	Payload   struct {
-		Count      int32       `json:"count,omitempty"`
-		Offset     int32       `json:"offset,omitempty"`
-		Total      int32       `json:"total,omitempty"`
-		Supporters []Supporter `json:"supporters,omitempty"`
-	} `json:"payload,omitempty"`
+	ID        string                         `json:"id"`
+	Timestamp *time.Time                     `json:"timestamp"`
+	Header    Header                         `json:"header"`
+	Payload   SupporterSearchResponsePayload `json:"payload,omitempty"`
+}
+
+//SupporterSearchRequestPayload holds the payload for a single supporter search
+//operation.
+type SupporterSearchResponsePayload struct {
+	Count      int32       `json:"count,omitempty"`
+	Offset     int32       `json:"offset,omitempty"`
+	Total      int32       `json:"total,omitempty"`
+	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
 //SupporterUpdatePayload holds the list of supporter records to be updated.
@@ -186,16 +191,107 @@ type DeletedResponse struct {
 	} `json:"payload,omitempty"`
 }
 
+//SupporterUpsert upserts the provided supporter into Engage.
+func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
+	payload := SupporterUpdatePayload{
+		Supporters: []Supporter{*s},
+	}
+	request := SupporterUpdateRequest{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var response SupporterUpdateResponse
+	n := NetOp{
+		Host:     e.Host,
+		Endpoint: UpsertSupporter,
+		Method:   UpdateMethod,
+		Token:    e.Token,
+		Request:  &request,
+		Response: &response,
+	}
+	err := n.Do()
+	if err != nil {
+		return s, err
+	}
+	count := int32(len(response.Payload.Supporters))
+	if count != 0 {
+		s = &response.Payload.Supporters[0]
+		switch s.Result {
+		case Added:
+			err = nil
+		case Updated:
+			err = nil
+		case ValidationError:
+			err = fmt.Errorf("engage returned %s for ID %s", s.Result, s.SupporterID)
+		case SystemError:
+			err = fmt.Errorf("engage returned %s for ID %s", s.Result, s.SupporterID)
+		case NotFound:
+			err = fmt.Errorf("engage returned %s for ID %s", s.Result, s.SupporterID)
+		}
+	} else {
+		err = fmt.Errorf("engage return zero responses for ID %s", s.SupporterID)
+
+	}
+	return s, err
+}
+
+//SupporterGroupPayload holds the list of supporter records to be updated.
+type SupporterGroupResult struct {
+	Supporterid string   `json:"supporterId,omitempty"`
+	Segments    []string `json:"segments,omitempty"`
+	Result      string   `json:"result,omitempty"`
+}
+
+//SupporterGroupRequest requests the groups (segments) that a supporter
+//belongs to.
+type SupporterGroupRequest struct {
+	Header  RequestHeader                `json:"header,omitempty"`
+	Payload SupporterGroupRequestPayload `json:"payload,omitempty"`
+}
+
+//SupporterGroupResponse provides results for the updated supporters.
+type SupporterGroupResponse struct {
+	Header  Header                        `json:"header,omitempty"`
+	Payload SupporterGroupResponsePayload `json:"payload,omitempty,omitempty"`
+}
+
+//SupporterSearchGroupsPayload holds the search criteria.
+//https://api.salsalabs.org/help/integration#operation/getGroupsForSupporters
+type SupporterGroupRequestPayload struct {
+	Identifiers     []string  `json:"identifiers,omitempty"`
+	IdentifierType  string    `json:"identifierType,omitempty"`
+	SearchString    string    `json:"searchString,omitempty"`
+	ModifiedFrom    time.Time `json:"modifiedFrom,omitempty"`
+	ModifiedTo      time.Time `json:"modifiedTo,omitempty"`
+	Offset          int32     `json:"offset,omitempty"`
+	Count           int32     `json:"count,omitempty"`
+	IncludeCellOnly bool      `json:"includeCellOnly,omitempty"`
+	IncludeNormal   bool      `json:"includeNormal,omitempty"`
+}
+
+//SupporterGroupResults lists the supporters that match the search criteria.
+//Note that Supporter is common throughout Engage.
+type SupporterGroupResponsePayload struct {
+	Total   int   `json:"total,omitempty"`
+	Offset  int32 `json:"offset,omitempty"`
+	Count   int32 `json:"count,omitempty"`
+	Results []struct {
+		Supporterid string   `json:"supporterId,omitempty"`
+		Segments    []string `json:"segments,omitempty"`
+		Result      string   `json:"result,omitempty"`
+	} `json:"results,omitempty"`
+}
+
 //SupporterByID retrieves a supporter record for Engage using the SupporterID
 //in the provided record.
 func SupporterByID(e *Environment, k string) (*Supporter, error) {
-	payload := SupporterSearchPayload{
+	payload := SupporterSearchRequestPayload{
 		Identifiers:    []string{k},
 		IdentifierType: SupporterIDType,
 		Offset:         int32(0),
 		Count:          e.Metrics.MaxBatchSize,
 	}
-	request := SupporterSearch{
+	request := SupporterSearchRequest{
 		Header:  RequestHeader{},
 		Payload: payload,
 	}
@@ -231,13 +327,13 @@ func SupporterByID(e *Environment, k string) (*Supporter, error) {
 // matches the provided email.  Duplicates are gleefully ignored.
 func SupporterByEmail(e *Environment, email string) (s *Supporter, err error) {
 	offset := int32(0)
-	payload := SupporterSearchPayload{
+	payload := SupporterSearchRequestPayload{
 		Identifiers:    []string{email},
 		IdentifierType: EmailAddressType,
 		Offset:         offset,
 		Count:          e.Metrics.MaxBatchSize,
 	}
-	rqt := SupporterSearch{
+	rqt := SupporterSearchRequest{
 		Header:  RequestHeader{},
 		Payload: payload,
 	}
@@ -265,49 +361,5 @@ func SupporterByEmail(e *Environment, email string) (s *Supporter, err error) {
 		}
 	}
 	err = fmt.Errorf("error: %s is not a valid email", email)
-	return s, err
-}
-
-//SupporterUpsert upserts the provided supporter into Engage.
-func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
-	payload := SupporterUpdatePayload{
-		Supporters: []Supporter{*s},
-	}
-	request := SupporterUpdateRequest{
-		Header:  RequestHeader{},
-		Payload: payload,
-	}
-	var response SupporterUpdateResponse
-	n := NetOp{
-		Host:     e.Host,
-		Endpoint: UpsertSupporter,
-		Method:   UpdateMethod,
-		Token:    e.Token,
-		Request:  &request,
-		Response: &response,
-	}
-	err := n.Do()
-	if err != nil {
-		return s, err
-	}
-	count := int32(len(response.Payload.Supporters))
-	if count != 0 {
-		s = &response.Payload.Supporters[0]
-		switch s.Result {
-		case Added:
-			err = nil
-		case Updated:
-			err = nil
-		case ValidationError:
-			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
-		case SystemError:
-			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
-		case NotFound:
-			err = fmt.Errorf("Engage returned %s for ID %s", s.Result, s.SupporterID)
-		}
-	} else {
-		err = fmt.Errorf("engage return zero responses for ID %s", s.SupporterID)
-
-	}
 	return s, err
 }

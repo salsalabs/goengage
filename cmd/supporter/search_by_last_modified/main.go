@@ -37,14 +37,14 @@ func main() {
 	count := int32(e.Metrics.MaxBatchSize)
 	offset := int32(0)
 	for count == int32(e.Metrics.MaxBatchSize) {
-		payload := goengage.SupporterSearchPayload{
+		payload := goengage.SupporterSearchRequestPayload{
 			IdentifierType: goengage.EmailAddressType,
 			Offset:         offset,
 			Count:          e.Metrics.MaxBatchSize,
 			ModifiedFrom:   *startDate,
 			ModifiedTo:     *endDate,
 		}
-		rqt := goengage.SupporterSearch{
+		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
