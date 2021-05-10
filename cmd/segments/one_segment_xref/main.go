@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,14 +28,24 @@ type XrefRecord struct {
 	Segments    []string
 }
 
+//NewXrefRecord creates an XrefRecord and returns a reference.
+func NewXrefRecord(s string, e string) *XrefRecord {
+	x := XrefRecord{
+		SupporterID: s,
+		Email:       e,
+		Segments:    make([]string, 0),
+	}
+	return &x
+}
+
 //Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
-	E         goengage.Environment
+	E         *goengage.Environment
 	SegmentId string
-	C1        chan XrefRecord
-	C2        chan XrefRecord
+	C1        chan *XrefRecord
+	C2        chan *XrefRecord
 	D         chan bool
-	W         *csv.Writer
+	F         string
 }
 
 //Members accepts a segmentId and writes the segment members to the
@@ -73,11 +84,7 @@ func Members(rt Runtime) (err error) {
 			if p != nil {
 				email = *p
 			}
-			x := XrefRecord{
-				SupporterID: s.SupporterID,
-				Email:       email,
-				Segments:    make([]string, 0),
-			}
+			x := NewXrefRecord(s.SupporterID, email)
 			rt.C1 <- x
 		}
 		count = resp.Payload.Count
@@ -92,7 +99,7 @@ func Members(rt Runtime) (err error) {
 //pushes the completed record into the write channel. Notifies done with the input
 //channel is empty.
 func Segments(rt Runtime, id int) (err error) {
-	log.Printf("Supporters %v: begin\n", id)
+	log.Printf("Segments %v: begin\n", id)
 	for true {
 		x, ok := <-rt.C1
 		if !ok {
@@ -143,24 +150,58 @@ func Segments(rt Runtime, id int) (err error) {
 	}
 
 	rt.D <- true
-	log.Printf("Supporters %v: end\n", id)
+	log.Printf("Segments %v: end\n", id)
 	return nil
 }
 
-//WaitTerminations waits for "SupporterListeners" supporter readers to complete.
-func WaitTerminations(done chan bool) {
+//OutputCSV accepts Xref records from a channeland and writes them to
+//a CSV file.
+func OutputCSV(rt Runtime) error {
+	log.Printf("OutputCSV: begin")
+	f, err := os.Create(rt.F)
+	if err != nil {
+		panic(err)
+	}
+	w := csv.NewWriter(f)
+	headers := []string{"SupporterId", "Email", "Groups"}
+	w.Write(headers)
+	for true {
+		x, ok := <-rt.C2
+		if !ok {
+			break
+		}
+		s := strings.Join(x.Segments, ".")
+		row := []string{
+			x.SupporterID,
+			x.Email,
+			s,
+		}
+		w.Write(row)
+	}
+	w.Flush()
+	f.Close()
+	log.Printf("OutputCSV: end")
+	return nil
+}
+
+//WaitTerminations waits for "SupporterListeners" supporter readers to
+//complete.  That triggers a close for the CSV writer channel.
+func WaitTerminations(rt Runtime) {
+	log.Printf("WaitTerminations: begin")
 	remaining := SupporterListeners
 	for remaining > 0 {
 		log.Printf("WaitTerminations: waiting for %d listeners\n", remaining)
-		_ = <-done
+		_ = <-rt.D
 		remaining--
 	}
+	close(rt.C2)
+	log.Printf("WaitTerminations: end")
 }
 
 //Program entry point.
 func main() {
 	var (
-		app       = kingpin.New("segments_and_supporters", "A command-line app to write Engage segments and email addresses to CSV files.")
+		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
 		segmentId = app.Flag("segmentId", "primary key for the segment of interest").Required().String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
@@ -176,60 +217,60 @@ func main() {
 	}
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error: %v\n", e)
 	}
-
-	c1 := make(chan XrefRecord, 50)
-	c2 := make(chan XrefRecord, 100)
-	doneChan := make(chan bool, SupporterListeners)
-	f, err := os.Create(*csvFile)
-	if err != nil {
-		panic(err)
-	}
-	w := csv.NewWriter(f)
-	headers := []string{"SupporterId", "Email", "Groups"}
-	w.Write(headers)
 
 	rt := Runtime{
-		Env:       e,
+		E:         e,
 		SegmentId: *segmentId,
-		C1:        c1,
-		C2:        c2,
-		D:         doneChan,
-		Writer:    w,
+		C1:        make(chan *XrefRecord, 50),
+		C2:        make(chan *XrefRecord, 100),
+		D:         make(chan bool, SupporterListeners),
+		F:         *csvFile,
 	}
 	var wg sync.WaitGroup
 
-	//Start segment listeners(s)
+	//Start the CSV output listener.
+	go (func(rt Runtime, wg *sync.WaitGroup) {
+		wg.Add(1)
+		defer wg.Done()
+		err := OutputCSV(rt)
+		if err != nil {
+			panic(err)
+		}
+	})(rt, &wg)
+	log.Printf("main: CSV writer started\n")
+
+	//Start segment listeners
 	for id := 1; id <= SupporterListeners; id++ {
-		go (func(e *goengage.Environment, c1 chan goengage.Segment, done chan bool, id int, wg *sync.WaitGroup) {
+		go (func(rt Runtime, id int, wg *sync.WaitGroup) {
 			wg.Add(1)
 			defer wg.Done()
-			err := Supporters(e, c1, done, id)
+			err := Segments(rt, id)
 			if err != nil {
 				panic(err)
 			}
-		})(e, segChan, done, id, &wg)
+		})(rt, id, &wg)
 	}
 	log.Printf("main: %v segment listeners started\n", SupporterListeners)
 
 	//Start "done" listener to keep track of segment listeners.
-	go (func(done chan bool, wg *sync.WaitGroup) {
+	go (func(rt Runtime, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
-		WaitTerminations(done)
-	})(done, &wg)
+		WaitTerminations(rt)
+	})(rt, &wg)
 	log.Println("main: terminations listener started")
 
 	//Start segment reader.
-	go (func(e *goengage.Environment, c chan goengage.Segment, offset int32, wg *sync.WaitGroup) {
+	go (func(rt Runtime, wg *sync.WaitGroup) {
 		wg.Add(1)
 		defer wg.Done()
-		err := Memberss(e, offset, c)
+		err := Members(rt)
 		if err != nil {
 			panic(err)
 		}
-	})(e, segChan, *offset, &wg)
+	})(rt, &wg)
 	log.Printf("main: segment reader started\n")
 
 	log.Printf("main: napping...\n")
