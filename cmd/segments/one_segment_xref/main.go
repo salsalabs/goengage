@@ -56,16 +56,23 @@ func Members(rt Runtime) (err error) {
 	offset := int32(0)
 	for count == rt.E.Metrics.MaxBatchSize {
 		payload := goengage.SegmentMembershipRequestPayload{
-			SegmentId: rt.SegmentId,
-			Offset:    offset,
-			Count:     count,
+			SegmentId:   rt.SegmentId,
+			Offset:      offset,
+			Count:       count,
+			JoinedSince: "2021-01-01T01:01:01.001Z",
 		}
+		log.Printf("Members: payload is %+v\n", payload)
 		rqt := goengage.SegmentMembershipRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
+		log.Printf("Members: request is %+v\n", rqt)
 		var resp goengage.SegmentMembershipResponse
 
+		logger, err := goengage.NewUtilLogger()
+		if err != nil {
+			panic(err)
+		}
 		n := goengage.NetOp{
 			Host:     rt.E.Host,
 			Method:   goengage.SearchMethod,
@@ -73,11 +80,15 @@ func Members(rt Runtime) (err error) {
 			Token:    rt.E.Token,
 			Request:  &rqt,
 			Response: &resp,
+			Logger:   logger,
 		}
+		log.Printf("Members: NetOp instance is %+v\n", n)
 		err = n.Do()
 		if err != nil {
 			return err
 		}
+		log.Printf("Members: response payload is %+v\n", resp.Payload)
+		log.Printf("Members: there are %d supporters\n", len(resp.Payload.Supporters))
 		for _, s := range resp.Payload.Supporters {
 			p := goengage.FirstEmail(s)
 			email := ""
@@ -86,6 +97,7 @@ func Members(rt Runtime) (err error) {
 			}
 			x := NewXrefRecord(s.SupporterID, email)
 			rt.C1 <- x
+			log.Printf("Members: sent Xref %+v\n", x)
 		}
 		count = resp.Payload.Count
 		offset += int32(count)
@@ -99,17 +111,17 @@ func Members(rt Runtime) (err error) {
 //pushes the completed record into the write channel. Notifies done with the input
 //channel is empty.
 func Segments(rt Runtime, id int) (err error) {
-	log.Printf("Segments %v: begin\n", id)
-	for true {
+	log.Printf("Segments %+v: begin\n", id)
+	for {
 		x, ok := <-rt.C1
+		log.Printf("Segments: received x %+v, ok %v\n", x, ok)
 		if !ok {
 			break
 		}
+		log.Printf("Segments: received Xref %+v\n", x)
 		// Read groups, sort, then pass them to the writer's channel.
 		count := rt.E.Metrics.MaxBatchSize
 		offset := int32(0)
-		var identifiers = make([]string, 0)
-		identifiers = append(identifiers, x.SupporterID)
 
 		for count == rt.E.Metrics.MaxBatchSize {
 			payload := goengage.SupporterGroupRequestPayload{
@@ -137,20 +149,24 @@ func Segments(rt Runtime, id int) (err error) {
 				return err
 			}
 			respPayload := resp.Payload
+			log.Printf("Members: response payload has %d results\n", len(respPayload.Results))
 			results := respPayload.Results
 			for _, s := range results {
+				log.Printf("Members: response payload result has %d segments\n", len(s.Segments))
 				for _, t := range s.Segments {
 					x.Segments = append(x.Segments, t)
 				}
+				// x.Segments = append(x.Segments, s.Segments...)
 			}
 			count = resp.Payload.Count
 			offset += int32(count)
 		}
 		rt.C2 <- x
+		log.Printf("Segments: sent Xref %+v", x)
 	}
 
 	rt.D <- true
-	log.Printf("Segments %v: end\n", id)
+	log.Printf("Segments %+v: end\n", id)
 	return nil
 }
 
@@ -165,11 +181,13 @@ func OutputCSV(rt Runtime) error {
 	w := csv.NewWriter(f)
 	headers := []string{"SupporterId", "Email", "Groups"}
 	w.Write(headers)
-	for true {
+	for {
 		x, ok := <-rt.C2
+		log.Printf("OutputCSV: received x %+v, ok %v\n", x, ok)
 		if !ok {
 			break
 		}
+		log.Printf("OutputCSV: received Xref %+v", x)
 		s := strings.Join(x.Segments, ".")
 		row := []string{
 			x.SupporterID,
@@ -191,7 +209,7 @@ func WaitTerminations(rt Runtime) {
 	remaining := SupporterListeners
 	for remaining > 0 {
 		log.Printf("WaitTerminations: waiting for %d listeners\n", remaining)
-		_ = <-rt.D
+		<-rt.D
 		remaining--
 	}
 	close(rt.C2)
@@ -203,7 +221,7 @@ func main() {
 	var (
 		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
-		segmentId = app.Flag("segmentId", "primary key for the segment of interest").Required().String()
+		segmentId = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
 	)
 	app.Parse(os.Args[1:])
@@ -215,24 +233,29 @@ func main() {
 		log.Fatalf("Error --csv is required.")
 		os.Exit(1)
 	}
+	if segmentId == nil || len(*segmentId) != 36 {
+		log.Fatalf("Error --segmentId is required.")
+		os.Exit(1)
+	}
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		log.Fatalf("Error: %v\n", e)
+		log.Fatalf("Error: %+v\n", e)
 	}
 
 	rt := Runtime{
 		E:         e,
 		SegmentId: *segmentId,
-		C1:        make(chan *XrefRecord, 50),
-		C2:        make(chan *XrefRecord, 100),
+		C1:        make(chan *XrefRecord),
+		C2:        make(chan *XrefRecord),
 		D:         make(chan bool, SupporterListeners),
 		F:         *csvFile,
 	}
 	var wg sync.WaitGroup
 
-	//Start the CSV output listener.
+	//Start the CSV output listener.  Note wg.Add before. Should
+	//reduce race conditions.
+	wg.Add(1)
 	go (func(rt Runtime, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		err := OutputCSV(rt)
 		if err != nil {
@@ -243,8 +266,8 @@ func main() {
 
 	//Start segment listeners
 	for id := 1; id <= SupporterListeners; id++ {
+		wg.Add(1)
 		go (func(rt Runtime, id int, wg *sync.WaitGroup) {
-			wg.Add(1)
 			defer wg.Done()
 			err := Segments(rt, id)
 			if err != nil {
@@ -252,19 +275,19 @@ func main() {
 			}
 		})(rt, id, &wg)
 	}
-	log.Printf("main: %v segment listeners started\n", SupporterListeners)
+	log.Printf("main: %+v segment listeners started\n", SupporterListeners)
 
 	//Start "done" listener to keep track of segment listeners.
+	wg.Add(1)
 	go (func(rt Runtime, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		WaitTerminations(rt)
 	})(rt, &wg)
 	log.Println("main: terminations listener started")
 
 	//Start segment reader.
+	wg.Add(1)
 	go (func(rt Runtime, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		err := Members(rt)
 		if err != nil {
