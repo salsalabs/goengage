@@ -90,7 +90,7 @@ type Error struct {
 
 //RequestHeader provides a reference ID.
 type RequestHeader struct {
-	RefID string `json:"refId,omitEmpty"`
+	RefID string `json:"refId,omitempty"`
 }
 
 //Header returns server-side information for Engage API calls.

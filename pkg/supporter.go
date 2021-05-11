@@ -86,7 +86,7 @@ type CustomFieldValue struct {
 type Contact struct {
 	Type   string `json:"type,omitempty"`
 	Value  string `json:"value,omitempty"`
-	Status string `json:"status,omitempty,omitempty" gorm:"status,omitempty"`
+	Status string `json:"status,omitempty" gorm:"status,omitempty"`
 	//Foreign key for GORM.``
 	SupporterID string `json:"-" gorm:"supporter_id"`
 	ContactID   string `json:"-" gorm:"contact_id,primarykey,autoincrement"`
@@ -252,7 +252,7 @@ type SupporterGroupRequest struct {
 //SupporterGroupResponse provides results for the updated supporters.
 type SupporterGroupResponse struct {
 	Header  Header                        `json:"header,omitempty"`
-	Payload SupporterGroupResponsePayload `json:"payload,omitempty,omitempty"`
+	Payload SupporterGroupResponsePayload `json:"payload,omitempty"`
 }
 
 //SupporterSearchGroupsPayload holds the search criteria.
