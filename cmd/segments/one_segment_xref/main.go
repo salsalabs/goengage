@@ -52,6 +52,12 @@ type Runtime struct {
 //provided channel.
 func Members(rt Runtime) (err error) {
 	log.Println("Members: begin")
+
+	logger, err := goengage.NewUtilLogger()
+	if err != nil {
+		panic(err)
+	}
+
 	count := rt.E.Metrics.MaxBatchSize
 	offset := int32(0)
 	for count == rt.E.Metrics.MaxBatchSize {
@@ -59,20 +65,16 @@ func Members(rt Runtime) (err error) {
 			SegmentId:   rt.SegmentId,
 			Offset:      offset,
 			Count:       count,
-			JoinedSince: "2021-01-01T01:01:01.001Z",
+			JoinedSince: "2001-01-01T01:01:01.001Z",
 		}
-		log.Printf("Members: payload is %+v\n", payload)
+
 		rqt := goengage.SegmentMembershipRequest{
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
-		log.Printf("Members: request is %+v\n", rqt)
+
 		var resp goengage.SegmentMembershipResponse
 
-		logger, err := goengage.NewUtilLogger()
-		if err != nil {
-			panic(err)
-		}
 		n := goengage.NetOp{
 			Host:     rt.E.Host,
 			Method:   goengage.SearchMethod,
@@ -82,13 +84,10 @@ func Members(rt Runtime) (err error) {
 			Response: &resp,
 			Logger:   logger,
 		}
-		log.Printf("Members: NetOp instance is %+v\n", n)
 		err = n.Do()
 		if err != nil {
 			return err
 		}
-		log.Printf("Members: response payload is %+v\n", resp.Payload)
-		log.Printf("Members: there are %d supporters\n", len(resp.Payload.Supporters))
 		for _, s := range resp.Payload.Supporters {
 			p := goengage.FirstEmail(s)
 			email := ""
@@ -118,7 +117,7 @@ func Segments(rt Runtime, id int) (err error) {
 		if !ok {
 			break
 		}
-		log.Printf("Segments: received Xref %+v\n", x)
+
 		// Read groups, sort, then pass them to the writer's channel.
 		count := rt.E.Metrics.MaxBatchSize
 		offset := int32(0)
@@ -149,10 +148,8 @@ func Segments(rt Runtime, id int) (err error) {
 				return err
 			}
 			respPayload := resp.Payload
-			log.Printf("Members: response payload has %d results\n", len(respPayload.Results))
 			results := respPayload.Results
 			for _, s := range results {
-				log.Printf("Members: response payload result has %d segments\n", len(s.Segments))
 				for _, t := range s.Segments {
 					x.Segments = append(x.Segments, t)
 				}
