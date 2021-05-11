@@ -34,7 +34,3 @@ logins/*
 # Shell scripts
 *.bash
 *.sh
-
-# Go module stuff
-go.mod
-go.sum
