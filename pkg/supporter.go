@@ -17,7 +17,7 @@ const (
 	SearchSupporter       = "/api/integration/ext/v1/supporters/search"
 	UpsertSupporter       = "/api/integration/ext/v1/supporters"
 	DeleteSupporter       = "/api/integration/ext/v1/supporters"
-	SupporterSearchGroups = "/integration/ext/v1/supporters/groups"
+	SupporterSearchGroups = "/api/integration/ext/v1/supporters/groups"
 )
 
 //Contact types.
