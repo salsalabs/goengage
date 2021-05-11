@@ -60,11 +60,11 @@ type Address struct {
 
 // CustomFieldError is returned when an attempt to change a custom field fails.
 type CustomFieldError struct {
-	ID        string `json:"id,omitEmpty"`
-	Code      int    `json:"code,omitEmpty"`
-	Message   string `json:"message,omitEmpty"`
-	Details   string `json:"details,omitEmpty"`
-	FieldName string `json:"fieldName,omitEmpty"`
+	ID        string `json:"id,omitempty"`
+	Code      int    `json:"code,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Details   string `json:"details,omitempty"`
+	FieldName string `json:"fieldName,omitempty"`
 }
 
 //CustomFieldValue contains information about a custom field.  Note that
@@ -109,7 +109,7 @@ type Supporter struct {
 	Address           *Address           `json:"address,omitempty"`
 	Contacts          []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
 	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
-	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitEmpty"`
+	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitempty"`
 }
 
 //SupporterSearchRequest provides the criteria to match when searching
