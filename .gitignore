@@ -30,3 +30,7 @@ logins/*
 # Databases
 *.db
 *.sqlite3
+
+# Shell scripts
+*.bash
+*.sh
