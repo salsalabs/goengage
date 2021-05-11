@@ -80,8 +80,9 @@ func (n *NetOp) internal() (err error) {
 		if err != nil {
 			return err
 		}
-		n.Logger.LogJSON(b)
-
+		if n.Logger != nil {
+			n.Logger.LogJSON(b)
+		}
 		r := bytes.NewReader(b)
 		req, err = http.NewRequest(n.Method, u.String(), r)
 		if err != nil {
@@ -102,10 +103,12 @@ func (n *NetOp) internal() (err error) {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v: %v", resp.Status, string(b))
+		m := fmt.Sprintf("engage error %v on %v: %v", resp.Status, n.Endpoint, string(b))
 		return errors.New(m)
 	}
-	n.Logger.LogJSON(b)
+	if n.Logger != nil {
+		n.Logger.LogJSON(b)
+	}
 
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
