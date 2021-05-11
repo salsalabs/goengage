@@ -122,7 +122,7 @@ type SegmentMembershipRequest struct {
 type SegmentMembershipRequestPayload struct {
 	SegmentId    string        `json:"segmentId,omitempty"`
 	SupporterIds []interface{} `json:"supporterIds,omitempty"`
-	JoinedSince  time.Time     `json:"joinedSince,omitempty"`
+	JoinedSince  string        `json:"joinedSince,omitempty"`
 	Offset       int32         `json:"offset,omitempty"`
 	Count        int32         `json:"count,omitempty"`
 	SortOrder    string        `json:"sortOrder,omitempty"`
