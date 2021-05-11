@@ -120,22 +120,23 @@ type SegmentMembershipRequest struct {
 //SegmentMembershipRequestPayload contains the payload for searching for
 // segment members.
 type SegmentMembershipRequestPayload struct {
-	SegmentId    string        `json:"segmentId,omitempty"`
-	SupporterIds []interface{} `json:"supporterIds,omitempty"`
-	JoinedSince  string        `json:"joinedSince,omitempty"`
-	Offset       int32         `json:"offset,omitempty"`
-	Count        int32         `json:"count,omitempty"`
-	SortOrder    string        `json:"sortOrder,omitempty"`
+	SegmentId    string         `json:"segmentId,omitempty"`
+	SupporterIds *[]interface{} `json:"supporterIds,omitempty"`
+	JoinedSince  string         `json:"joinedSince,omitempty"`
+	Offset       int32          `json:"offset,omitempty"`
+	Count        int32          `json:"count,omitempty"`
+	SortOrder    string         `json:"sortOrder,omitempty"`
 }
 
 //SegmentMembershipResponse contains the results returned by searching for
 //segment members.
 type SegmentMembershipResponse struct {
 	Payload struct {
-		Count      int32       `json:"count"`
-		Offset     int32       `json:"offset"`
-		Total      int32       `json:"total"`
-		Supporters []Supporter `json:"segments"`
+		Count int32 `json:"count"`
+		// Potential bug.  These fields do not appear in the response payload.
+		// Offset     int32       `json:"offset"`
+		// Total      int32       `json:"total"`
+		Supporters []Supporter `json:"supporters"`
 	} `json:"payload"`
 }
 
