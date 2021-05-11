@@ -102,12 +102,17 @@ type SegmentSearchRequestPayload struct {
 
 //SegmentSearchResponse contains the results returned by searching for segments.
 type SegmentSearchResponse struct {
-	Payload struct {
-		Count    int32     `json:"count"`
-		Offset   int32     `json:"offset"`
-		Total    int32     `json:"total"`
-		Segments []Segment `json:"segments"`
-	} `json:"payload"`
+	ID        string                       `json:"id,omitempty"`
+	Timestamp *time.Time                   `json:"timestamp,omitempty"`
+	Header    Header                       `json:"header,omitempty"`
+	Payload   SegmentSearchResponsePayload `json:"payload,omitempty"`
+}
+
+type SegmentSearchResponsePayload struct {
+	Count    int32     `json:"count,omitempty"`
+	Offset   int32     `json:"offset,omitempty"`
+	Total    int32     `json:"total,omitempty"`
+	Segments []Segment `json:"segments,omitempty"`
 }
 
 //SegmentMembershipRequest contains parameters for searching for segment
@@ -131,13 +136,16 @@ type SegmentMembershipRequestPayload struct {
 //SegmentMembershipResponse contains the results returned by searching for
 //segment members.
 type SegmentMembershipResponse struct {
-	Payload struct {
-		Count int32 `json:"count"`
-		// Potential bug.  These fields do not appear in the response payload.
-		// Offset     int32       `json:"offset"`
-		// Total      int32       `json:"total"`
-		Supporters []Supporter `json:"supporters"`
-	} `json:"payload"`
+	Header  Header                           `json:"header,omitempty"`
+	Payload SegmentMembershipResponsePayload `json:"payload,omitempty"`
+}
+
+//SegmentMembershipResponsePayload carries a batch of supporters for
+//the provided segment.
+type SegmentMembershipResponsePayload struct {
+	Count      int32       `json:"count,omitempty"`
+	Total      int32       `json:"total,omitempty"`
+	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
 //AssignSupportersRequest provides the segment and list of supporter IDs
