@@ -243,13 +243,6 @@ func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
 	return s, err
 }
 
-//SupporterGroupResult holds the list of supporter records to be updated.
-type SupporterGroupResult struct {
-	Supporterid string   `json:"supporterId,omitempty"`
-	Segments    []string `json:"segments,omitempty"`
-	Result      string   `json:"result,omitempty"`
-}
-
 //SupporterGroupRequest requests the groups (segments) that a supporter
 //belongs to.
 type SupporterGroupRequest struct {
