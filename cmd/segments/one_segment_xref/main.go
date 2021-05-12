@@ -19,6 +19,8 @@ import (
 const (
 	//SupporterListeners is the number of listeners for segments info records.
 	SupporterListeners = 5
+	//StartDate is used for the starting of Joined and LastModified ranges.
+	StartDate = "2001-01-01T01:01:01.001Z"
 )
 
 //XrefRecord is the container for the information that goes to the output.
@@ -41,11 +43,12 @@ func NewXrefRecord(s string, e string) *XrefRecord {
 //Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
 	E         *goengage.Environment
-	SegmentId string
+	SegmentID string
 	C1        chan *XrefRecord
 	C2        chan *XrefRecord
 	D         chan bool
 	F         string
+	L         *goengage.UtilLogger
 }
 
 //Members accepts a segmentId and writes the segment members to the
@@ -53,19 +56,14 @@ type Runtime struct {
 func Members(rt Runtime) (err error) {
 	log.Println("Members: begin")
 
-	logger, err := goengage.NewUtilLogger()
-	if err != nil {
-		panic(err)
-	}
-
 	count := rt.E.Metrics.MaxBatchSize
 	offset := int32(0)
 	for count == rt.E.Metrics.MaxBatchSize {
 		payload := goengage.SegmentMembershipRequestPayload{
-			SegmentId:   rt.SegmentId,
+			SegmentId:   rt.SegmentID,
 			Offset:      offset,
 			Count:       count,
-			JoinedSince: "2001-01-01T01:01:01.001Z",
+			JoinedSince: StartDate,
 		}
 
 		rqt := goengage.SegmentMembershipRequest{
@@ -82,7 +80,7 @@ func Members(rt Runtime) (err error) {
 			Token:    rt.E.Token,
 			Request:  &rqt,
 			Response: &resp,
-			Logger:   logger,
+			Logger:   rt.L,
 		}
 		err = n.Do()
 		if err != nil {
@@ -96,7 +94,6 @@ func Members(rt Runtime) (err error) {
 			}
 			x := NewXrefRecord(s.SupporterID, email)
 			rt.C1 <- x
-			log.Printf("Members: sent Xref %+v\n", x)
 		}
 		count = resp.Payload.Count
 		offset += int32(count)
@@ -106,14 +103,13 @@ func Members(rt Runtime) (err error) {
 	return nil
 }
 
-//Supporters accepts an xref record from the channel, populates the Groups field, then
+//Segments accepts an xref record from the channel, populates the Groups field, then
 //pushes the completed record into the write channel. Notifies done with the input
 //channel is empty.
 func Segments(rt Runtime, id int) (err error) {
 	log.Printf("Segments %+v: begin\n", id)
 	for {
 		x, ok := <-rt.C1
-		log.Printf("Segments: received x %+v, ok %v\n", x, ok)
 		if !ok {
 			break
 		}
@@ -126,6 +122,7 @@ func Segments(rt Runtime, id int) (err error) {
 			payload := goengage.SupporterGroupRequestPayload{
 				Identifiers:    []string{x.SupporterID},
 				IdentifierType: goengage.SupporterIDType,
+				ModifiedFrom:   StartDate,
 				Offset:         offset,
 				Count:          count,
 			}
@@ -142,6 +139,7 @@ func Segments(rt Runtime, id int) (err error) {
 				Token:    rt.E.Token,
 				Request:  &rqt,
 				Response: &resp,
+				Logger:   rt.L,
 			}
 			err = n.Do()
 			if err != nil {
@@ -151,19 +149,18 @@ func Segments(rt Runtime, id int) (err error) {
 			results := respPayload.Results
 			for _, s := range results {
 				for _, t := range s.Segments {
-					x.Segments = append(x.Segments, t)
+					if t.SegmentID != rt.SegmentID {
+						x.Segments = append(x.Segments, t.Name)
+					}
 				}
-				// x.Segments = append(x.Segments, s.Segments...)
 			}
 			count = resp.Payload.Count
 			offset += int32(count)
 		}
 		rt.C2 <- x
-		log.Printf("Segments: sent Xref %+v", x)
 	}
 
 	rt.D <- true
-	log.Printf("Segments %+v: end\n", id)
 	return nil
 }
 
@@ -180,12 +177,10 @@ func OutputCSV(rt Runtime) error {
 	w.Write(headers)
 	for {
 		x, ok := <-rt.C2
-		log.Printf("OutputCSV: received x %+v, ok %v\n", x, ok)
 		if !ok {
 			break
 		}
-		log.Printf("OutputCSV: received Xref %+v", x)
-		s := strings.Join(x.Segments, ".")
+		s := strings.Join(x.Segments, ",")
 		row := []string{
 			x.SupporterID,
 			x.Email,
@@ -218,7 +213,7 @@ func main() {
 	var (
 		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
-		segmentId = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
+		segmentID = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
 	)
 	app.Parse(os.Args[1:])
@@ -230,7 +225,7 @@ func main() {
 		log.Fatalf("Error --csv is required.")
 		os.Exit(1)
 	}
-	if segmentId == nil || len(*segmentId) != 36 {
+	if segmentID == nil || len(*segmentID) != 36 {
 		log.Fatalf("Error --segmentId is required.")
 		os.Exit(1)
 	}
@@ -239,13 +234,19 @@ func main() {
 		log.Fatalf("Error: %+v\n", e)
 	}
 
+	logger, err := goengage.NewUtilLogger()
+	if err != nil {
+		panic(err)
+	}
+
 	rt := Runtime{
 		E:         e,
-		SegmentId: *segmentId,
+		SegmentID: *segmentID,
 		C1:        make(chan *XrefRecord),
 		C2:        make(chan *XrefRecord),
 		D:         make(chan bool, SupporterListeners),
 		F:         *csvFile,
+		L:         logger,
 	}
 	var wg sync.WaitGroup
 
