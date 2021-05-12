@@ -27,14 +27,17 @@ const (
 
 //Segment contains the information for a single Segment (group)>
 type Segment struct {
-	SegmentID        string  `json:"segmentId,omitempty"`
-	Name             string  `json:"name"`
-	Description      string  `json:"description"`
-	Type             string  `json:"type,omitempty"`
-	TotalSupporters  int     `json:"totalSupporters,omitempty"`
-	ExternalSystemID string  `json:"externalSystemId,omitempty"`
-	Result           string  `json:"result,omitempty"`
-	Errors           []Error `json:"errors,omitempty"`
+	SegmentID         string `json:"segmentId,omitempty"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	Type              string `json:"type,omitempty"`
+	TotalMembers      int    `json:"totalSupporters,omitempty"`
+	ExternalSystemID  string `json:"externalSystemId,omitempty"`
+	Result            string `json:"result,omitempty"`
+	MailingList       bool   `json:"mailingList,omitempty"`
+	PublicName        string `json:"publicName,omitempty"`
+	PublicDescription string `json:"publicDescription,omitempty"`
+	ParameterName     string `json:"parameterName,omitempty"`
 }
 
 //UpsertRequest is used to add or modify segments.
