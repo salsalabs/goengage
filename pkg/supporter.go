@@ -112,6 +112,14 @@ type Supporter struct {
 	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitempty"`
 }
 
+//SupporterSegment is returned when searching for segments that a
+//supporter belongs to.
+type SupporterSegment struct {
+	SupporterID string    `json:"supporterId,omitempty"`
+	Segments    []Segment `json:"segments,omitempty"`
+	Result      string    `json:"result,omitempty"`
+}
+
 //SupporterSearchRequest provides the criteria to match when searching
 //for supporters.  Providing no criterria will return all supporters.
 //"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
@@ -142,7 +150,7 @@ type SupporterSearchResults struct {
 	Payload   SupporterSearchResponsePayload `json:"payload,omitempty"`
 }
 
-//SupporterSearchRequestPayload holds the payload for a single supporter search
+//SupporterSearchResponsePayload holds the payload for a single supporter search
 //operation.
 type SupporterSearchResponsePayload struct {
 	Count      int32       `json:"count,omitempty"`
@@ -235,7 +243,7 @@ func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
 	return s, err
 }
 
-//SupporterGroupPayload holds the list of supporter records to be updated.
+//SupporterGroupResult holds the list of supporter records to be updated.
 type SupporterGroupResult struct {
 	Supporterid string   `json:"supporterId,omitempty"`
 	Segments    []string `json:"segments,omitempty"`
@@ -249,37 +257,36 @@ type SupporterGroupRequest struct {
 	Payload SupporterGroupRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterGroupResponse provides results for the updated supporters.
-type SupporterGroupResponse struct {
-	Header  Header                        `json:"header,omitempty"`
-	Payload SupporterGroupResponsePayload `json:"payload,omitempty"`
-}
-
-//SupporterSearchGroupsPayload holds the search criteria.
+//SupporterGroupRequestPayload holds the search criteria.
 //https://api.salsalabs.org/help/integration#operation/getGroupsForSupporters
 type SupporterGroupRequestPayload struct {
-	Identifiers     []string  `json:"identifiers,omitempty"`
-	IdentifierType  string    `json:"identifierType,omitempty"`
-	SearchString    string    `json:"searchString,omitempty"`
-	ModifiedFrom    time.Time `json:"modifiedFrom,omitempty"`
-	ModifiedTo      time.Time `json:"modifiedTo,omitempty"`
-	Offset          int32     `json:"offset,omitempty"`
-	Count           int32     `json:"count,omitempty"`
-	IncludeCellOnly bool      `json:"includeCellOnly,omitempty"`
-	IncludeNormal   bool      `json:"includeNormal,omitempty"`
+	Identifiers     []string `json:"identifiers,omitempty"`
+	IdentifierType  string   `json:"identifierType,omitempty"`
+	SearchString    string   `json:"searchString,omitempty"`
+	ModifiedFrom    string   `json:"modifiedFrom,omitempty"`
+	ModifiedTo      string   `json:"modifiedTo,omitempty"`
+	Offset          int32    `json:"offset,omitempty"`
+	Count           int32    `json:"count,omitempty"`
+	IncludeCellOnly bool     `json:"includeCellOnly,omitempty"`
+	IncludeNormal   bool     `json:"includeNormal,omitempty"`
 }
 
-//SupporterGroupResults lists the supporters that match the search criteria.
+//SupporterGroupResponse provides results for the updated supporters.
+type SupporterGroupResponse struct {
+	ID        string                        `json:"id,omitempty"`
+	Timestamp string                        `json:"timestamp,omitempty"`
+	Header    Header                        `json:"header,omitempty"`
+	Payload   SupporterGroupResponsePayload `json:"payload,omitempty"`
+	Errors    []Error                       `json:"errors,omitempty"`
+}
+
+//SupporterGroupResponsePayload lists the supporters that match the search criteria.
 //Note that Supporter is common throughout Engage.
 type SupporterGroupResponsePayload struct {
-	Total   int   `json:"total,omitempty"`
-	Offset  int32 `json:"offset,omitempty"`
-	Count   int32 `json:"count,omitempty"`
-	Results []struct {
-		Supporterid string   `json:"supporterId,omitempty"`
-		Segments    []string `json:"segments,omitempty"`
-		Result      string   `json:"result,omitempty"`
-	} `json:"results,omitempty"`
+	Total   int                `json:"total,omitempty"`
+	Offset  int32              `json:"offset,omitempty"`
+	Count   int32              `json:"count,omitempty"`
+	Results []SupporterSegment `json:"results,omitempty"`
 }
 
 //SupporterByID retrieves a supporter record for Engage using the SupporterID
