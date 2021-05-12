@@ -107,6 +107,7 @@ func (n *NetOp) internal() (err error) {
 		return errors.New(m)
 	}
 	if n.Logger != nil {
+		n.Logger.Printf("Net: endpoint %s\nNet: response\n", n.Endpoint)
 		n.Logger.LogJSON(b)
 	}
 
