@@ -91,6 +91,12 @@ func (u *UtilLogger) LogJSON(b []byte) {
 	}
 }
 
+//Printf is used to print a formatted message with the
+//internal logger.
+func (u *UtilLogger) Printf(format string, v ...interface{}) {
+	u.Logger.Printf(format, v...)
+}
+
 //MarshalJSON JSON for a time.
 func (t TimeStamp) MarshalJSON() ([]byte, error) {
 	s := t.Format(EngageDateFormat)
