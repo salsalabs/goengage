@@ -34,3 +34,4 @@ logins/*
 # Shell scripts
 *.bash
 *.sh
+scripts/*
