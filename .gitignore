@@ -35,3 +35,6 @@ logins/*
 *.bash
 *.sh
 scripts/*
+
+# Internal process documentation.
+README_INTERNAL.md
