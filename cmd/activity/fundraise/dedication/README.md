@@ -1,7 +1,6 @@
 # Dedication report
 
 Go application to retrieve donations that have a dedication (in memory of or in honor of).
-This is a client-specific app that does not have general application.
 
 The user provides an Engage token and a date range.
 The default date range is Monday to Sunday of last week.
