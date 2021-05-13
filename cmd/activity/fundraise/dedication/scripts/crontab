@@ -1,0 +1,6 @@
+# use /bin/sh to run commands, no matter what /etc/passwd says
+SHELL=/bin/bash
+PATH=/home/aleonard/go/bin:/home/aleonard/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/aleonard/bin
+
+# min hour day month weekday command
+  00   02  *   *     Mon    /home/aleonard/bin/apda_prepare_weekly.bash
