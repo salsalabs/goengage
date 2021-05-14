@@ -49,15 +49,14 @@ func NewCFRecord(s goengage.Supporter, c goengage.CustomFieldValue) *CFRecord {
 
 //Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
-	E          *goengage.Environment
-	Name       string
-	MaxRecords int32
-	C0         chan int32
-	C1         chan goengage.Supporter
-	C2         chan *CFRecord
-	D          chan bool
-	F          string
-	L          *goengage.UtilLogger
+	E    *goengage.Environment
+	Name string
+	C0   chan int32
+	C1   chan goengage.Supporter
+	C2   chan *CFRecord
+	D    chan bool
+	F    string
+	L    *goengage.UtilLogger
 }
 
 //Offsets accepts a number of records and writes offsets
