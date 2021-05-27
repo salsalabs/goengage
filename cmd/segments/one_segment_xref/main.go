@@ -248,10 +248,10 @@ func main() {
 		log.Fatalf("Error: %+v\n", e)
 	}
 
-	logger, err := goengage.NewUtilLogger()
-	if err != nil {
-		panic(err)
-	}
+	// logger, err := goengage.NewUtilLogger()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	var regex *regexp.Regexp
 	if notThis != nil {
@@ -264,8 +264,8 @@ func main() {
 		C2:        make(chan *XrefRecord, XrefListeners),
 		D:         make(chan bool, SupporterListeners),
 		F:         *csvFile,
-		L:         logger,
-		N:         regex,
+		// L:         logger,
+		N: regex,
 	}
 	var wg sync.WaitGroup
 
