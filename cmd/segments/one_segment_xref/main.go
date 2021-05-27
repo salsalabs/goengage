@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,8 @@ import (
 const (
 	//SupporterListeners is the number of listeners for segments info records.
 	SupporterListeners = 5
+	//XrefListeners is the channel volume for the xref listeners.
+	XrefListeners = 500
 	//StartDate is used for the starting of Joined and LastModified ranges.
 	StartDate = "2001-01-01T01:01:01.001Z"
 )
@@ -49,6 +52,7 @@ type Runtime struct {
 	D         chan bool
 	F         string
 	L         *goengage.UtilLogger
+	N         *regexp.Regexp
 }
 
 //Members accepts a segmentId and writes the segment members to the
@@ -86,6 +90,13 @@ func Members(rt Runtime) (err error) {
 		if err != nil {
 			return err
 		}
+		if offset%500 == 0 {
+			log.Printf("Members: %6d: %2d of %6d\n",
+				offset,
+				len(resp.Payload.Supporters),
+				resp.Payload.Total)
+		}
+
 		for _, s := range resp.Payload.Supporters {
 			p := goengage.FirstEmail(s)
 			email := ""
@@ -150,7 +161,9 @@ func Segments(rt Runtime, id int) (err error) {
 			for _, s := range results {
 				for _, t := range s.Segments {
 					if t.SegmentID != rt.SegmentID {
-						x.Segments = append(x.Segments, t.Name)
+						if !(rt.N != nil && rt.N.MatchString(t.Name)) {
+							x.Segments = append(x.Segments, t.Name)
+						}
 					}
 				}
 			}
@@ -214,6 +227,7 @@ func main() {
 		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
 		segmentID = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
+		notThis   = app.Flag("ignore-segments-like", "Regex for segments not to consider.  Defaults to nil").String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
 	)
 	app.Parse(os.Args[1:])
@@ -239,14 +253,19 @@ func main() {
 		panic(err)
 	}
 
+	var regex *regexp.Regexp
+	if notThis != nil {
+		regex = regexp.MustCompile(*notThis)
+	}
 	rt := Runtime{
 		E:         e,
 		SegmentID: *segmentID,
-		C1:        make(chan *XrefRecord),
-		C2:        make(chan *XrefRecord),
+		C1:        make(chan *XrefRecord, XrefListeners),
+		C2:        make(chan *XrefRecord, XrefListeners),
 		D:         make(chan bool, SupporterListeners),
 		F:         *csvFile,
 		L:         logger,
+		N:         regex,
 	}
 	var wg sync.WaitGroup
 
