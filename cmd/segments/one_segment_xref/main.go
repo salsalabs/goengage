@@ -64,7 +64,7 @@ func Members(rt Runtime) (err error) {
 	offset := int32(0)
 	for count == rt.E.Metrics.MaxBatchSize {
 		payload := goengage.SegmentMembershipRequestPayload{
-			SegmentId:   rt.SegmentID,
+			SegmentID:   rt.SegmentID,
 			Offset:      offset,
 			Count:       count,
 			JoinedSince: StartDate,
