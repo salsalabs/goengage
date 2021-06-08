@@ -95,7 +95,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 			offset := int32(0)
 			for count == e.Metrics.MaxBatchSize {
 				payload := goengage.SegmentMembershipRequestPayload{
-					SegmentId: r.SegmentID,
+					SegmentID: r.SegmentID,
 					Offset:    offset,
 					Count:     count,
 				}
