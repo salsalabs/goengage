@@ -86,7 +86,7 @@ type SegmentDeleteResponse struct {
 }
 
 //SegmentSearchRequest contains parameters for searching for segments.  Please
-//see the documentation for details.  Note that true in "includeSupporterCounts"
+//see the documentation for details.  Note that true in "includeMemberCounts"
 //really, *really* slows this call down.  A bunch.
 type SegmentSearchRequest struct {
 	Header  RequestHeader               `json:"header,omitempty"`
@@ -95,12 +95,12 @@ type SegmentSearchRequest struct {
 
 //SegmentSearchRequestPayload contains the payload for searching for segments.
 type SegmentSearchRequestPayload struct {
-	Offset                 int32    `json:"offset"`
-	Count                  int32    `json:"count"`
-	Identifiers            []string `json:"identifiers"`
-	IdentifierType         string   `json:"identifierType"`
-	IncludeSupporterCounts bool     `json:"includeSupporterCounts"`
-	JoinedSince            string   `json:"joinedSince"`
+	Offset              int32    `json:"offset"`
+	Count               int32    `json:"count"`
+	Identifiers         []string `json:"identifiers"`
+	IdentifierType      string   `json:"identifierType"`
+	IncludeMemberCounts bool     `json:"includeMemberCounts"`
+	JoinedSince         string   `json:"joinedSince"`
 }
 
 //SegmentSearchResponse contains the results returned by searching for segments.
@@ -111,6 +111,8 @@ type SegmentSearchResponse struct {
 	Payload   SegmentSearchResponsePayload `json:"payload,omitempty"`
 }
 
+//SegmentSearchResponsePayload wraps the response payload for a
+//segment search.
 type SegmentSearchResponsePayload struct {
 	Count    int32     `json:"count,omitempty"`
 	Offset   int32     `json:"offset,omitempty"`
@@ -128,7 +130,7 @@ type SegmentMembershipRequest struct {
 //SegmentMembershipRequestPayload contains the payload for searching for
 // segment members.
 type SegmentMembershipRequestPayload struct {
-	SegmentId    string         `json:"segmentId,omitempty"`
+	SegmentID    string         `json:"segmentId,omitempty"`
 	SupporterIds *[]interface{} `json:"supporterIds,omitempty"`
 	JoinedSince  string         `json:"joinedSince,omitempty"`
 	Offset       int32          `json:"offset,omitempty"`
