@@ -6,6 +6,7 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -45,14 +46,15 @@ func NewXrefRecord(s string, e string) *XrefRecord {
 
 //Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
-	E         *goengage.Environment
-	SegmentID string
-	C1        chan *XrefRecord
-	C2        chan *XrefRecord
-	D         chan bool
-	F         string
-	L         *goengage.UtilLogger
-	N         *regexp.Regexp
+	E            *goengage.Environment
+	SegmentID    string
+	C1           chan *XrefRecord
+	C2           chan *XrefRecord
+	D            chan bool
+	F            string
+	L            *goengage.UtilLogger
+	N            *regexp.Regexp
+	MemberOffset int32
 }
 
 //Members accepts a segmentId and writes the segment members to the
@@ -61,7 +63,7 @@ func Members(rt Runtime) (err error) {
 	log.Println("Members: begin")
 
 	count := rt.E.Metrics.MaxBatchSize
-	offset := int32(0)
+	offset := rt.MemberOffset
 	for count == rt.E.Metrics.MaxBatchSize {
 		payload := goengage.SegmentMembershipRequestPayload{
 			SegmentID:   rt.SegmentID,
@@ -229,6 +231,7 @@ func main() {
 		segmentID = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
 		notThis   = app.Flag("ignore-segments-like", "Regex for segments not to consider.  Defaults to nil").String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
+		offset    = app.Flag("member-offset", "Start here if you lose network connectivity").Default("0").Int32()
 	)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
@@ -245,7 +248,6 @@ func main() {
 	}
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		log.Fatalf("Error: %+v\n", e)
 	}
 
 	// logger, err := goengage.NewUtilLogger()
@@ -258,14 +260,15 @@ func main() {
 		regex = regexp.MustCompile(*notThis)
 	}
 	rt := Runtime{
-		E:         e,
-		SegmentID: *segmentID,
-		C1:        make(chan *XrefRecord, XrefListeners),
-		C2:        make(chan *XrefRecord, XrefListeners),
-		D:         make(chan bool, SupporterListeners),
-		F:         *csvFile,
+		E:            e,
+		SegmentID:    *segmentID,
+		C1:           make(chan *XrefRecord, XrefListeners),
+		C2:           make(chan *XrefRecord, XrefListeners),
+		D:            make(chan bool, SupporterListeners),
+		F:            *csvFile,
+		N:            regex,
+		MemberOffset: *offset,
 		// L:         logger,
-		N: regex,
 	}
 	var wg sync.WaitGroup
 
