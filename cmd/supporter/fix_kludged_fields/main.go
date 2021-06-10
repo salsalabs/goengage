@@ -15,6 +15,11 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
+const (
+	// Number of input queue listeners.
+	ListenerCount = 5
+)
+
 //Runtime area for this app.
 type Runtime struct {
 	E          *goengage.Environment
@@ -42,10 +47,18 @@ func NewRuntime(env *goengage.Environment, offset int32) Runtime {
 func (r *Runtime) Visit(s goengage.Supporter) error {
 	if s.Address != nil {
 		a := s.Address
-		if a.AddressLine1 == a.City && a.City == a.PostalCode {
+		if a.AddressLine1 == a.City && a.City == a.PostalCode && (len(a.PostalCode) > 0) {
+			log.Printf("before: %s, %s, %s, %s\n", s.SupporterID,
+				a.AddressLine1,
+				a.City,
+				a.PostalCode)
 			a.AddressLine1 = ""
 			a.City = ""
-			log.Printf("%+v", s.Address)
+			log.Printf("after: %+v", s.Address)
+			_, err := goengage.SupporterUpsert(r.E, &s)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -108,24 +121,24 @@ func main() {
 	r := NewRuntime(e, *offset)
 	var wg sync.WaitGroup
 
-	//Start supporter listener. Only one of these because Visit is quick
-	//in this app. More than one cases "concurrent map writes" errors.
-	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
+	//Start supporter listeners.
+	for i := 1; i <= ListenerCount; i++ {
 		wg.Add(1)
-		defer wg.Done()
-		reporter.ProcessSupporters(r.E, r)
-	})(e, &r, &wg)
-
+		go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
+			defer wg.Done()
+			reporter.ProcessSupporters(r.E, r)
+		})(e, &r, &wg)
+	}
 	//Start done listener.
+	wg.Add(1)
 	go (func(r *Runtime, n int, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		goengage.DoneListener(r.DoneChan, n)
-	})(&r, 1, &wg)
+	})(&r, ListenerCount, &wg)
 
 	//Start supporter reader.
+	wg.Add(1)
 	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		reporter.ReadSupporters(r.E, r)
 	})(e, &r, &wg)
