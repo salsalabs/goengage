@@ -222,7 +222,6 @@ func SupporterUpsert(e *Environment, s *Supporter, logger *UtilLogger) (*Support
 	if err != nil {
 		return s, err
 	}
-	x := response.Payload.Supporters[0]
 	count := int32(len(response.Payload.Supporters))
 	if count != 0 {
 		s = &response.Payload.Supporters[0]

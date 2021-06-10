@@ -60,7 +60,7 @@ func main() {
 		}
 		return
 	}
-	result, err := goengage.SupporterUpsert(e, s)
+	result, err := goengage.SupporterUpsert(e, s, nil)
 	if err != nil {
 		fmt.Printf("Upsert failed with %s\n", err)
 	}

@@ -25,18 +25,24 @@ type Runtime struct {
 	E          *goengage.Environment
 	InChan     chan goengage.Supporter
 	DoneChan   chan bool
-	Keys       []string
-	FieldName  string
 	ReadOffset int32
+	Logger     *goengage.UtilLogger
 }
 
 //NewRuntime populates a new runtime.
-func NewRuntime(env *goengage.Environment, offset int32) Runtime {
+func NewRuntime(env *goengage.Environment, offset int32, verbose bool) Runtime {
 	r := Runtime{
 		E:          env,
 		InChan:     make(chan goengage.Supporter),
 		DoneChan:   make(chan bool),
 		ReadOffset: offset,
+	}
+	if verbose {
+		logger, err := goengage.NewUtilLogger()
+		if err != nil {
+			log.Fatalf("unable to create logger, %v", err)
+		}
+		r.Logger = logger
 	}
 	return r
 }
@@ -48,14 +54,10 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	if s.Address != nil {
 		a := s.Address
 		if a.AddressLine1 == a.City && a.City == a.PostalCode && (len(a.PostalCode) > 0) {
-			log.Printf("before: %s, %s, %s, %s\n", s.SupporterID,
-				a.AddressLine1,
-				a.City,
-				a.PostalCode)
 			a.AddressLine1 = ""
 			a.City = ""
-			log.Printf("after: %+v", s.Address)
-			_, err := goengage.SupporterUpsert(r.E, &s)
+			updated, err := goengage.SupporterUpsert(r.E, &s, r.Logger)
+			log.Printf("Visit: %v %v %+v", updated.SupporterID, updated.Result, updated.Address)
 			if err != nil {
 				return err
 			}
@@ -104,9 +106,10 @@ func (r *Runtime) Offset() int32 {
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
-		app    = kingpin.New("custom_field-distribution", "Find and fix supporter records with malformed addressLine1 and City")
-		login  = app.Flag("login", "YAML file with API token").Required().String()
-		offset = app.Flag("offset", "Read offset. Useful when network goes away").Default("0").Int32()
+		app     = kingpin.New("custom_field-distribution", "Find and fix supporter records with malformed addressLine1 and City")
+		login   = app.Flag("login", "YAML file with API token").Required().String()
+		offset  = app.Flag("offset", "Read offset. Useful when network goes away").Default("0").Int32()
+		verbose = app.Flag("verbose", "See contents of all network actions.  *Really* noisy").Default("false").Bool()
 	)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
@@ -118,7 +121,7 @@ func main() {
 		panic(err)
 	}
 
-	r := NewRuntime(e, *offset)
+	r := NewRuntime(e, *offset, *verbose)
 	var wg sync.WaitGroup
 
 	//Start supporter listeners.
