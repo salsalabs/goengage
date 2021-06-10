@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+const (
+	//EmailBlastSearchRequest is used to find blasts.
+	SearchEmailBlast = "/api/integration/ext/v1/emails/search"
+
+	//EmailBlastGetSingleBlast is used to retrieve a single blast
+	//as well as as all of the recipient data.
+	EmailBlastGetSingleBlast = "/api/integration/ext/v1/emails/individualResults"
+)
+
 //Conversion hold information about any donatoins made as a result of an
 //email blast.
 type Conversion struct {
@@ -37,6 +46,42 @@ type Recipient struct {
 	Conversions          []Conversion `json:"conversionData,omitempty"`
 }
 
+//EmailBlastSearchRequestPayload contains the criteria used to retrieve blasts.
+type EmailBlastSearchRequestPayload struct {
+	ID            string `json:"id,omitempty"`
+	ContentID     string `json:"contentId,omitempty"`
+	Cursor        string `json:"cursor,omitempty"`
+	PublishedFrom string `json:"publishedFrom,omitempty"`
+	PublishedTo   string `json:"publishedTo,omitempty"`
+	Type          string `json:"type,omitempty"`
+	Offset        int32  `json:"offset,omitempty"`
+	Count         int32  `json:"count,omitempty"`
+}
+
+//EmailBlastSearchRequest wraps the request payload.
+type EmailBlastSearchRequest struct {
+	ID      string                         `json:"id,omitempty"`
+	Header  RequestHeader                  `json:"header,omitempty"`
+	Payload EmailBlastSearchRequestPayload `json:"payload,omitempty"`
+}
+
+//EmailBlastSearchResponsePayload contains the results of a
+//search.
+type EmailBlastSearchResponsePayload struct {
+	Total           int32        `json:"total,omitempty"`
+	Offset          int32        `json:"offset,omitempty"`
+	Count           int32        `json:"count,omitempty"`
+	EmailActivities []EmailBlast `json:"emailActivities,omitempty"`
+}
+
+//EmailBlastSearchResponse wraps a response payload.
+type EmailBlastSearchResponse struct {
+	ID        string                          `json:"id,omitempty"`
+	TimeStamp string                          `json:"timestamp,omitempty"`
+	Header    Header                          `json:"header,omitempty"`
+	Payload   EmailBlastSearchResponsePayload `json:"payload,omitempty"`
+}
+
 //EmailResultsRequest is used to request email blast activity
 //records for a blast.
 //
@@ -57,15 +102,15 @@ type EmailResponse struct {
 	Timestamp *time.Time `json:"timestamp"`
 	Header    Header     `json:"header"`
 	Payload   struct {
-		Total           int32           `json:"total"`
-		Offset          int32           `json:"offset"`
-		EmailActivities []EmailActivity `json:"emailActivities"`
-		Count           int32           `json:"count"`
+		Total           int32        `json:"total"`
+		Offset          int32        `json:"offset"`
+		EmailActivities []EmailBlast `json:"emailActivities"`
+		Count           int32        `json:"count"`
 	} `json:"payload"`
 }
 
 //EmailActivity describes the contents of the email.
-type EmailActivity struct {
+type EmailBlast struct {
 	ID          string     `json:"id"`
 	Topic       string     `json:"topic"`
 	Name        string     `json:"name"`
