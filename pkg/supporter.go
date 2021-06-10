@@ -200,7 +200,7 @@ type DeletedResponse struct {
 }
 
 //SupporterUpsert upserts the provided supporter into Engage.
-func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
+func SupporterUpsert(e *Environment, s *Supporter, logger *UtilLogger) (*Supporter, error) {
 	payload := SupporterUpdatePayload{
 		Supporters: []Supporter{*s},
 	}
@@ -216,11 +216,13 @@ func SupporterUpsert(e *Environment, s *Supporter) (*Supporter, error) {
 		Token:    e.Token,
 		Request:  &request,
 		Response: &response,
+		Logger:   logger,
 	}
 	err := n.Do()
 	if err != nil {
 		return s, err
 	}
+	x := response.Payload.Supporters[0]
 	count := int32(len(response.Payload.Supporters))
 	if count != 0 {
 		s = &response.Payload.Supporters[0]
