@@ -53,7 +53,7 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
-		var resp goengage.EmailBlastSearchResults
+		var resp goengage.EmailBlastSearchResponse
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
@@ -68,7 +68,7 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 		}
 		count = resp.Payload.Count
 		log.Printf("ReadEmailBlasts: offset %d", offset)
-		for _, s := range resp.Payload.EmailBlasts {
+		for _, s := range resp.Payload.EmailActivities {
 			g.Channel() <- s
 		}
 		offset += count
