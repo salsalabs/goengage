@@ -60,7 +60,7 @@ func NewRuntime(env *goengage.Environment, segmentID string, results string, ver
 }
 
 //Drive finds all of the supporters in the specified group and writes
-//their IDs to the specified channel.
+//them to the input channel.
 func Drive(rt Runtime) (err error) {
 	log.Println("Drive: begin")
 	count := rt.E.Metrics.MaxBatchSize
@@ -103,8 +103,8 @@ func Drive(rt Runtime) (err error) {
 	return nil
 }
 
-//Record writes a CSV file that shows the address components
-//and the action taken.
+//Record reads Recording records from the CSV channel and writes
+// them to the results file.
 func Record(rt Runtime) (err error) {
 	log.Println("Record: begin")
 	f, err := os.Create(rt.Results)
@@ -139,9 +139,10 @@ func Record(rt Runtime) (err error) {
 	return nil
 }
 
-//Update retrieves Supporters from the provided channel.  Each
+//Update retrieves Supporters from the input channel. Each
 //supporter is formatted as a SupporterKludgeFix record and
-//submitted to Engage for repair.
+//submitted to Engage for repair. With that done, a Recording
+//is dropped on the CSV channel showing the results.
 func Update(rt Runtime, id int) (err error) {
 	log.Printf("Update-{%d}: start\n", id)
 	for {
@@ -149,17 +150,16 @@ func Update(rt Runtime, id int) (err error) {
 		if !okay {
 			break
 		}
-		// log.Printf("Update-{%d}: popped   %s\n", id, s.SupporterID)
 		a := s.Address
 		action := "Ignored"
 		if len(a.PostalCode) > 0 && a.PostalCode == a.AddressLine1 {
 			skf := goengage.NewSupporterKludgeFix(s)
 			skf.Address.AddressLine1 = ""
 			skf.Address.City = ""
-			// _, err := goengage.SupporterKludgeFixUpsert(rt.E, &skf, rt.Logger)
-			// if err != nil {
-			// 	return err
-			// }
+			_, err := goengage.SupporterKludgeFixUpsert(rt.E, &skf, rt.Logger)
+			if err != nil {
+				return err
+			}
 			action = "Repaired"
 		}
 		row := Recording{
