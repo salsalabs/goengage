@@ -56,8 +56,8 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 		if a.AddressLine1 == a.City && a.City == a.PostalCode && (len(a.PostalCode) > 0) {
 			a.AddressLine1 = ""
 			a.City = ""
-			updated, err := goengage.SupporterUpsert(r.E, &s, r.Logger)
-			log.Printf("Visit: %v %v %+v", updated.SupporterID, updated.Result, updated.Address)
+			sdk := goengage.NewSupporterKludgeFix(s)
+			updated, err := goengage.SupporterKludgeFixUpsert(r.E, &sdk, r.Logger)
 			if err != nil {
 				return err
 			}
