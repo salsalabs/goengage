@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	reporter "github.com/salsalabs/goengage/pkg/report"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -20,22 +20,34 @@ const (
 	ListenerCount = 5
 )
 
+//Recording is the content that appears in the CSV file.
+type Recording struct {
+	SupporterID  string
+	AddressLine1 string
+	PostalCode   string
+	Action       string
+}
+
 //Runtime area for this app.
 type Runtime struct {
-	E          *goengage.Environment
-	InChan     chan goengage.Supporter
-	DoneChan   chan bool
-	ReadOffset int32
-	Logger     *goengage.UtilLogger
+	E         *goengage.Environment
+	InChan    chan goengage.Supporter
+	CsvChan   chan Recording
+	DoneChan  chan bool
+	SegmentID string
+	Results   string
+	Logger    *goengage.UtilLogger
 }
 
 //NewRuntime populates a new runtime.
-func NewRuntime(env *goengage.Environment, offset int32, verbose bool) Runtime {
+func NewRuntime(env *goengage.Environment, segmentID string, results string, verbose bool) Runtime {
 	r := Runtime{
-		E:          env,
-		InChan:     make(chan goengage.Supporter),
-		DoneChan:   make(chan bool),
-		ReadOffset: offset,
+		E:         env,
+		InChan:    make(chan goengage.Supporter),
+		CsvChan:   make(chan Recording),
+		DoneChan:  make(chan bool),
+		SegmentID: segmentID,
+		Results:   results,
 	}
 	if verbose {
 		logger, err := goengage.NewUtilLogger()
@@ -47,69 +59,130 @@ func NewRuntime(env *goengage.Environment, offset int32, verbose bool) Runtime {
 	return r
 }
 
-//Visit implements SupporterGuide.Visit and does something with
-//a supporter record. In this case, the kludged addressLine1
-//and city are cleared away.
-func (r *Runtime) Visit(s goengage.Supporter) error {
-	if s.Address != nil {
-		a := s.Address
-		if a.AddressLine1 == a.City && a.City == a.PostalCode && (len(a.PostalCode) > 0) {
-			a.AddressLine1 = ""
-			a.City = ""
-			sdk := goengage.NewSupporterKludgeFix(s)
-			updated, err := goengage.SupporterKludgeFixUpsert(r.E, &sdk, r.Logger)
-			if err != nil {
-				return err
-			}
+//Drive finds all of the supporters in the specified group and writes
+//their IDs to the specified channel.
+func Drive(rt Runtime) (err error) {
+	log.Println("Drive: begin")
+	count := rt.E.Metrics.MaxBatchSize
+	offset := int32(0)
+	for count == rt.E.Metrics.MaxBatchSize {
+		payload := goengage.SegmentMembershipRequestPayload{
+			SegmentID: rt.SegmentID,
+			Offset:    offset,
+			Count:     count,
 		}
+		rqt := goengage.SegmentMembershipRequest{
+			Header:  goengage.RequestHeader{},
+			Payload: payload,
+		}
+		var resp goengage.SegmentMembershipResponse
+
+		n := goengage.NetOp{
+			Host:     rt.E.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: goengage.SegmentSearchMembers,
+			Token:    rt.E.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
+		err = n.Do()
+		if err != nil {
+			return err
+		}
+		if offset%100 == 0 {
+			log.Printf("Drive: Read %4d of %4d\n", offset, resp.Payload.Total)
+		}
+		for _, s := range resp.Payload.Supporters {
+			rt.InChan <- s
+		}
+		count = int32(len(resp.Payload.Supporters))
+		offset += count
 	}
+	close(rt.InChan)
+	log.Println("Drive: end")
 	return nil
 }
 
-//Finalize implements SupporterGuide.Filnalize and outputs the
-//distribution results.
-func (r *Runtime) Finalize() error {
+//Record writes a CSV file that shows the address components
+//and the action taken.
+func Record(rt Runtime) (err error) {
+	log.Println("Record: begin")
+	f, err := os.Create(rt.Results)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	writer := csv.NewWriter(f)
+	headers := []string{
+		"SupporterID",
+		"AddressLine1",
+		"ZipCode",
+		"ActionTaken",
+	}
+	err = writer.Write(headers)
+
+	for {
+		r, okay := <-rt.CsvChan
+		if !okay {
+			break
+		}
+		row := []string{
+			r.SupporterID,
+			r.AddressLine1,
+			r.PostalCode,
+			r.Action,
+		}
+		writer.Write(row)
+	}
+	writer.Flush()
+	log.Println("Record: end")
 	return nil
 }
 
-//Payload implements SupporterGuide.Payload and provides a payload
-//that will retrieve all supporters.
-func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
-	payload := goengage.SupporterSearchRequestPayload{
-		IdentifierType: goengage.SupporterIDType,
-		ModifiedFrom:   "2000-01-01T00:00:00.00000Z",
-		ModifiedTo:     "2050-01-01T00:00:00.00000Z",
-		Offset:         0,
-		Count:          0,
+//Update retrieves Supporters from the provided channel.  Each
+//supporter is formatted as a SupporterKludgeFix record and
+//submitted to Engage for repair.
+func Update(rt Runtime, id int) (err error) {
+	log.Printf("Update-{%d}: start\n", id)
+	for {
+		s, okay := <-rt.InChan
+		if !okay {
+			break
+		}
+		// log.Printf("Update-{%d}: popped   %s\n", id, s.SupporterID)
+		a := s.Address
+		action := "Ignored"
+		if len(a.PostalCode) > 0 && a.PostalCode == a.AddressLine1 {
+			skf := goengage.NewSupporterKludgeFix(s)
+			skf.Address.AddressLine1 = ""
+			skf.Address.City = ""
+			// _, err := goengage.SupporterKludgeFixUpsert(rt.E, &skf, rt.Logger)
+			// if err != nil {
+			// 	return err
+			// }
+			action = "Repaired"
+		}
+		row := Recording{
+			s.SupporterID,
+			s.Address.AddressLine1,
+			s.Address.PostalCode,
+			action,
+		}
+		rt.CsvChan <- row
 	}
-	return payload
-}
-
-//Channel implements SupporterGuide.Channnel and provides the
-//supporter channel.
-func (r *Runtime) Channel() chan goengage.Supporter {
-	return r.InChan
-}
-
-//DoneChannel implements SupporterGuide.DoneChannel to provide
-// a channel that  receives a true when the listener is done.
-func (r *Runtime) DoneChannel() chan bool {
-	return r.DoneChan
-}
-
-//Offset returns the offset for the first read.
-//Useful for restarts.
-func (r *Runtime) Offset() int32 {
-	return r.ReadOffset
+	log.Printf("Update-{%d}: end", id)
+	rt.DoneChan <- true
+	return nil
 }
 
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
-		app     = kingpin.New("custom_field-distribution", "Find and fix supporter records with malformed addressLine1 and City")
-		login   = app.Flag("login", "YAML file with API token").Required().String()
-		offset  = app.Flag("offset", "Read offset. Useful when network goes away").Default("0").Int32()
-		verbose = app.Flag("verbose", "See contents of all network actions.  *Really* noisy").Default("false").Bool()
+		app       = kingpin.New("custom_field-distribution", "Find and fix supporter records with malformed addressLine1 and City")
+		login     = app.Flag("login", "YAML file with API token").Required().String()
+		segmentID = app.Flag("segment-id", "Group to search for malformed addresses").Default("f4be4a19-b85f-4d69-baae-e027a86fd676").String()
+		results   = app.Flag("results", "filename of CSV file to record results").Default("fix_kludged_files_log.csv").String()
+		verbose   = app.Flag("verbose", "See contents of all network actions.  *Really* noisy").Default("false").Bool()
 	)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
@@ -121,32 +194,49 @@ func main() {
 		panic(err)
 	}
 
-	r := NewRuntime(e, *offset, *verbose)
+	rt := NewRuntime(e, *segmentID, *results, *verbose)
 	var wg sync.WaitGroup
+
+	//Start the recording listener.
+	wg.Add(1)
+	go (func(rt Runtime, wg *sync.WaitGroup) {
+		defer wg.Done()
+		err := Record(rt)
+		if err != nil {
+			panic(err)
+		}
+	})(rt, &wg)
 
 	//Start supporter listeners.
 	for i := 1; i <= ListenerCount; i++ {
 		wg.Add(1)
-		go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
+		go (func(rt Runtime, wg *sync.WaitGroup, i int) {
 			defer wg.Done()
-			reporter.ProcessSupporters(r.E, r)
-		})(e, &r, &wg)
+			err := Update(rt, i)
+			if err != nil {
+				panic(err)
+			}
+		})(rt, &wg, i)
 	}
 	//Start done listener.
 	wg.Add(1)
-	go (func(r *Runtime, n int, wg *sync.WaitGroup) {
+	go (func(rt Runtime, n int, wg *sync.WaitGroup) {
 		defer wg.Done()
-		goengage.DoneListener(r.DoneChan, n)
-	})(&r, ListenerCount, &wg)
+		goengage.DoneListener(rt.DoneChan, n)
+		close(rt.CsvChan)
+	})(rt, ListenerCount, &wg)
 
 	//Start supporter reader.
 	wg.Add(1)
-	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
+	go (func(rt Runtime, wg *sync.WaitGroup) {
 		defer wg.Done()
-		reporter.ReadSupporters(r.E, r)
-	})(e, &r, &wg)
+		err := Drive(rt)
+		if err != nil {
+			log.Fatalf("driver error: %v\n", err)
+		}
+	})(rt, &wg)
 
-	d, err := time.ParseDuration("10s")
+	d, err := time.ParseDuration("2s")
 	if err != nil {
 		panic(err)
 	}
