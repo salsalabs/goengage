@@ -21,15 +21,6 @@ const NapDuration = "10s"
 //Multiplier is used to decide whether or not to take a nap to avoid 429 errors.
 const Multiplier = 2
 
-//FirstWaitDuration is the first delay after a network timeout (HTTP
-//504).
-const FirstWaitDuration = "2s"
-
-//MaxWaitIterations is the maximum number of wait iterations for a
-//network timeout (HTTP 504). Waits 2 + 4 + 8 + 16 + 32 = 64 seconds
-// before failing.
-const MaxWaitIterations = 5
-
 //NetOp is the wrapper for calls to Engage.  Here to keep
 //call complexity down.
 type NetOp struct {
@@ -71,8 +62,8 @@ func (n *NetOp) Do() (err error) {
 	return err
 }
 
-//internal processes the request provided by NetOps.  This is here so
-//that we can handle both requests and metrics in the same module.
+//internal processes the request provided by NetOps.  This is here so that
+//we can handle both requests and metrics in the same module.
 func (n *NetOp) internal() (err error) {
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
@@ -102,42 +93,17 @@ func (n *NetOp) internal() (err error) {
 	req.Header.Set("Content-Type", ContentType)
 
 	client := &http.Client{}
-	var resp *http.Response
-
-	//Loop to handle network timeouts (HTTP 504).  A 504 error is
-	//insidiousconsidering that this app originally ran inside
-	//Salsa's network. No WiFi, no cable companies, no kids pulling
-	//wires out of th wall.
-	waitDuration, _ := time.ParseDuration(FirstWaitDuration)
-	ok := false
-
-	for i := 1; !ok && i <= MaxWaitIterations; i++ {
-		resp, err = client.Do(req)
-		if err != nil {
-			return err
-		}
-		if resp.StatusCode == http.StatusGatewayTimeout {
-			resp.Body.Close()
-			m := fmt.Sprintf("Error: HTTP error %v on %v. Sleeping %v seconds, pass %d of %d.",
-				resp.StatusCode, n.Endpoint, waitDuration.Seconds(), i, MaxWaitIterations)
-			if n.Logger != nil {
-				n.Logger.Printf("%v\n", m)
-			}
-			log.Println(m)
-			time.Sleep(waitDuration)
-			waitDuration = waitDuration + waitDuration
-		} else {
-			ok = true
-		}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
 	}
-
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("HTTP error %v on %v: %v", resp.Status, n.Endpoint, string(b))
+		m := fmt.Sprintf("engage error %v on %v: %v", resp.Status, n.Endpoint, string(b))
 		return errors.New(m)
 	}
 	if n.Logger != nil {
