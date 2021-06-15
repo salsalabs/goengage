@@ -157,7 +157,6 @@ func Segments(rt Runtime, id int) (err error) {
 			respPayload := resp.Payload
 			results := respPayload.Results
 			for _, s := range results {
-				log.Printf("Segments: result contains %d segments.\n", len(s.Segments))
 				for _, t := range s.Segments {
 					if t.SegmentID != rt.SegmentID {
 						x.Segments = append(x.Segments, t.Name)
