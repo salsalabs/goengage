@@ -8,7 +8,6 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -52,7 +51,6 @@ type Runtime struct {
 	D            chan bool
 	F            string
 	L            *goengage.UtilLogger
-	N            *regexp.Regexp
 	MemberOffset int32
 }
 
@@ -126,7 +124,6 @@ func Segments(rt Runtime, id int) (err error) {
 			break
 		}
 
-		// Read groups, sort, then pass them to the writer's channel.
 		count := rt.E.Metrics.MaxBatchSize
 		offset := int32(0)
 
@@ -160,11 +157,10 @@ func Segments(rt Runtime, id int) (err error) {
 			respPayload := resp.Payload
 			results := respPayload.Results
 			for _, s := range results {
+				log.Printf("Segments: result contains %d segments.\n", len(s.Segments))
 				for _, t := range s.Segments {
 					if t.SegmentID != rt.SegmentID {
-						if !(rt.N != nil && rt.N.MatchString(t.Name)) {
-							x.Segments = append(x.Segments, t.Name)
-						}
+						x.Segments = append(x.Segments, t.Name)
 					}
 				}
 			}
@@ -228,7 +224,6 @@ func main() {
 		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
 		segmentID = app.Flag("segmentId", "primary key for the segment of interest").Default("0d2b6078-6a5c-42c0-b62d-e01208b468cd").String()
-		notThis   = app.Flag("ignore-segments-like", "Regex for segments not to consider.  Defaults to nil").String()
 		csvFile   = app.Flag("csv", "CSV filename to store supporter-segment info").Default("supporter_segment.csv").String()
 		offset    = app.Flag("member-offset", "Start here if you lose network connectivity").Default("0").Int32()
 	)
@@ -247,6 +242,8 @@ func main() {
 	}
 	e, err := goengage.Credentials(*login)
 	if err != nil {
+		log.Fatalf("Error %v\n", err)
+		os.Exit(1)
 	}
 
 	// logger, err := goengage.NewUtilLogger()
@@ -254,10 +251,6 @@ func main() {
 	// 	panic(err)
 	// }
 
-	var regex *regexp.Regexp
-	if notThis != nil {
-		regex = regexp.MustCompile(*notThis)
-	}
 	rt := Runtime{
 		E:            e,
 		SegmentID:    *segmentID,
@@ -265,7 +258,6 @@ func main() {
 		C2:           make(chan *XrefRecord, XrefListeners),
 		D:            make(chan bool, SupporterListeners),
 		F:            *csvFile,
-		N:            regex,
 		MemberOffset: *offset,
 		// L:         logger,
 	}
