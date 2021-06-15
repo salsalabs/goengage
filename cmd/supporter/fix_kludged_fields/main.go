@@ -214,7 +214,7 @@ func main() {
 			defer wg.Done()
 			err := Update(rt, i)
 			if err != nil {
-				panic(err)
+				log.Printf("Driver: %+v\n", err)
 			}
 		})(rt, &wg, i)
 	}

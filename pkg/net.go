@@ -12,14 +12,26 @@ import (
 	"time"
 )
 
-//NapDuration is the time that we sleep to avoid 429 errors.  Testing shows
-//that 10 seconds is a good minimum.  Napping for two seconds repeats at least
-//five times.  We're not going anywhere anyway -- might as well wait for a
-//logoner time.  Pleae tweak as needed.
-const NapDuration = "10s"
+const (
+	//NapDuration is the time that we sleep to avoid 429 errors.  Testing shows
+	//that 10 seconds is a good minimum.  Napping for two seconds repeats at least
+	//five times.  We're not going anywhere anyway -- might as well wait for a
+	//logoner time.  Pleae tweak as needed.
+	NapDuration = "10s"
 
-//Multiplier is used to decide whether or not to take a nap to avoid 429 errors.
-const Multiplier = 2
+	//Multiplier is used to decide whether or not to take a nap to avoid 429 errors.
+	Multiplier = 2
+
+	//FirstWaitDuration is the duration that we nap after the first instance of a
+	//HTTP 503 error.
+	FirstWaitDuration = "2s"
+
+	//MaxWaitIterations is the number of times that we'll timme out before giving up
+	//because of HTTP 503's.  Note that the sleep interval doubles every time we wait.
+	//MaxWaitIterations is 2 + 4 + 8 + 16 + 32 = 64 seconds.
+	//so a smaller number here is better.
+	MaxWaitIterations = 5
+)
 
 //NetOp is the wrapper for calls to Engage.  Here to keep
 //call complexity down.
@@ -58,13 +70,37 @@ func (n *NetOp) Do() (err error) {
 		time.Sleep(d)
 		n.Currently()
 	}
-	err = n.internal()
+	//Loop to handle network timeouts (HTTP 504).  A 504 error is
+	//insidiousconsidering that this app originally ran inside
+	//Salsa's network. No WiFi, no cable companies, no kids pulling
+	//wires out of th wall.
+	waitDuration, _ := time.ParseDuration(FirstWaitDuration)
+	ok := false
+
+	for i := 1; !ok && i <= MaxWaitIterations; i++ {
+		resp, err := n.internal()
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode == http.StatusGatewayTimeout {
+			m := fmt.Sprintf("Error: HTTP error %v on %v. Sleeping %v seconds, pass %d of %d.",
+				resp.StatusCode, n.Endpoint, waitDuration.Seconds(), i, MaxWaitIterations)
+			if n.Logger != nil {
+				n.Logger.Printf("%v\n", m)
+			}
+			log.Println(m)
+			time.Sleep(waitDuration)
+			waitDuration = waitDuration + waitDuration
+		} else {
+			ok = true
+		}
+	}
 	return err
 }
 
 //internal processes the request provided by NetOps.  This is here so that
 //we can handle both requests and metrics in the same module.
-func (n *NetOp) internal() (err error) {
+func (n *NetOp) internal() (resp *http.Response, err error) {
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
 	u.Host = n.Host
@@ -73,12 +109,12 @@ func (n *NetOp) internal() (err error) {
 	if n.Request == nil {
 		req, err = http.NewRequest(n.Method, u.String(), nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		b, err := json.Marshal(n.Request)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if n.Logger != nil {
 			n.Logger.LogJSON(b)
@@ -86,25 +122,25 @@ func (n *NetOp) internal() (err error) {
 		r := bytes.NewReader(b)
 		req, err = http.NewRequest(n.Method, u.String(), r)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	req.Header.Set("authToken", n.Token)
 	req.Header.Set("Content-Type", ContentType)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err = client.Do(req)
 	if err != nil {
-		return err
+		return resp, err
 	}
 	defer resp.Body.Close()
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return resp, err
 	}
 	if resp.StatusCode != 200 {
 		m := fmt.Sprintf("engage error %v on %v: %v", resp.Status, n.Endpoint, string(b))
-		return errors.New(m)
+		return resp, errors.New(m)
 	}
 	if n.Logger != nil {
 		n.Logger.Printf("Net: endpoint %s\nNet: response\n", n.Endpoint)
@@ -113,9 +149,9 @@ func (n *NetOp) internal() (err error) {
 
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
-		return err
+		return resp, err
 	}
-	return nil
+	return resp, nil
 }
 
 //Currently returns the current metrics without modifying the NetOp object.
@@ -129,7 +165,7 @@ func (n *NetOp) Currently() (err error) {
 		Request:  nil,
 		Response: &resp,
 	}
-	err = n2.internal()
+	_, err = n2.internal()
 	if err != nil {
 		return err
 	}
