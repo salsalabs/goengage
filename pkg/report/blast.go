@@ -1,7 +1,8 @@
 package goengage
 
-//The report.supporter package reads supporter records using an interface-specified payload.
-//Those records are written to a supporter channel provided in an interface-specied
+//The report.blast package reads email blasts using an interface-provided payload.
+//Next, this app collects delivery history for each recipient of the blast.
+//Those records are written to a channel provided in an interface-specied
 //function.  A separate listener (or many listeners, for that matter) retrieves
 //supporters from the channel and calls the Visit function from the interface.
 //This continues until the channel is closed.  The listener calls Finalize before
@@ -17,17 +18,17 @@ import (
 //and doing something.
 type EmailBlastGuide interface {
 
-	//Visit does something with the supporter. Errors terminate.
+	//Visit does something with the blast. Errors terminate.
 	Visit(s goengage.EmailBlast) error
 
-	//Finalize is called after all supporters have been processed.
+	//Finalize is called after all blasts have been processed.
 	Finalize() error
 
 	//Payload is the request payload defining which supporters to retrieve.
 	Payload() goengage.EmailBlastSearchRequestPayload
 
 	//Channel is the listener channel to use.
-	Channel() chan goengage.EmailBlast
+	Channel() chan goengage.EmailActivity
 
 	//DoneChannel() receives a true when the listener is done.
 	DoneChannel() chan bool
@@ -38,7 +39,7 @@ type EmailBlastGuide interface {
 	Offset() int32
 }
 
-//ReadEmailBlasts reads all supporters and pushes them onto a channel.
+//ReadEmailBlasts reads all blasts and pushes them onto a channel.
 //Probably a good idea to start this as a go routine after the Listener
 //is started...
 func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
@@ -78,7 +79,7 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 	return nil
 }
 
-//ProcessEmailBlasts reads supporters from an interface-provided channel, then
+//ProcessEmailBlasts reads blasts from an interface-provided channel, then
 //calls Visit in the interface.  At end of data, the app calls Finalize() then
 //sends true to the DoneChannel.
 func ProcessEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {

@@ -1,49 +1,66 @@
 package goengage
 
-import (
-	"time"
-)
+//Search for email blasts and return activity.
+// Search: see https://api.salsalabs.org/help/integration#operation/emailsSearch
+// Activity: see https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
 
 const (
-	//EmailBlastSearchRequest is used to find blasts.
-	SearchEmailBlast = "/api/integration/ext/v1/emails/search"
+	//EmailBlastSearch is used to find blasts.
+	EmailBlastSearch = "/api/integration/ext/v1/emails/search"
 
-	//EmailBlastGetSingleBlast is used to retrieve a single blast
+	//EmailIndivualBlast is used to retrieve a single blast
 	//as well as as all of the recipient data.
-	EmailBlastGetSingleBlast = "/api/integration/ext/v1/emails/individualResults"
+	EmailIndivualBlast = "/api/integration/ext/v1/emails/individualResults"
 )
 
 //Conversion hold information about any donatoins made as a result of an
 //email blast.
 type Conversion struct {
-	ConversionDate *time.Time `json:"conversionDate"`
-	ActivityType   string     `json:"activityType"`
-	ActivityName   string     `json:"activityName"`
-	ActivityID     string     `json:"activityId"`
-	Amount         string     `json:"amount"`
-	DonationType   string     `json:"donationType"`
+	ConversionDate string `json:"conversionDate,omitempty"`
+	ActivityType   string `json:"activityType,omitempty"`
+	ActivityName   string `json:"activityName,omitempty"`
+	ActivityID     string `json:"activityId,omitempty"`
+	ActivityFormID string `json:"activityId,omitempty"`
+	Amount         string `json:"amount,omitempty"`
+	DonationType   string `json:"donationType,omitempty"`
 }
 
-//Recipient contains information about an email blast message sent to a
-//supporter.
-type Recipient struct {
-	SupporterID          string       `json:"supporterId"`
-	SupporterEmail       string       `json:"supporterEmail"`
-	FirstName            string       `json:"firstName"`
-	LastName             string       `json:"lastName"`
-	Country              string       `json:"country"`
-	State                string       `json:"state"`
-	City                 string       `json:"city"`
-	TimeSent             *time.Time   `json:"timeSent"`
-	SplitName            string       `json:"splitName"`
-	Status               string       `json:"status"`
-	Opened               bool         `json:"opened"`
-	Clicked              bool         `json:"clicked"`
-	Converted            bool         `json:"converted"`
-	Unsubscribed         bool         `json:"unsubscribed"`
-	FirstOpenDate        *time.Time   `json:"firstOpenDate,omitempty"`
-	NumberOfLinksClicked string       `json:"numberOfLinksClicked"`
-	Conversions          []Conversion `json:"conversionData,omitempty"`
+//SingleBlastRecipient holds identity, blast statistics
+//and conversion info.
+type SingleBlastRecipient struct {
+	SalesforceID         string       `json:"salesforceId,omitempty"`
+	SupporterID          string       `json:"supporterId,omitempty"`
+	ExternalID           string       `json:"externalId,omitempty"`
+	SupporterEmail       string       `json:"supporterEmail,omitempty"`
+	FirstName            string       `json:"firstName,omitempty"`
+	LastName             string       `json:"lastName,omitempty"`
+	City                 string       `json:"city,omitempty"`
+	State                string       `json:"state,omitempty"`
+	Country              string       `json:"country,omitempty"`
+	TimeSent             string       `json:"timeSent,omitempty"`
+	SplitName            string       `json:"splitName,omitempty"`
+	EmailSeriesName      string       `json:"emailSeriesName,omitempty"`
+	Status               string       `json:"status,omitempty"`
+	Opened               bool         `json:"opened,omitempty"`
+	Clicked              bool         `json:"clicked,omitempty"`
+	Converted            bool         `json:"converted,omitempty"`
+	Unsubscribed         bool         `json:"unsubscribed,omitempty"`
+	FirstOpenDate        string       `json:"firstOpenDate,omitempty"`
+	NumberOfLinksClicked string       `json:"numberOfLinksClicked,omitempty"`
+	BounceCategory       string       `json:"bounceCategory,omitempty"`
+	BounceCode           string       `json:"bounceCode,omitempty"`
+	ConversionData       []Conversion `json:"conversionData,omitempty"`
+}
+
+//Error describes issues found in the email blast search call.
+type Error struct {
+	ID          string `json:"id,omitempty"`
+	Code        int    `json:"code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	Details     string `json:"details,omitempty"`
+	FieldName   string `json:"fieldName,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+	ContentID   string `json:"contentId,omitempty"`
 }
 
 //EmailBlastSearchRequestPayload contains the criteria used to retrieve blasts.
@@ -68,10 +85,10 @@ type EmailBlastSearchRequest struct {
 //EmailBlastSearchResponsePayload contains the results of a
 //search.
 type EmailBlastSearchResponsePayload struct {
-	Total           int32        `json:"total,omitempty"`
-	Offset          int32        `json:"offset,omitempty"`
-	Count           int32        `json:"count,omitempty"`
-	EmailActivities []EmailBlast `json:"emailActivities,omitempty"`
+	Total           int32           `json:"total,omitempty"`
+	Offset          int32           `json:"offset,omitempty"`
+	Count           int32           `json:"count,omitempty"`
+	EmailActivities []EmailActivity `json:"emailActivities,omitempty"`
 }
 
 //EmailBlastSearchResponse wraps a response payload.
@@ -82,60 +99,59 @@ type EmailBlastSearchResponse struct {
 	Payload   EmailBlastSearchResponsePayload `json:"payload,omitempty"`
 }
 
-//EmailResultsRequest is used to request email blast activity
-//records for a blast.
-//
-// See https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
-type EmailResultsRequest struct {
-	Header  RequestHeader `json:"header,omitempty"`
-	Payload struct {
-		Cursor    string `json:"cursor,omitempty"`
-		Type      string `json:"type,omitempty"`
-		ID        string `json:"id,omitempty"`
-		ContentID string `json:"contentId,omitempty"`
-	} `json:"payload,omitempty"`
-}
-
-//EmailResponse is returned when the request type is "Email".
-type EmailResponse struct {
-	ID        string     `json:"id"`
-	Timestamp *time.Time `json:"timestamp"`
-	Header    Header     `json:"header"`
-	Payload   struct {
-		Total           int32        `json:"total"`
-		Offset          int32        `json:"offset"`
-		EmailActivities []EmailBlast `json:"emailActivities"`
-		Count           int32        `json:"count"`
-	} `json:"payload"`
-}
-
 //EmailActivity describes the contents of the email.
-type EmailBlast struct {
-	ID          string     `json:"id"`
-	Topic       string     `json:"topic"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	PublishDate *time.Time `json:"publishDate"`
+type EmailActivity struct {
+	ID          string `json:"id,omitempty"`
+	Topic       string `json:"topic,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	PublishDate string `json:"publishDate,omitempty"`
 	Components  []struct {
-		ContentID     string `json:"contentId"`
-		MessageNumber string `json:"messageNumber"`
-	} `json:"components"`
+		ContentID     string `json:"contentId,omitempty"`
+		MessageNumber string `json:"messageNumber,omitempty"`
+	} `json:"components,omitempty"`
+	Errors []Error `json:"errors,omitempty`
 }
 
-//SeriesResponse response is returned when the request type is "CommSeries".
-type SeriesResponse struct {
-	ID        string     `json:"id"`
-	Timestamp *time.Time `json:"timestamp"`
-	Header    Header     `json:"header"`
-	Payload   struct {
-		IndividualEmailActivityData []struct {
-			ID             string `json:"id"`
-			Cursor         string `json:"cursor"`
-			Name           string `json:"name"`
-			RecipientsData struct {
-				Recipients []Recipient `json:"recipients"`
-				Total      int32       `json:"total"`
-			} `json:"recipientsData"`
-		} `json:"individualEmailActivityData"`
-	} `json:"payload"`
+//IndivualBlastRequestPayload sets the criteria for
+//the blasts to read.
+type IndivualBlastRequestPayload struct {
+	ID            string `json:"id,omitempty"`
+	ContentID     string `json:"contentId,omitempty"`
+	Cursor        string `json:"cursor,omitempty"`
+	PublishedFrom string `json:"publishedFrom,omitempty"`
+	PublishedTo   string `json:"publishedTo,omitempty"`
+	Type          string `json:"type,omitempty"`
+	Offset        int    `json:"offset,omitempty"`
+	Count         int    `json:"count,omitempty"`
+}
+
+//IndivualBlastRequest wraps the request payload.
+type IndivualBlastRequest struct {
+	ID      string                      `json:"id"`
+	Header  RequestHeader               `json:"header,omitempty"`
+	Payload IndivualBlastRequestPayload `json:"payload,omitempty"`
+}
+
+//IndivualBlastResponsePayload holds the response content.
+type IndivualBlastResponsePayload struct {
+	Total                      int32                     `json:"total,omitempty"`
+	Offset                     int32                     `json:"offset,omitempty"`
+	IndividualEmalActivityData []IndividualEmailActivity `json:"indivualEmailActivityData,omitempty"`
+	Errors                     []Error                   `json:"errors,omitempty"`
+}
+
+//IndividualEmailActivity contains the email activity for one blast.
+type IndividualEmailActivity []struct {
+	ID             string                    `json:"id,omitempty"`
+	Cursor         string                    `json:"cursor,omitempty"`
+	Name           string                    `json:"name,omitempty"`
+	RecipientsData SingleBlastRecipientsData `json:"recipientsData,omitempty,omitempty"`
+}
+
+//SingleBlastRecipientsData is a wrapper around the recipients
+//for a blast.
+type SingleBlastRecipientsData struct {
+	Recipients []SingleBlastRecipient `json:"recipients,omitempty"`
+	Total      int32                  `json:"total,omitempty"`
 }
