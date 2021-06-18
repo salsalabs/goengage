@@ -7,7 +7,7 @@ import (
 
 //Address holds a street address and geolocation stuff for a supporter.
 //The kludge fix is to requre certain fields in the JSON by removing
-//'omitempty'.
+//'omitempty'. That allows us to overwrite those fields with emptiness.
 type AddressKludgeFix struct {
 	AddressLine1         string     `json:"addressLine1"`
 	AddressLine2         string     `json:"addressLine2"`
