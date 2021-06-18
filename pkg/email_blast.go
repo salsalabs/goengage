@@ -5,22 +5,42 @@ package goengage
 // Activity: see https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
 
 const (
+	//EmailType indicates a search for an email blast
+	EmailType = "EMAIL"
+
+	//CommSeriesType indicates a search for a communications series.
+	CommSeriesType = "CommSeries"
+
 	//EmailBlastSearch is used to find blasts.
 	EmailBlastSearch = "/api/integration/ext/v1/emails/search"
 
-	//EmailIndivualBlast is used to retrieve a single blast
+	//EmailIndividualBlast is used to retrieve a single blast
 	//as well as as all of the recipient data.
-	EmailIndivualBlast = "/api/integration/ext/v1/emails/individualResults"
+	EmailIndividualBlast = "/api/integration/ext/v1/emails/individualResults"
 )
 
-//Conversion hold information about any donatoins made as a result of an
+//EmailActivity describes the contents of the email.
+type EmailActivity struct {
+	ID          string `json:"id,omitempty"`
+	Topic       string `json:"topic,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	PublishDate string `json:"publishDate,omitempty"`
+	Components  []struct {
+		ContentID     string `json:"contentId,omitempty"`
+		MessageNumber string `json:"messageNumber,omitempty"`
+	} `json:"components,omitempty"`
+	EmailErrors []EmailError `json:"errors,omitempty"`
+}
+
+//Conversion hold information about any donations made as a result of an
 //email blast.
 type Conversion struct {
 	ConversionDate string `json:"conversionDate,omitempty"`
 	ActivityType   string `json:"activityType,omitempty"`
 	ActivityName   string `json:"activityName,omitempty"`
 	ActivityID     string `json:"activityId,omitempty"`
-	ActivityFormID string `json:"activityId,omitempty"`
+	ActivityFormID string `json:"activityFormId,omitempty"`
 	Amount         string `json:"amount,omitempty"`
 	DonationType   string `json:"donationType,omitempty"`
 }
@@ -52,8 +72,8 @@ type SingleBlastRecipient struct {
 	ConversionData       []Conversion `json:"conversionData,omitempty"`
 }
 
-//Error describes issues found in the email blast search call.
-type Error struct {
+//EmailError describes issues found in the email blast search call.
+type EmailError struct {
 	ID          string `json:"id,omitempty"`
 	Code        int    `json:"code,omitempty"`
 	Message     string `json:"message,omitempty"`
@@ -99,20 +119,6 @@ type EmailBlastSearchResponse struct {
 	Payload   EmailBlastSearchResponsePayload `json:"payload,omitempty"`
 }
 
-//EmailActivity describes the contents of the email.
-type EmailActivity struct {
-	ID          string `json:"id,omitempty"`
-	Topic       string `json:"topic,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	PublishDate string `json:"publishDate,omitempty"`
-	Components  []struct {
-		ContentID     string `json:"contentId,omitempty"`
-		MessageNumber string `json:"messageNumber,omitempty"`
-	} `json:"components,omitempty"`
-	Errors []Error `json:"errors,omitempty`
-}
-
 //IndivualBlastRequestPayload sets the criteria for
 //the blasts to read.
 type IndivualBlastRequestPayload struct {
@@ -138,7 +144,7 @@ type IndivualBlastResponsePayload struct {
 	Total                      int32                     `json:"total,omitempty"`
 	Offset                     int32                     `json:"offset,omitempty"`
 	IndividualEmalActivityData []IndividualEmailActivity `json:"indivualEmailActivityData,omitempty"`
-	Errors                     []Error                   `json:"errors,omitempty"`
+	EmailErrors                []EmailError              `json:"EmailErrors,omitempty"`
 }
 
 //IndividualEmailActivity contains the email activity for one blast.

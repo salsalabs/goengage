@@ -19,7 +19,7 @@ import (
 type EmailBlastGuide interface {
 
 	//Visit does something with the blast. Errors terminate.
-	Visit(s goengage.EmailBlast) error
+	Visit(s goengage.EmailActivity) error
 
 	//Finalize is called after all blasts have been processed.
 	Finalize() error
@@ -58,7 +58,7 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 		n := goengage.NetOp{
 			Host:     e.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: goengage.SearchEmailBlast,
+			Endpoint: goengage.EmailBlastSearch,
 			Token:    e.Token,
 			Request:  &rqt,
 			Response: &resp,
