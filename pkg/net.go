@@ -3,7 +3,6 @@ package goengage
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,18 +12,12 @@ import (
 )
 
 const (
-	//NapDuration is the time that we sleep to avoid 429 errors.  Testing shows
-	//that 10 seconds is a good minimum.  Napping for two seconds repeats at least
-	//five times.  We're not going anywhere anyway -- might as well wait for a
-	//logoner time.  Pleae tweak as needed.
-	NapDuration = "10s"
-
 	//Multiplier is used to decide whether or not to take a nap to avoid 429 errors.
 	Multiplier = 2
 
-	//FirstWaitDuration is the duration that we nap after the first instance of a
+	//FirstDuration is the duration that we nap after the first instance of a
 	//HTTP 503 error.
-	FirstWaitDuration = "2s"
+	FirstDuration = "2s"
 
 	//MaxWaitIterations is the number of times that we'll timme out before giving up
 	//because of HTTP 503's.  Note that the sleep interval doubles every time we wait.
@@ -33,8 +26,7 @@ const (
 	MaxWaitIterations = 5
 )
 
-//NetOp is the wrapper for calls to Engage.  Here to keep
-//call complexity down.
+//NetOp is the wrapper for calls to Engage.
 type NetOp struct {
 	Host     string
 	Token    string
@@ -46,56 +38,62 @@ type NetOp struct {
 	Metrics  *Metrics
 }
 
-//Do is a generic API request/response handler.  Uses the contents of
-//the provided NetOp to send a request.  Parses the response back into
-//the NetOp's reply.  The response in NetOp describes the complete returned
-//package (fields, header, payload).
+//Do is a generic API request/response handler.  Do  the contents of
+//the provided NetOp to send a request.  Parses the response back
+//into the NetOp's Reply.  The Response in NetOp describes the complete
+//returnedpackage (fields, header, payload).
 //
-//Note that Engage uses HTTP status codes to denote some error
-//failures.  Do passes those back to the caller as standard
-//errors containing the HTTP status code (e.g. "200 OK") and the
-//response body, which usually contains enlightenment about the
-//error.
+//Do also attempts to mitigate the effects of  HTTP 429 (too many
+//requests) and 504 (network timeout) errors. Do repeats the original
+//request, looking for the error condition to appear.  Each pass
+//through the loop takes more time (nominally double the length of
+// the last delay) an ever-increasing nap on each loop. If Do gets to
+// the end of the maximum number of passes through the loop without
+//relief, then Do return an error containing the HTTP status that
+//caused the condition.
 func (n *NetOp) Do() (err error) {
-	//Avoid 429 errors by napping to build up available record slots.
-	if n.Metrics == nil {
-		err = n.Currently()
-		if err != nil {
-			return err
-		}
-	}
-	d, _ := time.ParseDuration(NapDuration)
-	for !n.Enough() {
-		log.Printf("NetOp.Do: napping %v\n", d)
-		time.Sleep(d)
-		n.Currently()
-	}
-	//Loop to handle network timeouts (HTTP 504).  A 504 error is
-	//insidiousconsidering that this app originally ran inside
-	//Salsa's network. No WiFi, no cable companies, no kids pulling
-	//wires out of th wall.
-	waitDuration, _ := time.ParseDuration(FirstWaitDuration)
+	d, _ := time.ParseDuration(FirstDuration)
 	ok := false
+	s := http.StatusOK
 
 	for i := 1; !ok && i <= MaxWaitIterations; i++ {
 		resp, err := n.internal()
 		if err != nil {
 			return err
 		}
-		if resp.StatusCode == http.StatusGatewayTimeout {
-			m := fmt.Sprintf("Error: HTTP error %v on %v. Sleeping %v seconds, pass %d of %d.",
-				resp.StatusCode, n.Endpoint, waitDuration.Seconds(), i, MaxWaitIterations)
-			if n.Logger != nil {
-				n.Logger.Printf("%v\n", m)
-			}
-			log.Println(m)
-			time.Sleep(waitDuration)
-			waitDuration = waitDuration + waitDuration
-		} else {
+		s = resp.StatusCode
+		switch s {
+		case http.StatusOK:
 			ok = true
+		case http.StatusTooManyRequests:
+			d = Delay(n, s, i, d)
+		case http.StatusGatewayTimeout:
+			d = Delay(n, s, i, d)
+		default:
+			err = fmt.Errorf("HTTP %v, %v", s, n.Endpoint)
+			return err
 		}
 	}
-	return err
+	if ok {
+		return nil
+	} else {
+		err = fmt.Errorf("HTTP %v, %v", s, n.Endpoint)
+		return err
+	}
+}
+
+//Delay displays the current HTTP status, takes a nap, and returns
+//the next nap interval.
+func Delay(n *NetOp, statusCode int, pass int, duration time.Duration) time.Duration {
+	m := fmt.Sprintf("Delay: HTTP error %v on %v. Sleeping %v seconds, pass %d of %d.",
+		statusCode, n.Endpoint, duration.Seconds(), pass, MaxWaitIterations)
+	if n.Logger != nil {
+		n.Logger.Printf("%v\n", m)
+	}
+	log.Println(m)
+	time.Sleep(duration)
+	duration = duration * Multiplier
+	return duration
 }
 
 //internal processes the request provided by NetOps.  This is here so that
@@ -138,44 +136,9 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 	if err != nil {
 		return resp, err
 	}
-	if resp.StatusCode != 200 {
-		m := fmt.Sprintf("engage error %v on %v: %v", resp.Status, n.Endpoint, string(b))
-		return resp, errors.New(m)
-	}
-	if n.Logger != nil {
-		n.Logger.Printf("Net: endpoint %s\nNet: response\n", n.Endpoint)
-		n.Logger.LogJSON(b)
-	}
-
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
 		return resp, err
 	}
 	return resp, nil
-}
-
-//Currently returns the current metrics without modifying the NetOp object.
-func (n *NetOp) Currently() (err error) {
-	var resp MetricsResponse
-	n2 := NetOp{
-		Host:     n.Host,
-		Endpoint: MetricsCommand,
-		Method:   http.MethodGet,
-		Token:    n.Token,
-		Request:  nil,
-		Response: &resp,
-	}
-	_, err = n2.internal()
-	if err != nil {
-		return err
-	}
-	n.Metrics = &resp.Payload
-	return nil
-}
-
-//Enough returns true if there are enough CurrentBatchSize slots to cover
-//MaxBatchSize.
-func (n *NetOp) Enough() bool {
-	b := n.Metrics.CurrentRateLimit > Multiplier*n.Metrics.MaxBatchSize
-	return b
 }
