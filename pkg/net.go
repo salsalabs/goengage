@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -59,7 +60,19 @@ func (n *NetOp) Do() (err error) {
 	for i := 1; !ok && i <= MaxWaitIterations; i++ {
 		resp, err := n.internal()
 		if err != nil {
-			return err
+
+			// Kludge time! Sometimes a 504 can appeara in the HTTP
+			// response body and not as a response code.  We'll hack
+			// our way around that.  Perhaps get some relief from all
+			// of the natural timeouts that happen in an SaaS product.
+			s := fmt.Sprintf("%v", err)
+			if strings.Contains(s, "504 Gateway Time-out") {
+				log.Printf("Captured an embedded 503 error on %v\n", n.Endpoint)
+				resp.StatusCode = http.StatusGatewayTimeout
+			} else {
+				return err
+			}
+
 		}
 		s = resp.StatusCode
 		switch s {
