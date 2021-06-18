@@ -152,7 +152,7 @@ type IndividualEmailActivity []struct {
 	ID             string                    `json:"id,omitempty"`
 	Cursor         string                    `json:"cursor,omitempty"`
 	Name           string                    `json:"name,omitempty"`
-	RecipientsData SingleBlastRecipientsData `json:"recipientsData,omitempty,omitempty"`
+	RecipientsData SingleBlastRecipientsData `json:"recipientsData,omitempty"`
 }
 
 //SingleBlastRecipientsData is a wrapper around the recipients
