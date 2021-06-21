@@ -17,11 +17,11 @@ const (
 	Multiplier = 2
 
 	//FirstDuration is the duration that we nap after the first instance of a
-	//HTTP 503 error.
+	//HTTP 504 error.
 	FirstDuration = "2s"
 
 	//MaxWaitIterations is the number of times that we'll timme out before giving up
-	//because of HTTP 503's.  Note that the sleep interval doubles every time we wait.
+	//because of HTTP 504's.  Note that the sleep interval doubles every time we wait.
 	//MaxWaitIterations is 2 + 4 + 8 + 16 + 32 = 64 seconds.
 	//so a smaller number here is better.
 	MaxWaitIterations = 5
@@ -67,7 +67,7 @@ func (n *NetOp) Do() (err error) {
 			// of the natural timeouts that happen in an SaaS product.
 			s := fmt.Sprintf("%v", err)
 			if strings.Contains(s, "504 Gateway Time-out") {
-				log.Printf("Captured an embedded 503 error on %v\n", n.Endpoint)
+				log.Printf("Captured an embedded 504 error on %v\n", n.Endpoint)
 				resp.StatusCode = http.StatusGatewayTimeout
 			} else {
 				return err
@@ -149,6 +149,16 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 	if err != nil {
 		return resp, err
 	}
+
+	//KLUDGE: Engage will sometimes reply with HTML containing this message.
+	//We'll capture that and convert it to an HTTP error to trigger the
+	//504 wait loop.
+	if strings.Contains(string(b), "504 Gateway Time-out") {
+		log.Printf("Captured an embedded 504 error on %v\n", n.Endpoint)
+		resp.StatusCode = http.StatusGatewayTimeout
+		return resp, nil
+	}
+
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
 		log.Printf("Do: Unmarshal error %v on %v\n", err, string(b))
