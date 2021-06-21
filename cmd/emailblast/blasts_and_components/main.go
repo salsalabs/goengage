@@ -21,7 +21,7 @@ import (
 const (
 	//SettleDuration is the app's settle time in seconds before it
 	//starts waiting for things to terminate.
-	SettleDuration = "5"
+	SettleDuration = "5s"
 )
 
 //Runtime contains the configuration parts that this app needs.
@@ -41,7 +41,6 @@ type Runtime struct {
 //Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Visit(s goengage.EmailActivity) error {
 	rt.BlastCSVChan <- s
-	rt.ComponentChan <- s
 	return nil
 }
 
@@ -49,14 +48,17 @@ func (rt *Runtime) Visit(s goengage.EmailActivity) error {
 //Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Finalize() error {
 	close(rt.BlastCSVChan)
-	close(rt.ComponentChan)
 	return nil
 }
 
 //Payload is the request payload defining which supporters to retrieve.
 //Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Payload() goengage.EmailBlastSearchRequestPayload {
-	payload := goengage.EmailBlastSearchRequestPayload{}
+	payload := goengage.EmailBlastSearchRequestPayload{
+		Type:          goengage.Email,
+		PublishedFrom: "2000-01-01T00:00:00.000Z",
+		PublishedTo:   "2030-01-01T00:00:00.000Z",
+	}
 	return payload
 }
 
@@ -80,7 +82,6 @@ func (rt *Runtime) Offset() int32 {
 //WriteBlasts accepts a blast from the channel and writes it to a CSV
 //file.
 func (rt *Runtime) WriteBlasts() error {
-	log.Printf("WriteBlasts: begin")
 	f, err := os.Create(rt.BlastCSVFile)
 	if err != nil {
 		return err
@@ -114,8 +115,11 @@ func (rt *Runtime) WriteBlasts() error {
 		if err != nil {
 			return err
 		}
+		rt.ComponentChan <- r
 	}
+	writer.Flush()
 	log.Printf("WriteBlasts: end")
+	close(rt.ComponentChan)
 	return nil
 }
 
@@ -123,7 +127,7 @@ func (rt *Runtime) WriteBlasts() error {
 //any Components to a CSVfile.
 func (rt *Runtime) WriteComponents() error {
 	log.Printf("WriteComponents: begin")
-	f, err := os.Create(rt.BlastCSVFile)
+	f, err := os.Create(rt.ComponentCSVFile)
 	if err != nil {
 		return err
 	}
@@ -157,6 +161,7 @@ func (rt *Runtime) WriteComponents() error {
 			}
 		}
 	}
+	writer.Flush()
 	log.Printf("WriteComponents: end")
 	return nil
 }
@@ -166,8 +171,8 @@ func main() {
 	var (
 		app              = kingpin.New("blasts_and_components", "Write all email activity (blast) and component info to CSV files")
 		login            = app.Flag("login", "YAML file with API token").Required().String()
-		blastCSVFile     = app.Flag("blast-csv", "CSV filename to store blast info").Default("email_activity.csv").Required().String()
-		componentCSVFile = app.Flag("component-csv", "CSV filename to store component info").Default("email_component.csv").Required().String()
+		blastCSVFile     = app.Flag("blast-csv", "CSV filename to store blast info").Default("email_activity.csv").String()
+		componentCSVFile = app.Flag("component-csv", "CSV filename to store component info").Default("email_component.csv").String()
 		offset           = app.Flag("blast-offset", "Start here if you lose network connectivity").Default("0").Int32()
 	)
 	app.Parse(os.Args[1:])
@@ -250,6 +255,10 @@ func main() {
 
 	//Settle time.
 	d, _ := time.ParseDuration(SettleDuration)
-	log.Printf("main: waiting %d seconds to let things settle", d)
+	log.Printf("main: waiting %v seconds to let things settle", d.Seconds())
 	time.Sleep(d)
+	log.Printf("main: running...")
+	<-rt.DoneChan
+	wg.Wait()
+	log.Printf("main: done")
 }
