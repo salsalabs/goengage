@@ -19,18 +19,21 @@ const (
 	EmailIndividualBlast = "/api/integration/ext/v1/emails/individualResults"
 )
 
+//EmailComponent are used in comm series.
+type EmailComponent struct {
+	ContentID     string `json:"contentId,omitempty"`
+	MessageNumber string `json:"messageNumber,omitempty"`
+}
+
 //EmailActivity describes the contents of the email.
 type EmailActivity struct {
-	ID          string `json:"id,omitempty"`
-	Topic       string `json:"topic,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	PublishDate string `json:"publishDate,omitempty"`
-	Components  []struct {
-		ContentID     string `json:"contentId,omitempty"`
-		MessageNumber string `json:"messageNumber,omitempty"`
-	} `json:"components,omitempty"`
-	EmailErrors []EmailError `json:"errors,omitempty"`
+	ID          string            `json:"id,omitempty"`
+	Topic       string            `json:"topic,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	PublishDate string            `json:"publishDate,omitempty"`
+	Components  *[]EmailComponent `json:"components,omitempty"`
+	EmailErrors *[]EmailError     `json:"errors,omitempty"`
 }
 
 //Conversion hold information about any donations made as a result of an
