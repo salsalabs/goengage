@@ -87,12 +87,11 @@ func (n *NetOp) Do() (err error) {
 			return err
 		}
 	}
-	if ok {
-		return nil
-	} else {
+	if !ok {
 		err = fmt.Errorf("HTTP %v, %v", s, n.Endpoint)
 		return err
 	}
+	return nil
 }
 
 //Delay displays the current HTTP status, takes a nap, and returns
