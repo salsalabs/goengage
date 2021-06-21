@@ -68,11 +68,11 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 			return err
 		}
 		count = resp.Payload.Count
-		log.Printf("ReadEmailBlasts: offset %d", offset)
+		log.Printf("ReadEmailBlasts: offset %5d, read %2d\n", offset, count)
 		for _, s := range resp.Payload.EmailActivities {
 			g.Channel() <- s
 		}
-		offset += count
+		offset += int32(len(resp.Payload.EmailActivities))
 	}
 	log.Println("ReadEmailBlasts: done")
 	close(g.Channel())
