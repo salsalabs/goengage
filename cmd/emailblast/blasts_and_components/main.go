@@ -180,7 +180,7 @@ func main() {
 		blastCSVFile     = app.Flag("blast-csv", "CSV filename to store blast info").Default("email_activity.csv").String()
 		componentCSVFile = app.Flag("component-csv", "CSV filename to store component info").Default("email_component.csv").String()
 		offset           = app.Flag("blast-offset", "Start here if you lose network connectivity").Default("0").Int32()
-		commSeries       = app.Flag("comseries", "Report on comm series and not on blasts").Bool()
+		commSeries       = app.Flag("commseries", "Report on comm series and not on blasts").Bool()
 	)
 	log.Printf("main: commSeries is %v\n", *commSeries)
 	app.Parse(os.Args[1:])
