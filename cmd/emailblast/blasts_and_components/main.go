@@ -35,6 +35,7 @@ type Runtime struct {
 	BlastCursor      *string
 	BlastCSVFile     string
 	ComponentCSVFile string
+	CommSeries       bool
 }
 
 //Visit does something with the blast. Errors terminate.
@@ -54,8 +55,13 @@ func (rt *Runtime) Finalize() error {
 //Payload is the request payload defining which supporters to retrieve.
 //Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Payload() goengage.EmailBlastSearchRequestPayload {
+	emailType := goengage.Email
+	log.Printf("Payload: comm series flag is %v\n", rt.CommSeries)
+	if rt.CommSeries {
+		emailType = goengage.CommSeries
+	}
 	payload := goengage.EmailBlastSearchRequestPayload{
-		Type:          goengage.Email,
+		Type:          emailType,
 		PublishedFrom: "2000-01-01T00:00:00.000Z",
 		PublishedTo:   "2030-01-01T00:00:00.000Z",
 	}
@@ -174,7 +180,9 @@ func main() {
 		blastCSVFile     = app.Flag("blast-csv", "CSV filename to store blast info").Default("email_activity.csv").String()
 		componentCSVFile = app.Flag("component-csv", "CSV filename to store component info").Default("email_component.csv").String()
 		offset           = app.Flag("blast-offset", "Start here if you lose network connectivity").Default("0").Int32()
+		commSeries       = app.Flag("comseries", "Report on comm series and not on blasts").Bool()
 	)
+	log.Printf("main: commSeries is %v\n", *commSeries)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
 		log.Fatalf("Error --login is required.")
@@ -204,6 +212,7 @@ func main() {
 		BlastCursor:      nil,
 		BlastCSVFile:     *blastCSVFile,
 		ComponentCSVFile: *componentCSVFile,
+		CommSeries:       *commSeries,
 	}
 	rt := &rtx
 	var wg sync.WaitGroup
