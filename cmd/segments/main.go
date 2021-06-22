@@ -12,7 +12,7 @@ import (
 //Program entry point.  Summarize segments.  No details.
 func main() {
 	var (
-		app     = kingpin.New("see_distrincts", "A command-line app to to show districs for segment for email address(es).")
+		app     = kingpin.New("segments", "A command-line app to summarize segments.")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
 		csvFile = app.Flag("csv", "CSV filename to store segment info").Default("segments.csv").String()
 	)
