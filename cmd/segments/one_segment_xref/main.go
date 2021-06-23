@@ -128,18 +128,18 @@ func Segments(rt Runtime, id int) (err error) {
 		offset := int32(0)
 
 		for count == rt.E.Metrics.MaxBatchSize {
-			payload := goengage.SupporterGroupRequestPayload{
+			payload := goengage.SupporterGroupsRequestPayload{
 				Identifiers:    []string{x.SupporterID},
 				IdentifierType: goengage.SupporterIDType,
 				ModifiedFrom:   StartDate,
 				Offset:         offset,
 				Count:          count,
 			}
-			rqt := goengage.SupporterGroupRequest{
+			rqt := goengage.SupporterGroupsRequest{
 				Header:  goengage.RequestHeader{},
 				Payload: payload,
 			}
-			var resp goengage.SupporterGroupResponse
+			var resp goengage.SupporterGroupsResponse
 
 			n := goengage.NetOp{
 				Host:     rt.E.Host,

@@ -158,6 +158,7 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 		return resp, nil
 	}
 
+	log.Printf("Do: unmarshalling %v\n", string(b))
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
 		log.Printf("Do: Unmarshal error %v on %v\n", err, string(b))

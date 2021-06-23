@@ -243,16 +243,16 @@ func SupporterUpsert(e *Environment, s *Supporter, logger *UtilLogger) (*Support
 	return s, err
 }
 
-//SupporterGroupRequest requests the groups (segments) that a supporter
+//SupporterGroupsRequest requests the groups (segments) that a supporter
 //belongs to.
-type SupporterGroupRequest struct {
-	Header  RequestHeader                `json:"header,omitempty"`
-	Payload SupporterGroupRequestPayload `json:"payload,omitempty"`
+type SupporterGroupsRequest struct {
+	Header  RequestHeader                 `json:"header,omitempty"`
+	Payload SupporterGroupsRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterGroupRequestPayload holds the search criteria.
+//SupporterGroupsRequestPayload holds the search criteria.
 //https://api.salsalabs.org/help/integration#operation/getGroupsForSupporters
-type SupporterGroupRequestPayload struct {
+type SupporterGroupsRequestPayload struct {
 	Identifiers     []string `json:"identifiers,omitempty"`
 	IdentifierType  string   `json:"identifierType,omitempty"`
 	SearchString    string   `json:"searchString,omitempty"`
@@ -264,18 +264,18 @@ type SupporterGroupRequestPayload struct {
 	IncludeNormal   bool     `json:"includeNormal,omitempty"`
 }
 
-//SupporterGroupResponse provides results for the updated supporters.
-type SupporterGroupResponse struct {
-	ID        string                        `json:"id,omitempty"`
-	Timestamp string                        `json:"timestamp,omitempty"`
-	Header    Header                        `json:"header,omitempty"`
-	Payload   SupporterGroupResponsePayload `json:"payload,omitempty"`
-	Errors    []Error                       `json:"errors,omitempty"`
+//SupporterGroupsResponse provides results for the updated supporters.
+type SupporterGroupsResponse struct {
+	ID        string                         `json:"id,omitempty"`
+	Timestamp string                         `json:"timestamp,omitempty"`
+	Header    Header                         `json:"header,omitempty"`
+	Payload   SupporterGroupsResponsePayload `json:"payload,omitempty"`
+	Errors    []Error                        `json:"errors,omitempty"`
 }
 
-//SupporterGroupResponsePayload lists the supporters that match the search criteria.
+//SupporterGroupsResponsePayload lists the supporters that match the search criteria.
 //Note that Supporter is common throughout Engage.
-type SupporterGroupResponsePayload struct {
+type SupporterGroupsResponsePayload struct {
 	Total   int                `json:"total,omitempty"`
 	Offset  int32              `json:"offset,omitempty"`
 	Count   int32              `json:"count,omitempty"`

@@ -36,7 +36,7 @@ func Run(env *goengage.Environment) error {
 		n := goengage.NetOp{
 			Host:     env.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: goengage.SearchSegment,
+			Endpoint: goengage.SupporterSearchGroups,
 			Token:    env.Token,
 			Request:  &rqt,
 			Response: &resp,
@@ -45,7 +45,7 @@ func Run(env *goengage.Environment) error {
 		if err != nil {
 			return err
 		}
-		if offset%500 == 0 {
+		if offset%100 == 0 {
 			log.Printf("Run: %6d: %2d of %6d\n",
 				offset,
 				len(resp.Payload.Segments),
