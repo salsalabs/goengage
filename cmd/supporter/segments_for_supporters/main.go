@@ -48,6 +48,7 @@ type Runtime struct {
 	DoneChan chan bool
 	IDFile   string
 	OutFile  string
+	Logger   *goengage.UtilLogger
 }
 
 //BuildOut accepts a supporter key from a channel and
@@ -239,6 +240,7 @@ func main() {
 		login   = app.Flag("login", "YAML file with API token").Required().String()
 		idFile  = app.Flag("input", "Text with list of Engage supporterIDs to look up").Required().String()
 		outFile = app.Flag("output", "CSV filename to store supporter-segment data").Default("supporers_and_segments.csv").String()
+		debug   = app.Flag("debug", "Write requests and responses to a log file in JSON").Bool()
 	)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
@@ -258,6 +260,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	var logger *goengage.UtilLogger
+	if *debug {
+		logger, err = goengage.NewUtilLogger()
+		if err != nil {
+			log.Fatalf("Error %v\n", err)
+			os.Exit(1)
+		}
+	}
+
 	rtx := Runtime{
 		Env:      e,
 		IDChan:   make(chan string, 100),
@@ -265,6 +276,7 @@ func main() {
 		DoneChan: make(chan bool),
 		IDFile:   *idFile,
 		OutFile:  *outFile,
+		Logger:   logger,
 	}
 	rt := &rtx
 
