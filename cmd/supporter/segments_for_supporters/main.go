@@ -125,7 +125,6 @@ func (rt *Runtime) SupporterSegments(s string) (a []goengage.Segment, err error)
 		Identifiers:    []string{s},
 		IdentifierType: goengage.SupporterIDType,
 	}
-	log.Printf("SupporterSegment: payload is %+v", payload)
 	rqt := goengage.SupporterGroupsRequest{
 		Header:  goengage.RequestHeader{},
 		Payload: payload,
@@ -134,16 +133,16 @@ func (rt *Runtime) SupporterSegments(s string) (a []goengage.Segment, err error)
 	n := goengage.NetOp{
 		Host:     rt.Env.Host,
 		Method:   goengage.SearchMethod,
-		Endpoint: goengage.SearchSegment,
+		Endpoint: goengage.SupporterSearchGroups,
 		Token:    rt.Env.Token,
 		Request:  &rqt,
 		Response: &resp,
+		Logger:   rt.Logger,
 	}
 
 	for count == rt.Env.Metrics.MaxBatchSize {
 		payload.Offset = offset
 		payload.Count = count
-		log.Printf("SupporterSegment: rqt is %+v", rqt)
 		err := n.Do()
 		if err != nil {
 			log.Printf("SupporterSegments: n.Do returned %v\n", err)
@@ -293,7 +292,8 @@ func main() {
 		defer wg.Done()
 		err := rt.WriteOut()
 		if err != nil {
-			panic(err)
+			log.Fatalf("WriteOut error %v\n", err)
+			os.Exit(1)
 		}
 	})(rt, &wg)
 	log.Printf("main: started output writer")
@@ -304,7 +304,8 @@ func main() {
 			defer wg.Done()
 			err := rt.BuildOut(i)
 			if err != nil {
-				panic(err)
+				log.Fatalf("BuildOut error %v\n", err)
+				os.Exit(1)
 			}
 		})(rt, &wg, i)
 	}
