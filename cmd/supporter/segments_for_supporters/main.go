@@ -42,13 +42,14 @@ type OutRecord struct {
 
 //Runtime contains the configuration parts that this app needs.
 type Runtime struct {
-	Env      *goengage.Environment
-	IDChan   chan string
-	OutChan  chan OutRecord
-	DoneChan chan bool
-	IDFile   string
-	OutFile  string
-	Logger   *goengage.UtilLogger
+	Env         *goengage.Environment
+	ReaderCount int
+	IDChan      chan string
+	OutChan     chan OutRecord
+	DoneChan    chan bool
+	IDFile      string
+	OutFile     string
+	Logger      *goengage.UtilLogger
 }
 
 //BuildOut accepts a supporter key from a channel and
@@ -83,6 +84,7 @@ func (rt *Runtime) BuildOut(id int) error {
 					Segments:    segments,
 				}
 				rt.OutChan <- r
+				log.Printf("BuildOut: pushed %+v\n", r)
 			} else {
 				log.Printf("BuildOut: %v does not belong to any segments\n", s)
 			}
@@ -96,22 +98,21 @@ func (rt *Runtime) BuildOut(id int) error {
 //RequestedIDs returns the list of supporterIDs from a text file. Each line
 //is an id.
 func (rt *Runtime) RequestedIds() (a []string, err error) {
-
-	readFile, err := os.Open(rt.IDFile)
+	r, err := os.Open(rt.IDFile)
 	if err != nil {
 		return a, err
 	}
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
-	for fileScanner.Scan() {
-		id := fileScanner.Text()
+	defer r.Close()
+	fs := bufio.NewScanner(r)
+	fs.Split(bufio.ScanLines)
+	for fs.Scan() {
+		id := fs.Text()
 		id = strings.Trim(id, "'\" \t")
 		if len(id) != 36 {
 			log.Fatalf("RequestedIds: file %v, '%v' is not a valid id\n", rt.IDFile, id)
 		}
 		a = append(a, id)
 	}
-	readFile.Close()
 	return a, err
 }
 
@@ -175,7 +176,7 @@ func (rt *Runtime) SupporterSegments(s string) (a []goengage.Segment, err error)
 //WaitForReaders waits for readers to send to the done channel.
 //Closes the out channel when all readers are done.
 func (rt *Runtime) WaitForReaders() {
-	count := ReaderCount
+	count := rt.ReaderCount
 	for count > 0 {
 		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
 		_, ok := <-rt.DoneChan
@@ -269,13 +270,14 @@ func main() {
 	}
 
 	rtx := Runtime{
-		Env:      e,
-		IDChan:   make(chan string, 100),
-		OutChan:  make(chan OutRecord, 100),
-		DoneChan: make(chan bool),
-		IDFile:   *idFile,
-		OutFile:  *outFile,
-		Logger:   logger,
+		Env:         e,
+		ReaderCount: ReaderCount,
+		IDChan:      make(chan string, 100),
+		OutChan:     make(chan OutRecord, 100),
+		DoneChan:    make(chan bool),
+		IDFile:      *idFile,
+		OutFile:     *outFile,
+		Logger:      logger,
 	}
 	rt := &rtx
 
@@ -286,6 +288,13 @@ func main() {
 	}
 
 	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go (func(rt *Runtime, wg *sync.WaitGroup) {
+		defer wg.Done()
+		rt.WaitForReaders()
+	})(rt, &wg)
+	log.Printf("main: started reader waiter")
 
 	wg.Add(1)
 	go (func(rt *Runtime, wg *sync.WaitGroup) {
@@ -315,13 +324,13 @@ func main() {
 	for _, id := range requestedIds {
 		rt.IDChan <- id
 	}
-	log.Printf("main: main queue loaded")
+	log.Printf("main: main queue loaded with %d supporterIds\n", len(requestedIds))
 
 	//Settle time.
 	d, _ := time.ParseDuration(SettleDuration)
-	log.Printf("main: waiting %v seconds to let things settle", d.Seconds())
+	log.Printf("main: waiting %v seconds to let things settle\n", d.Seconds())
 	time.Sleep(d)
-	log.Printf("main: running...")
+	log.Println("main: running...")
 	wg.Wait()
-	log.Printf("main: done")
+	log.Println("main: done")
 }
