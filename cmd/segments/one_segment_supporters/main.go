@@ -115,6 +115,7 @@ func Record(rt Runtime) (err error) {
 	defer f.Close()
 	writer := csv.NewWriter(f)
 	headers := []string{
+		"SegmentID",
 		"SupporterID",
 		"DateCreated",
 		"Email",
@@ -129,6 +130,7 @@ func Record(rt Runtime) (err error) {
 			break
 		}
 		row := []string{
+			rt.SegmentID,
 			r.SupporterID,
 			r.DateCreated,
 			r.Email,
