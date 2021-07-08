@@ -214,3 +214,11 @@ const (
 	CancelledAndRefunded = "CANCELLED_AND_REFUNDED"
 	ValidAndRefunded     = "VALID_AND_REFUNDED"
 )
+
+//Identifier/Segment types for supporter requests
+const (
+	SupporterIDType  = "SUPPORTER_ID"
+	SegmentIDType    = "SEGMENT_ID"
+	EmailAddressType = "EMAIL_ADDRESS"
+	ExternalIDType   = "EXTERNAL_ID"
+)
