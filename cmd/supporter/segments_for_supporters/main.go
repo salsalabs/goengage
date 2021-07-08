@@ -2,7 +2,7 @@ package main
 
 // An application to accept a list of supporterIDs, find the groups
 // that they belong to, and write a CSV file. Each row of the CSV
-// file will contain the supporterID,supporter's email and a comma-
+// file will contain the supporterID, supporter's email and a comma-
 // separated list of groups.
 //
 // Input is provided by a YAML file that contains a "supporterIDs:"
@@ -13,7 +13,6 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -55,7 +54,6 @@ type Runtime struct {
 //BuildOut accepts a supporter key from a channel and
 // writes an OutRecord to the out channel.
 func (rt *Runtime) BuildOut(id int) error {
-	log.Printf("Buildout-%d: begin", id)
 	for {
 		supporterId, ok := <-rt.IDChan
 		if !ok {
@@ -66,15 +64,15 @@ func (rt *Runtime) BuildOut(id int) error {
 			return err
 		}
 		if s == nil {
-			log.Printf("BuildOut: %v does not locate a supporter", supporterId)
+			log.Printf("BuildOut-%d: %v does not locate a supporter\n", id, supporterId)
 		} else {
 			email := ""
 			e := goengage.FirstEmail(*s)
-			if e != nil {
+			if err != nil {
 				email = *e
 			}
 			segments, err := rt.SupporterSegments(supporterId)
-			if e != nil {
+			if err != nil {
 				return err
 			}
 			if len(segments) > 0 {
@@ -84,9 +82,9 @@ func (rt *Runtime) BuildOut(id int) error {
 					Segments:    segments,
 				}
 				rt.OutChan <- r
-				log.Printf("BuildOut: pushed %+v\n", r)
+				log.Printf("BuildOut-%d: %v %d segments\n", id, supporterId, len(segments))
 			} else {
-				log.Printf("BuildOut: %v does not belong to any segments\n", s)
+				log.Printf("BuildOut-%d: %v does not belong to any segments\n", id, s)
 			}
 		}
 	}
@@ -162,7 +160,7 @@ func (rt *Runtime) SupporterSegments(s string) (a []goengage.Segment, err error)
 		}
 		for _, r := range resp.Payload.Results {
 			if r.Result == goengage.NotFound {
-				fmt.Printf("SupporterSegments: %v Unable to find supporter-segments\n", s)
+				log.Printf("SupporterSegments: %v Unable to find supporter-segments\n", s)
 			} else {
 				a = append(a, r.Segments...)
 			}
@@ -229,7 +227,7 @@ func (rt *Runtime) WriteOut() error {
 		}
 	}
 	writer.Flush()
-	log.Printf("WriteOut: end")
+	log.Printf("WriteOut: end\n")
 	return nil
 }
 
@@ -239,7 +237,7 @@ func main() {
 		app     = kingpin.New("segments_for_supporters", "Write a CSV of supporters and segments for a list of supporter IDs")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
 		idFile  = app.Flag("input", "Text with list of Engage supporterIDs to look up").Required().String()
-		outFile = app.Flag("output", "CSV filename to store supporter-segment data").Default("supporers_and_segments.csv").String()
+		outFile = app.Flag("output", "CSV filename to store supporter-segment data").Default("supporters_and_segments.csv").String()
 		debug   = app.Flag("debug", "Write requests and responses to a log file in JSON").Bool()
 	)
 	app.Parse(os.Args[1:])
@@ -294,7 +292,7 @@ func main() {
 		defer wg.Done()
 		rt.WaitForReaders()
 	})(rt, &wg)
-	log.Printf("main: started reader waiter")
+	log.Println("main: started reader waiter")
 
 	wg.Add(1)
 	go (func(rt *Runtime, wg *sync.WaitGroup) {
@@ -305,9 +303,9 @@ func main() {
 			os.Exit(1)
 		}
 	})(rt, &wg)
-	log.Printf("main: started output writer")
+	log.Println("main: started output writer")
 
-	for i := 1; i <= ReaderCount; i++ {
+	for i := 1; i <= rt.ReaderCount; i++ {
 		wg.Add(1)
 		go (func(rt *Runtime, wg *sync.WaitGroup, i int) {
 			defer wg.Done()
@@ -318,12 +316,13 @@ func main() {
 			}
 		})(rt, &wg, i)
 	}
-	log.Printf("main: started output builders")
+	log.Println("main: started output builders")
 
 	// Load the input queue.
 	for _, id := range requestedIds {
 		rt.IDChan <- id
 	}
+	close(rt.IDChan)
 	log.Printf("main: main queue loaded with %d supporterIds\n", len(requestedIds))
 
 	//Settle time.
