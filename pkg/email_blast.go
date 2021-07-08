@@ -21,13 +21,13 @@ const (
 
 //EmailComponent are used in comm series.
 type EmailComponent struct {
-	ContentID     string `json:"contentId,omitempty"`
+	ContentID     string `json:"contentid,omitempty"`
 	MessageNumber string `json:"messageNumber,omitempty"`
 }
 
 //EmailActivity describes the contents of the email.
 type EmailActivity struct {
-	ID          string            `json:"id,omitempty"`
+	ID          string            `json:"Id,omitempty"`
 	Topic       string            `json:"topic,omitempty"`
 	Name        string            `json:"name,omitempty"`
 	Description string            `json:"description,omitempty"`
@@ -146,7 +146,7 @@ type IndivualBlastRequest struct {
 type IndivualBlastResponsePayload struct {
 	Total                       int32                     `json:"total,omitempty"`
 	Offset                      int32                     `json:"offset,omitempty"`
-	IndividualEmailActivityData []IndividualEmailActivity `json:"indivualEmailActivityData,omitempty"`
+	IndividualEmailActivityData []IndividualEmailActivity `json:"individualEmailActivityData,omitempty"`
 	EmailErrors                 []EmailError              `json:"EmailErrors,omitempty"`
 }
 
