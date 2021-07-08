@@ -5,6 +5,7 @@ package main
 // tricks -- just getting the job done.
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 
@@ -65,65 +66,108 @@ func (rt *Runtime) Blasts() error {
 //Details reads the activity version of the blast and writes recipients
 //and conversions.
 func (rt *Runtime) OneBlast(r goengage.EmailActivity) error {
-	log.Printf("OneBlast: %s %s\n", r.ID, r.Name)
+	log.Printf("OneBlast:   blast ID: %s, Name: %s\n", r.ID, r.Name)
 	count := rt.Env.Metrics.MaxBatchSize
-	offset := int32(0)
+	// offset := int32(0)
 	cursor := ""
-	// for count == rt.Env.Metrics.MaxBatchSize {
-	log.Printf("OneBlast: ID: %s, cursor: %s, offset: %d, count: %d\n", id, cursor, offset, count)
-	payload := goengage.IndivualBlastRequestPayload{
-		ID:     id,
-		Offset: offset,
-		Count:  count,
-		Type:   goengage.Email,
-	}
-	if len(cursor) > 0 {
-		payload.Cursor = cursor
-	}
+	for count == rt.Env.Metrics.MaxBatchSize {
+		payload := goengage.IndivualBlastRequestPayload{
+			ID:   r.ID,
+			Type: goengage.Email,
+			// Offset: offset,
+			// Count:  count,
+			Cursor: cursor,
+		}
+		if len(cursor) > 0 {
+			payload.Cursor = cursor
+		}
 
-	rqt := goengage.IndivualBlastRequest{
-		Header:  goengage.RequestHeader{},
-		Payload: payload,
-	}
-	var resp goengage.InvidualBlastResponse
+		rqt := goengage.IndivualBlastRequest{
+			Header:  goengage.RequestHeader{},
+			Payload: payload,
+		}
+		var resp goengage.IndividualBlastResponse
 
-	n := goengage.NetOp{
-		Host:     rt.Env.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: goengage.IndividualBlastSearch,
-		Token:    rt.Env.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
-	err := n.Do()
-	if err != nil {
-		return err
-	}
+		n := goengage.NetOp{
+			Host:     rt.Env.Host,
+			Method:   goengage.SearchMethod,
+			Endpoint: goengage.IndividualBlastSearch,
+			Token:    rt.Env.Token,
+			Request:  &rqt,
+			Response: &resp,
+		}
 
-	log.Printf("OneBlast: response %+v\n", resp)
-	for _, s := range resp.Payload.IndividualEmailActivityData {
-		log.Printf("OneBlast: individual activity %+v\n", s)
-		err = rt.Recipients(id, s.RecipientsData)
+		err := n.Do()
 		if err != nil {
 			return err
 		}
-		// cursor = s.Cursor
-		// if len(cursor) == 0 {
-		// 	log.Printf("OneBlast: cursor is empty\n")
-		// 	count = 0
-		// } else {
-		// count = int32(len(s.RecipientsData.Recipients))
-		// }
-		offset = offset + count
+
+		// log.Printf("OneBlast:   blast ID: %s, Name: %s, Total: %d\n", r.ID, r.Name, resp.Payload.Total)
+		for _, s := range resp.Payload.IndividualEmailActivityData {
+			err = rt.Recipients(r.ID, s.RecipientsData)
+			if err != nil {
+				return err
+			}
+			// log.Printf("OneBlast:   blast ID: %s, index: %d, count: %d, cursor: '%s'\n",
+			// 	r.ID, i, len(s.RecipientsData.Recipients), s.Cursor)
+			cursor = s.Cursor
+		}
+		if len(cursor) == 0 {
+			count = 0
+		}
 	}
-	offset = offset + count
-	// }
 	return nil
 }
 
 //Recipients formats and writes email and conversion activity.
 func (rt *Runtime) Recipients(blastId string, r goengage.SingleBlastRecipientsData) error {
-	log.Printf("Recipients: blast ID: %s, %d recipients", blastId, len(r.Recipients))
+	// log.Printf("Recipients: blast ID: %s, %d/%d recipients", blastId, len(r.Recipients), r.Total)
+	for _, x := range r.Recipients {
+		row := []string{
+			blastId,
+			x.SupporterID,
+			x.ExternalID,
+			x.SupporterEmail,
+			x.FirstName,
+			x.LastName,
+			x.City,
+			x.State,
+			x.Country,
+			x.TimeSent,
+			x.SplitName,
+			x.EmailSeriesName,
+			x.Status,
+			fmt.Sprintf("%v", x.Opened),
+			fmt.Sprintf("%v", x.Clicked),
+			fmt.Sprintf("%v", x.Converted),
+			fmt.Sprintf("%v", x.Unsubscribed),
+			x.FirstOpenDate,
+			x.NumberOfLinksClicked,
+			x.BounceCategory,
+			x.BounceCode,
+		}
+		err := rt.RecipientsFile.Write(row)
+		if err != nil {
+			return err
+		}
+		for _, c := range x.ConversionData {
+			row := []string{
+				blastId,
+				x.SupporterID,
+				c.ConversionDate,
+				c.ActivityType,
+				c.ActivityName,
+				c.ActivityID,
+				c.ActivityFormID,
+				c.Amount,
+				c.DonationType,
+			}
+			err = rt.ConversionsFile.Write(row)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
@@ -176,6 +220,43 @@ func main() {
 	}
 	rt := &rtx
 
+	recipientHeaders := []string{
+		"EmailBlastID",
+		"ExternalID",
+		"SupporterEmail",
+		"FirstName",
+		"LastName",
+		"City",
+		"State",
+		"Country",
+		"TimeSent",
+		"SplitName",
+		"EmailSeriesName",
+		"Status",
+		"Opened",
+		"Clicked",
+		"Converted",
+		"Unsubscribed",
+		"FirstOpenDate",
+		"NumberOfLinksClicked",
+		"BounceCategory",
+		"BounceCode",
+	}
+	rt.RecipientsFile.Write(recipientHeaders)
+
+	conversionHeaders := []string{
+		"EmailBlastID",
+		"SupporterID",
+		"ConversionDate",
+		"ActivityType",
+		"ActivityName",
+		"ActivityID",
+		"ActivityFormID",
+		"Amount",
+		"DonationType",
+	}
+
+	rt.ConversionsFile.Write(conversionHeaders)
 	rt.Blasts()
 
 }
