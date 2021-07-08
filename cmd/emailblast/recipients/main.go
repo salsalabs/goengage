@@ -222,7 +222,7 @@ func main() {
 
 	recipientHeaders := []string{
 		"EmailBlastID",
-		"ExternalID",
+		"SupporterID",
 		"SupporterEmail",
 		"FirstName",
 		"LastName",
