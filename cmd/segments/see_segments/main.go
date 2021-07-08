@@ -19,18 +19,20 @@ func Run(env *goengage.Environment) error {
 	count := env.Metrics.MaxBatchSize
 	offset := int32(0)
 
-	payload := goengage.SegmentSearchRequestPayload{
-		// IncludeMemberCounts: false,
-	}
-
-	rqt := goengage.SegmentSearchRequest{
-		Header:  goengage.RequestHeader{},
-		Payload: payload,
-	}
-
 	for count == env.Metrics.MaxBatchSize {
-		payload.Offset = offset
-		payload.Count = count
+		payload := goengage.SegmentSearchRequestPayload{
+			Count:               count,
+			Offset:              offset,
+			IdentifierType:      goengage.SegmentIDType,
+			Identifiers:         []string{},
+			IncludeMemberCounts: false,
+		}
+
+		rqt := goengage.SegmentSearchRequest{
+			Header:  goengage.RequestHeader{},
+			Payload: payload,
+		}
+
 		var resp goengage.SegmentSearchResponse
 
 		n := goengage.NetOp{
