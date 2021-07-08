@@ -14,9 +14,9 @@ const (
 	//EmailBlastSearch is used to find blasts.
 	EmailBlastSearch = "/api/integration/ext/v1/emails/search"
 
-	//EmailIndividualBlast is used to retrieve a single blast
+	//IndividualBlastSearch is used to retrieve a single blast
 	//as well as as all of the recipient data.
-	EmailIndividualBlast = "/api/integration/ext/v1/emails/individualResults"
+	IndividualBlastSearch = "/api/integration/ext/v1/emails/individualResults"
 )
 
 //EmailComponent are used in comm series.
@@ -144,10 +144,10 @@ type IndivualBlastRequest struct {
 
 //IndivualBlastResponsePayload holds the response content.
 type IndivualBlastResponsePayload struct {
-	Total                      int32                     `json:"total,omitempty"`
-	Offset                     int32                     `json:"offset,omitempty"`
-	IndividualEmalActivityData []IndividualEmailActivity `json:"indivualEmailActivityData,omitempty"`
-	EmailErrors                []EmailError              `json:"EmailErrors,omitempty"`
+	Total                       int32                     `json:"total,omitempty"`
+	Offset                      int32                     `json:"offset,omitempty"`
+	IndividualEmailActivityData []IndividualEmailActivity `json:"indivualEmailActivityData,omitempty"`
+	EmailErrors                 []EmailError              `json:"EmailErrors,omitempty"`
 }
 
 //InvidualBlastResponse wraps a response payload.
