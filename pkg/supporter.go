@@ -5,13 +5,6 @@ import (
 	"time"
 )
 
-//Identifier types for supporter requests
-const (
-	SupporterIDType  = "SUPPORTER_ID"
-	EmailAddressType = "EMAIL_ADDRESS"
-	ExternalIDType   = "EXTERNAL_ID"
-)
-
 //Engage endpoints for supporters.
 const (
 	SearchSupporter       = "/api/integration/ext/v1/supporters/search"
