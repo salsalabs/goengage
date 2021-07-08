@@ -150,8 +150,8 @@ type IndivualBlastResponsePayload struct {
 	EmailErrors                 []EmailError              `json:"EmailErrors,omitempty"`
 }
 
-//InvidualBlastResponse wraps a response payload.
-type InvidualBlastResponse struct {
+//IndividualBlastResponse wraps a response payload.
+type IndividualBlastResponse struct {
 	ID        string                       `json:"id,omitempty"`
 	TimeStamp string                       `json:"timestamp,omitempty"`
 	Header    Header                       `json:"header,omitempty"`
