@@ -129,15 +129,68 @@ The application logs all status to the console.  Errors are really obvious.  Her
 2020/12/30 09:59:03 WriteCSV: done
 2020/12/30 09:59:03 ReportFundraising done
 ```
+If you choose start and end dates in different months, the application will process each month separately.  Here's an example.
+
+```
+go run main.go --login ~/.logins/mules.yaml --startDate "2021-01-01" --endDate "2021-02-28"
+2021/07/21 11:25:14 
+2021/07/21 11:25:14 WaitForReaders: Waiting for 3 readers
+2021/07/21 11:25:14 Store: begin
+2021/07/21 11:25:14 ReadActivities-1: begin
+2021/07/21 11:25:14 ReadActivities-0: begin
+2021/07/21 11:25:14 ReadActivities-2: begin
+2021/07/21 11:25:15 ReportFundraising: reporting on start time 2021-01-01T05:00:00.000Z
+2021/07/21 11:25:15 ReportFundraising:              end   time 2021-02-01T04:59:59.999Z
+2021/07/21 11:25:15 ReportFundraising: 23 donations
+2021/07/21 11:25:15 ReportFundraising: waiting for terminations
+2021/07/21 11:25:15 ReadActivities-2: end
+2021/07/21 11:25:15 WaitForReaders: Waiting for 2 readers
+2021/07/21 11:25:16 ReadActivities-0: offset     20 of     23,   2 adds
+2021/07/21 11:25:16 ReadActivities-0: end
+2021/07/21 11:25:16 WaitForReaders: Waiting for 1 readers
+2021/07/21 11:25:20 ReadActivities-1: offset      0 of     23,  15 adds
+2021/07/21 11:25:20 ReadActivities-1: end
+2021/07/21 11:25:20 WaitForReaders: done
+2021/07/21 11:25:20 Store: done
+2021/07/21 11:25:20 ReportFundraising: done
+2021/07/21 11:25:20 
+2021/07/21 11:25:20 Store: begin
+2021/07/21 11:25:20 ReadActivities-0: begin
+2021/07/21 11:25:20 WaitForReaders: Waiting for 3 readers
+2021/07/21 11:25:20 ReadActivities-1: begin
+2021/07/21 11:25:20 ReadActivities-2: begin
+2021/07/21 11:25:21 ReportFundraising: reporting on start time 2021-02-01T05:00:00.000Z
+2021/07/21 11:25:21 ReportFundraising:              end   time 2021-03-01T04:59:59.999Z
+2021/07/21 11:25:21 ReportFundraising: 11 donations
+2021/07/21 11:25:21 ReportFundraising: waiting for terminations
+2021/07/21 11:25:21 ReadActivities-2: end
+2021/07/21 11:25:21 WaitForReaders: Waiting for 2 readers
+2021/07/21 11:25:21 ReadActivities-1: end
+2021/07/21 11:25:21 WaitForReaders: Waiting for 1 readers
+2021/07/21 11:25:23 ReadActivities-0: offset      0 of     11,   9 adds
+2021/07/21 11:25:23 ReadActivities-0: end
+2021/07/21 11:25:23 WaitForReaders: done
+2021/07/21 11:25:23 Store: done
+2021/07/21 11:25:23 ReportFundraising: done
+```
+Note that each month appears in its own CSV.
+
+```
+ls -al *.csv
+-rw-r--r--  1 aleonard  staff  2816 Jul 21 11:25 2021-01-01_dedications.csv
+-rw-r--r--  1 aleonard  staff  1633 Jul 21 11:25 2021-02-01_dedications.csv
+
+```
 
 ### CSV output
 
-Donations with dedications are stored in `dedications.csv` in the current directory.  Here's a sample.
+Results are stored in CSV files.  The date in the CSV filename is the first date
+of the reporting period.  Here's a sample of the CSV output.
 
 ```
-PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication,Notify,DedicationAddress
-John Cheeseburger,john@cheeseburger.com.com,,,,,,2020-12-19 21:08:03.533 +0000 UTC,51.69,IN_HONOR_OF,The Cheeseburger Family,Uncle Dan,404 Redbug, Baton Rouge, LA,12345
-Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,IN_HONOR_OF,Our wonderful Souvlaki family,,Aunt Mary,404 Tatziki, Jolie Blanc, LA,12345
+FirstName,LastName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,DonationType,ActivityType,TransactionType,Amount,DedicationType,Dedication,Notify,DedicationAddress
+Patsy,Pastry,patsy@pastry.com,273 Ramblin Man,,Grapevine,MI,27777-8212,2021-01-29,One_Time,Fundraise,Charge,200.00,In_Memory_Of,Mr. Smoochers,,
+Dana,danish,dana@pastry.com,17722 Fifth of Gin,,Spayallup,WA,97777-4132,2021-01-30,One_Time,Fundraise,Charge,35.00,In_Memory_Of,Killer Kitty,,
 ```
 
 ## Advanced usage

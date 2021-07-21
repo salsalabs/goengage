@@ -249,7 +249,7 @@ func Validate(startDate string, endDate string, loc *time.Location) []Span {
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
-		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
+		log.Fatalf("end date '%v' is before start date '%v'", endDate, startDate)
 	}
 	var a []Span
 	day, _ := time.ParseDuration(DayDuration)

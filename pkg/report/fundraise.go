@@ -172,12 +172,6 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 	oc := make(chan int32, 100)
 	var wg sync.WaitGroup
 
-	log.Println("")
-	log.Println("------------------------------------------------------------------------------------------------")
-	log.Println("ReportFundraising:  This version reads Supporter because Fundraise does not have the right data.")
-	log.Println("------------------------------------------------------------------------------------------------")
-	log.Println("")
-
 	//Start the reader waiter.  It waits until all readers are done,
 	//then closes the fundraise channel.
 	go (func(guide Guide, gc chan goengage.Fundraise, done chan bool, wg *sync.WaitGroup) {
