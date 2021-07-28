@@ -1,10 +1,12 @@
 package main
 
-//Application to accept a segmentId and output the supporters that belong
-//to the segment.  Output includes a list of the other segments that a
-//supporter belongs to.  Produces a CSV of supporter_KEY, Email, Groups.
+//Application to create a CSV of segments for a client. Output includes
+//UUID, SegmentName and potentially the .  Can include more --
+//find the output formatter and kludge away!
 
 import (
+	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
 
@@ -12,20 +14,56 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Run finds and displays all segments.
-func Run(env *goengage.Environment) error {
-	log.Println("Run: begin")
+//Runtime holds the stuff that this app needs.
+type Runtime struct {
+	Env           *goengage.Environment
+	IncludeCounts bool
+	CSVFilename   string
+	Logger        *goengage.UtilLogger
+}
 
-	count := env.Metrics.MaxBatchSize
+func NewRuntime(e *goengage.Environment, c bool, f string, v bool) (*Runtime, error) {
+	rt := Runtime{
+		Env:           e,
+		IncludeCounts: c,
+		CSVFilename:   f,
+	}
+	if v {
+		logger, err := goengage.NewUtilLogger()
+		if err != nil {
+			return nil, err
+		}
+		rt.Logger = logger
+	}
+	return &rt, nil
+}
+
+//Run finds and displays all segments.
+func Run(rt *Runtime) error {
+	log.Println("Run: begin")
+	f, err := os.Create(rt.CSVFilename)
+	if err != nil {
+		return err
+	}
+	writer := csv.NewWriter(f)
+	headers := []string{
+		"SegmentID",
+		"SegmentName",
+		"MemberCount",
+	}
+	err = writer.Write(headers)
+	if err != nil {
+		return err
+	}
+
+	count := rt.Env.Metrics.MaxBatchSize
 	offset := int32(0)
 
-	for count == env.Metrics.MaxBatchSize {
+	for count == rt.Env.Metrics.MaxBatchSize {
 		payload := goengage.SegmentSearchRequestPayload{
 			Count:               count,
 			Offset:              offset,
-			IdentifierType:      goengage.SegmentIDType,
-			Identifiers:         []string{},
-			IncludeMemberCounts: false,
+			IncludeMemberCounts: rt.IncludeCounts,
 		}
 
 		rqt := goengage.SegmentSearchRequest{
@@ -36,12 +74,13 @@ func Run(env *goengage.Environment) error {
 		var resp goengage.SegmentSearchResponse
 
 		n := goengage.NetOp{
-			Host:     env.Host,
+			Host:     rt.Env.Host,
 			Method:   goengage.SearchMethod,
-			Endpoint: goengage.SupporterSearchGroups,
-			Token:    env.Token,
+			Endpoint: goengage.SearchSegment,
+			Token:    rt.Env.Token,
 			Request:  &rqt,
 			Response: &resp,
+			Logger:   rt.Logger,
 		}
 		err := n.Do()
 		if err != nil {
@@ -54,24 +93,34 @@ func Run(env *goengage.Environment) error {
 				resp.Payload.Total)
 		}
 
-		log.Printf("payload: %+v", resp.Payload)
+		var cache [][]string
 		for _, s := range resp.Payload.Segments {
-			log.Printf("%-36s %-50s %6d ",
+			record := []string{
 				s.SegmentID,
 				s.Name,
-				s.TotalMembers)
+				fmt.Sprintf("%v", s.TotalMembers),
+			}
+			cache = append(cache, record)
+		}
+		err = writer.WriteAll(cache)
+		if err != nil {
+			return err
 		}
 		count = resp.Payload.Count
 		offset += int32(count)
 	}
+	log.Printf("Run: end")
 	return nil
 }
 
 //Program entry point.
 func main() {
 	var (
-		app   = kingpin.New("one_segment_xref", "Lists segments for an organization.")
-		login = app.Flag("login", "YAML file with API token").Required().String()
+		app           = kingpin.New("one_segment_xref", "Creates a CSV of segments for a client")
+		login         = app.Flag("login", "YAML file with API token").Required().String()
+		csvFile       = app.Flag("csv", "CSV filename to create").Default("segments.csv").String()
+		includeCounts = app.Flag("include-counts", "Output will contain the number of members, too").Bool()
+		verbose       = app.Flag("verbose", "Log all requests and responses to a file.  Verrrry noisy...").Bool()
 	)
 	app.Parse(os.Args[1:])
 	if login == nil || len(*login) == 0 {
@@ -80,10 +129,14 @@ func main() {
 	}
 	e, err := goengage.Credentials(*login)
 	if err != nil {
-		log.Fatalf("Error: %+v\n", e)
+		log.Fatalf("main: %+v\n", e)
 	}
-	err = Run(e)
+	rt, err := NewRuntime(e, *includeCounts, *csvFile, *verbose)
 	if err != nil {
-		panic(err)
+		log.Fatalf("main: %v\n", err)
+	}
+	err = Run(rt)
+	if err != nil {
+		log.Fatalf("main: %v\n", err)
 	}
 }
