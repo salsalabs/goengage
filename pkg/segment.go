@@ -40,6 +40,14 @@ type Segment struct {
 	ParameterName     string `json:"parameterName,omitempty"`
 }
 
+//SegmentError describes the errors that can return when searching
+//for segments.
+type SegmentError struct {
+	Error
+	ContentType string `json:"contentType,omitempty"`
+	ContentID   string `json:"contentId,omitempty"`
+}
+
 //UpsertRequest is used to add or modify segments.
 type UpsertRequest struct {
 	Header  RequestHeader `json:"header,omitempty"`
@@ -95,12 +103,11 @@ type SegmentSearchRequest struct {
 
 //SegmentSearchRequestPayload contains the payload for searching for segments.
 type SegmentSearchRequestPayload struct {
-	Offset              int32    `json:"offset"`
-	Count               int32    `json:"count"`
-	Identifiers         []string `json:"identifiers"`
-	IdentifierType      string   `json:"identifierType"`
-	IncludeMemberCounts bool     `json:"includeMemberCounts"`
-	JoinedSince         string   `json:"joinedSince"`
+	Offset              int32    `json:"offset,omitempty"`
+	Count               int32    `json:"count,omitempty"`
+	Identifiers         []string `json:"identifiers,omitempty"`
+	IdentifierType      string   `json:"identifierType,omitempty"`
+	IncludeMemberCounts bool     `json:"includeMemberCounts,omitempty"`
 }
 
 //SegmentSearchResponse contains the results returned by searching for segments.
@@ -109,15 +116,23 @@ type SegmentSearchResponse struct {
 	Timestamp *time.Time                   `json:"timestamp,omitempty"`
 	Header    Header                       `json:"header,omitempty"`
 	Payload   SegmentSearchResponsePayload `json:"payload,omitempty"`
+	Errors    []SegmentError               `json:"errors,omitempty"`
+}
+
+//SegmentWrapper is a segment with errors and warnings.
+type SegmentWrapper struct {
+	Errors   []Error `json:"errors,omitempty"`
+	Warnings []Error `json:"warnings,omitempty"`
+	Segment
 }
 
 //SegmentSearchResponsePayload wraps the response payload for a
 //segment search.
 type SegmentSearchResponsePayload struct {
-	Count    int32     `json:"count,omitempty"`
-	Offset   int32     `json:"offset,omitempty"`
-	Total    int32     `json:"total,omitempty"`
-	Segments []Segment `json:"segments,omitempty"`
+	Count    int32            `json:"count,omitempty"`
+	Offset   int32            `json:"offset,omitempty"`
+	Total    int32            `json:"total,omitempty"`
+	Segments []SegmentWrapper `json:"segments,omitempty"`
 }
 
 //SegmentMembershipRequest contains parameters for searching for segment
