@@ -51,7 +51,7 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 			return err
 		}
 		for _, s := range resp.Payload.Segments {
-			c <- s
+			c <- s.Segment
 		}
 		count = resp.Payload.Count
 		offset += int32(count)
