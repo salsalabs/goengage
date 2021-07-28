@@ -88,6 +88,11 @@ type Error struct {
 	FieldName string `json:"fieldName,omitempty"`
 }
 
+//Warning is used to report Engage warnings.
+type Warning struct {
+	Error
+}
+
 //RequestHeader provides a reference ID.
 type RequestHeader struct {
 	RefID string `json:"refId,omitempty"`
