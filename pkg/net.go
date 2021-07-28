@@ -60,14 +60,19 @@ func (n *NetOp) Do() (err error) {
 	for i := 1; !ok && i <= MaxWaitIterations; i++ {
 		resp, err := n.internal()
 		if err != nil {
-
 			// Kludge time! Sometimes a 504 can appeara in the HTTP
 			// response body and not as a response code.  We'll hack
 			// our way around that.  Perhaps get some relief from all
 			// of the natural timeouts that happen in an SaaS product.
+			message := fmt.Sprintf("Do: %v on read, endpoint %v", err, n.Endpoint)
+			log.Print(message)
+			n.Println(message)
+
 			s := fmt.Sprintf("%v", err)
 			if strings.Contains(s, "504 Gateway Time-out") {
-				log.Printf("Captured an embedded 504 error on %v\n", n.Endpoint)
+				message := fmt.Sprintf("Do: captured an embedded 504 error on %v\n", n.Endpoint)
+				log.Print(message)
+				n.Println(message)
 				resp.StatusCode = http.StatusGatewayTimeout
 			} else {
 				return err
@@ -99,10 +104,8 @@ func (n *NetOp) Do() (err error) {
 func Delay(n *NetOp, statusCode int, pass int, duration time.Duration) time.Duration {
 	m := fmt.Sprintf("Delay: HTTP error %v on %v. Sleeping %v seconds, pass %d of %d.",
 		statusCode, n.Endpoint, duration.Seconds(), pass, MaxWaitIterations)
-	if n.Logger != nil {
-		n.Logger.Printf("%v\n", m)
-	}
 	log.Println(m)
+	n.Println(m)
 	time.Sleep(duration)
 	duration = duration * Multiplier
 	return duration
@@ -137,6 +140,10 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 	}
 	req.Header.Set("authToken", n.Token)
 	req.Header.Set("Content-Type", ContentType)
+	if n.Logger != nil {
+		n.Println(fmt.Sprintf("Do: Endpoint is %v", n.Endpoint))
+		n.Println(fmt.Sprintf("Do: method is %v", n.Method))
+	}
 
 	client := &http.Client{}
 	resp, err = client.Do(req)
@@ -148,20 +155,40 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 	if err != nil {
 		return resp, err
 	}
+	n.LogJSON(b)
 
 	//KLUDGE: Engage will sometimes reply with HTML containing this message.
 	//We'll capture that and convert it to an HTTP error to trigger the
 	//504 wait loop.
 	if strings.Contains(string(b), "504 Gateway Time-out") {
-		log.Printf("Captured an embedded 504 error on %v\n", n.Endpoint)
+		m := fmt.Sprintf("Captured an embedded 504 error on %v", n.Endpoint)
+		log.Println(m)
+		n.Println(m)
 		resp.StatusCode = http.StatusGatewayTimeout
 		return resp, nil
 	}
 
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
-		log.Printf("Do: Unmarshal error %v on %v\n", err, string(b))
+		message := fmt.Sprintf("Do: Unmarshal error %v in '%v'", err, string(b))
+		log.Println(message)
+		n.Println(message)
 		return resp, err
 	}
 	return resp, nil
+}
+
+//LogJSON writes JSON to the Logger for the provided byte slice.
+func (n *NetOp) LogJSON(b []byte) {
+	if n.Logger != nil {
+		n.Logger.LogJSON(b)
+	}
+}
+
+//Println writes to the provided Logger if it exists.
+//Message should not have a trailing newline...
+func (n *NetOp) Println(m string) {
+	if n.Logger != nil {
+		n.Logger.Printf("%v\n", m)
+	}
 }
