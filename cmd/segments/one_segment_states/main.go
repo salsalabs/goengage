@@ -15,9 +15,15 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//ListenerCount is the number of go tasks listening for
-//supporters.  Trivial in this version.
-const ListenerCount = 1
+const (
+	//ListenerCount is the number of go tasks listening for
+	//supporters.  Trivial in this version.
+	ListenerCount = 1
+
+	//SettleTime is the number of seconds to wait for the processes
+	//to get started.
+	SettleTime = "2s"
+)
 
 //Cache is the content that appears in the CSV file.
 type Cache map[string]int32
@@ -209,7 +215,7 @@ func main() {
 		}
 	})(rt, &wg)
 
-	d, err := time.ParseDuration("2s")
+	d, err := time.ParseDuration(SettleTime)
 	if err != nil {
 		panic(err)
 	}
