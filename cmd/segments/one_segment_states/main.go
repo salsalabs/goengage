@@ -113,6 +113,7 @@ func (rt Runtime) SaveCache() (err error) {
 	defer f.Close()
 	writer := csv.NewWriter(f)
 	headers := []string{
+		"SegmentID",
 		"State",
 		"Members",
 	}
@@ -129,6 +130,7 @@ func (rt Runtime) SaveCache() (err error) {
 	for _, k := range keys {
 		v := rt.Cache[k]
 		record := []string{
+			rt.SegmentID,
 			k,
 			fmt.Sprintf("%v", v),
 		}
@@ -171,7 +173,6 @@ func main() {
 		app       = kingpin.New("one_segment_states", "Tabulate segment member counts by state")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
 		segmentID = app.Flag("segment-id", "segmentID for the group").Default("f4be4a19-b85f-4d69-baae-e027a86fd676").String()
-		results   = app.Flag("results", "filename of CSV file to record results").Default("one_segment_states.csv").String()
 		verbose   = app.Flag("verbose", "Log contents of all network actions. *Really* noisy").Default("false").Bool()
 	)
 	app.Parse(os.Args[1:])
@@ -184,7 +185,8 @@ func main() {
 		panic(err)
 	}
 
-	rt := NewRuntime(e, *segmentID, *results, *verbose)
+	csvFile := fmt.Sprintf("%v.csv", segmentID)
+	rt := NewRuntime(e, *segmentID, csvFile, *verbose)
 	var wg sync.WaitGroup
 
 	//Start Update task. More than one leads to multiple CSV files.
