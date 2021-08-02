@@ -1,6 +1,5 @@
-//App to search for supporters whose addressLine1 and city fields
-//contain the Zip code.  Each matching record is modified to erase
-//addressLine1 and City fields.
+//App to search for supporters who are members of a group.
+//Displays contents of the "Recording" object.
 package main
 
 import (
@@ -179,8 +178,8 @@ func main() {
 	var (
 		app       = kingpin.New("one-segment-supporters", "Selectively display info about supporters in a segment.")
 		login     = app.Flag("login", "YAML file with API token").Required().String()
-		segmentID = app.Flag("segment-id", "Group to search for malformed addresses").Default("f4be4a19-b85f-4d69-baae-e027a86fd676").String()
-		results   = app.Flag("results", "filename of CSV file to record results").Default("one_segment_supporters_log.csv").String()
+		segmentID = app.Flag("segment-id", "segmentID for the group").Default("f4be4a19-b85f-4d69-baae-e027a86fd676").String()
+		results   = app.Flag("results", "filename of CSV file to record results").Default("one_segment_supporters.csv").String()
 		verbose   = app.Flag("verbose", "Log contents of all network actions. *Really* noisy").Default("false").Bool()
 	)
 	app.Parse(os.Args[1:])
