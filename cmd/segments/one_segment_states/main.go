@@ -146,11 +146,11 @@ func (rt Runtime) Update() (err error) {
 		}
 		if s.Address != nil {
 			v, ok := rt.Cache[s.Address.State]
-			if !ok {
-				v = 0
-				rt.Cache[s.Address.State] = v
+			if ok {
+				rt.Cache[s.Address.State] = v + 1
+			} else {
+				rt.Cache[s.Address.State] = 1
 			}
-			rt.Cache[s.Address.State] = v + 1
 		}
 	}
 	rt.SaveCache()
