@@ -84,7 +84,7 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 //sends true to the DoneChannel.
 func ProcessEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 	log.Println("ProcessEmailBlasts: start")
-	for true {
+	for {
 		s, ok := <-g.Channel()
 		if !ok {
 			break

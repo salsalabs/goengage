@@ -59,6 +59,7 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 			Header:  goengage.RequestHeader{},
 			Payload: payload,
 		}
+		log.Printf("ReadSupporters: request payload +%v\n", payload)
 		var resp goengage.SupporterSearchResults
 		n := goengage.NetOp{
 			Host:     e.Host,
@@ -73,8 +74,9 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 			return err
 		}
 		count = resp.Payload.Count
-		log.Printf("ReadSupporters: offset %d", offset)
+		log.Printf("ReadSupporters: offset %d\n", offset)
 		for _, s := range resp.Payload.Supporters {
+			log.Printf("ReadSupporters: s %v\n", s)
 			g.Channel() <- s
 		}
 		offset += count
@@ -89,7 +91,7 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 //sends true to the DoneChannel.
 func ProcessSupporters(e *goengage.Environment, g SupporterGuide) error {
 	log.Println("ProcessSupporters: start")
-	for true {
+	for {
 		s, ok := <-g.Channel()
 		if !ok {
 			break

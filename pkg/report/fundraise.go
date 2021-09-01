@@ -73,7 +73,7 @@ func ReadActivities(e *goengage.Environment,
 
 	n := fmt.Sprintf("ReadActivities-%d", i)
 	log.Printf("%s: begin", n)
-	for true {
+	for {
 		offset, ok := <-oc
 		if !ok {
 			break
@@ -174,16 +174,16 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 
 	//Start the reader waiter.  It waits until all readers are done,
 	//then closes the fundraise channel.
+	wg.Add(1)
 	go (func(guide Guide, gc chan goengage.Fundraise, done chan bool, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		WaitForReaders(guide, gc, done)
 	})(guide, gc, dc, &wg)
 
 	//Start the CSV writer. It receives fundraise records from readers and
 	//writes them to a CSV.
+	wg.Add(1)
 	go (func(guide Guide, gc chan goengage.Fundraise, wg *sync.WaitGroup) {
-		wg.Add(1)
 		defer wg.Done()
 		err := Store(guide, gc)
 		if err != nil {
@@ -194,6 +194,7 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 	//Start the readers. Readers get offsets from the offset channel, read activities,
 	//filter them, then put them onto the Guide channel.
 	for i := 0; i < guide.Readers(); i++ {
+		wg.Add(1)
 		go (func(e *goengage.Environment,
 			guide Guide,
 			i int,
@@ -202,8 +203,6 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 			done chan bool,
 			ts TimeSpan,
 			wg *sync.WaitGroup) {
-
-			wg.Add(1)
 			defer wg.Done()
 			ReadActivities(e, guide, i, oc, gc, dc, ts)
 		})(e, guide, i, oc, gc, dc, ts, &wg)
@@ -255,7 +254,7 @@ func Store(guide Guide, gc chan goengage.Fundraise) error {
 	w := csv.NewWriter(f)
 	w.Write(guide.Headers())
 
-	for true {
+	for {
 		r, ok := <-gc
 		if !ok {
 			break
