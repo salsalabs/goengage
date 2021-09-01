@@ -124,6 +124,12 @@ func (r *Runtime) Offset() int32 {
 	return r.ReadOffset
 }
 
+//Adjust offset changes the proposed offset as needed.
+//Useful for chunked ID reads.  Does nothing in this app.
+func (r *Runtime) AdjustOffset(offset int32) int32 {
+	return offset
+}
+
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (

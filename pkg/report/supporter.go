@@ -36,6 +36,12 @@ type SupporterGuide interface {
 	//restarting after a service interruption.
 
 	Offset() int32
+
+	//AdjustOffset() allows you to change the offset just before the
+	//read. This is most helpful when the payload contains a list of
+	//ID's that need to be read in chunks. This method allows you to
+	//set the offset to zero, thereby avoiding confusion.
+	AdjustOffset(offset int32) int32
 }
 
 //ReadSupporters reads all supporters and pushes them onto a channel.
@@ -47,7 +53,7 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 	offset := int32(g.Offset())
 	for count == int32(e.Metrics.MaxBatchSize) {
 		payload := g.Payload()
-		payload.Offset = offset
+		payload.Offset = g.AdjustOffset(offset)
 		payload.Count = count
 		rqt := goengage.SupporterSearchRequest{
 			Header:  goengage.RequestHeader{},
