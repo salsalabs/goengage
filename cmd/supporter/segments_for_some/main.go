@@ -71,7 +71,7 @@ func (rt *Runtime) BuildOut(id int) error {
 			if err != nil {
 				email = *e
 			}
-			segments, err := rt.SupporterSegments(supporterId)
+			segments, err := goengage.SupporterSegments(rt.Env, supporterId)
 			if err != nil {
 				return err
 			}
@@ -112,79 +112,6 @@ func (rt *Runtime) RequestedIds() (a []string, err error) {
 		a = append(a, id)
 	}
 	return a, err
-}
-
-//SupporterSegments accepts a supporterID and returns a list of segments
-//of which the supporter is a member.
-func (rt *Runtime) SupporterSegments(s string) (a []goengage.Segment, err error) {
-	offset := int32(0)
-	count := rt.Env.Metrics.MaxBatchSize
-
-	payload := goengage.SupporterGroupsRequestPayload{
-		Identifiers:    []string{s},
-		IdentifierType: goengage.SupporterIDType,
-	}
-	rqt := goengage.SupporterGroupsRequest{
-		Header:  goengage.RequestHeader{},
-		Payload: payload,
-	}
-	var resp goengage.SupporterGroupsResponse
-	n := goengage.NetOp{
-		Host:     rt.Env.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: goengage.SupporterSearchGroups,
-		Token:    rt.Env.Token,
-		Request:  &rqt,
-		Response: &resp,
-		Logger:   rt.Logger,
-	}
-
-	for count == rt.Env.Metrics.MaxBatchSize {
-		payload.Offset = offset
-		payload.Count = count
-		err := n.Do()
-		if err != nil {
-			log.Printf("SupporterSegments: n.Do returned %v\n", err)
-			return a, err
-		}
-		if resp.Errors != nil {
-			for _, e := range resp.Errors {
-				log.Printf("SupporterSegments: %v error retrieving segments\n", s)
-				log.Printf("SupporterSegments: %v Code        %v\n ", s, e.Code)
-				log.Printf("SupporterSegments: %v Message     %v\n", s, e.Message)
-				log.Printf("SupporterSegments: %v Details     %v\n", s, e.Details)
-				log.Printf("SupporterSegments: %v Field Name  %v\n", s, e.FieldName)
-				log.Printf("SupporterSegments: %v returning %d segments", s, len(a))
-			}
-			return a, err
-		}
-		for _, r := range resp.Payload.Results {
-			if r.Result == goengage.NotFound {
-				log.Printf("SupporterSegments: %v Unable to find supporter-segments\n", s)
-			} else {
-				a = append(a, r.Segments...)
-			}
-		}
-		count = resp.Payload.Count
-		offset += count
-	}
-	return a, nil
-}
-
-//WaitForReaders waits for readers to send to the done channel.
-//Closes the out channel when all readers are done.
-func (rt *Runtime) WaitForReaders() {
-	count := rt.ReaderCount
-	for count > 0 {
-		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
-		_, ok := <-rt.DoneChan
-		if !ok {
-			break
-		}
-		count--
-	}
-	close(rt.OutChan)
-	log.Println("WaitForReaders: done")
 }
 
 //WriteOut accepts an OutRecord from a channel and writes
