@@ -34,7 +34,6 @@ type SupporterGuide interface {
 
 	//Offset() returns the offset to start reading.  Useful for
 	//restarting after a service interruption.
-
 	Offset() int32
 
 	//AdjustOffset() allows you to change the offset just before the
