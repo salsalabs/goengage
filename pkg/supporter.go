@@ -2,6 +2,7 @@ package goengage
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -355,4 +356,60 @@ func SupporterByEmail(e *Environment, email string) (s *Supporter, err error) {
 	}
 	err = fmt.Errorf("error: %s is not a valid email", email)
 	return s, err
+}
+
+//SupporterSegments accepts a supporterID and returns a list of segments
+//where the supporter is a member.
+func SupporterSegments(e *Environment, s string) (a []Segment, err error) {
+	offset := int32(0)
+	count := e.Metrics.MaxBatchSize
+
+	payload := SupporterGroupsRequestPayload{
+		Identifiers:    []string{s},
+		IdentifierType: SupporterIDType,
+	}
+	rqt := SupporterGroupsRequest{
+		Header:  RequestHeader{},
+		Payload: payload,
+	}
+	var resp SupporterGroupsResponse
+	n := NetOp{
+		Host:     e.Host,
+		Method:   SearchMethod,
+		Endpoint: SupporterSearchGroups,
+		Token:    e.Token,
+		Request:  &rqt,
+		Response: &resp,
+	}
+
+	for count == e.Metrics.MaxBatchSize {
+		payload.Offset = offset
+		payload.Count = count
+		err := n.Do()
+		if err != nil {
+			log.Printf("SupporterSegments: n.Do returned %v\n", err)
+			return a, err
+		}
+		if resp.Errors != nil {
+			for _, e := range resp.Errors {
+				log.Printf("SupporterSegments: %v error retrieving segments\n", s)
+				log.Printf("SupporterSegments: %v Code        %v\n ", s, e.Code)
+				log.Printf("SupporterSegments: %v Message     %v\n", s, e.Message)
+				log.Printf("SupporterSegments: %v Details     %v\n", s, e.Details)
+				log.Printf("SupporterSegments: %v Field Name  %v\n", s, e.FieldName)
+				log.Printf("SupporterSegments: %v returning %d segments", s, len(a))
+			}
+			return a, err
+		}
+		for _, r := range resp.Payload.Results {
+			if r.Result == NotFound {
+				log.Printf("SupporterSegments: %v Unable to find supporter-segments\n", s)
+			} else {
+				a = append(a, r.Segments...)
+			}
+		}
+		count = resp.Payload.Count
+		offset += count
+	}
+	return a, nil
 }
