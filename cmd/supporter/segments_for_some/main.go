@@ -158,6 +158,22 @@ func (rt *Runtime) WriteOut() error {
 	return nil
 }
 
+//WaitForReaders waits for readers to send to the done channel.
+//Closes the out channel when all readers are done.
+func (rt *Runtime) WaitForReaders() {
+	count := rt.ReaderCount
+	for count > 0 {
+		log.Printf("WaitForReaders: Waiting for %d readers\n", count)
+		_, ok := <-rt.DoneChan
+		if !ok {
+			break
+		}
+		count--
+	}
+	close(rt.OutChan)
+	log.Println("WaitForReaders: done")
+}
+
 //Program entry point.
 func main() {
 	var (

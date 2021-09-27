@@ -100,7 +100,7 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	return nil
 }
 
-//Finalize implements SupporterGuide.Filnalize and does nothing
+//Finalize implements SupporterGuide.Finalize and does nothing
 //in this app.
 func (r *Runtime) Finalize() error {
 	return nil

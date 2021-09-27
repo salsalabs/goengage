@@ -82,7 +82,7 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	return nil
 }
 
-//Finalize implements SupporterGuide.Filnalize and outputs the
+//Finalize implements SupporterGuide.Finalize and outputs the
 //distribution results.
 func (r *Runtime) Finalize() error {
 	fmt.Println("Value,Count")
