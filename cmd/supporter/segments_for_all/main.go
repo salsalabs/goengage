@@ -10,14 +10,19 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"sync"
 	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
-	reportSupporter "github.com/salsalabs/goengage/pkg/report"
+	report "github.com/salsalabs/goengage/pkg/report"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
+)
+
+const (
+	//SupporterListenerCount is the number of channels waiting for
+	//supporter records.
+	SupporterListenerCount = 5
 )
 
 //OutRec holds a supporter-segment relationship.
@@ -28,62 +33,48 @@ type OutRec struct {
 
 //Runtime area for this app.
 type Runtime struct {
-	E         *goengage.Environment
-	WriteChan chan goengage.Supporter
-	DoneChan  chan bool
-	OutChan   chan OutRec
-	CSVOut    *csv.Writer
+	E             *goengage.Environment
+	SupporterChan chan goengage.Supporter
+	DoneChan      chan bool
+	OutChan       chan OutRec
+	CSVOut        *csv.Writer
 }
 
 //NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, out *csv.Writer) Runtime {
 	r := Runtime{
-		E:         env,
-		WriteChan: make(chan goengage.Supporter, 100),
-		DoneChan:  make(chan bool),
-		OutChan:   make(chan OutRec, 100),
-		CSVOut:    out,
+		E:             env,
+		SupporterChan: make(chan goengage.Supporter, 100),
+		DoneChan:      make(chan bool),
+		OutChan:       make(chan OutRec, 100),
+		CSVOut:        out,
 	}
 	return r
+}
+
+//Adjust offset changes the proposed offset as needed.
+//Implements SupporterGuide.AdjustOffset.
+//Useful for chunked ID reads.  Does nothing in this app.
+func (r *Runtime) AdjustOffset(offset int32) int32 {
+	return offset
 }
 
 //Visit implements SupporterGuide.Visit and does something with
 //a supporter record.  In this case, Visit retrieves segments
 //for a supporter and writes them to OutChan.
 func (r *Runtime) Visit(s goengage.Supporter) error {
-	email := ""
-	e := goengage.FirstEmail(s)
-	if e != nil {
-		email = *e
-	}
-	if s.Contacts == nil {
-		return nil
-	}
-	var row []string
-	for i := 0; i < 4; i++ {
-		row = append(row, "")
-	}
-	row[0] = s.SupporterID
-	for _, c := range s.Contacts {
-		switch c.Type {
-		case goengage.ContactHome:
-			row[1] = c.Value
-		case goengage.ContactCell:
-			row[2] = c.Value
-		case goengage.ContactWork:
-			row[3] = c.Value
-		}
-	}
-	err := r.CSVOut.Write(row)
+	segments, err := goengage.SupporterSegments(r.E, s.SupporterID)
 	if err != nil {
 		return err
 	}
-	r.CSVOut.Flush()
-	log.Println(row)
+	for _, g := range segments {
+		outRec := OutRec{s, g}
+		r.OutChan <- outRec
+	}
 	return nil
 }
 
-//Finalize implements SupporterGuide.Filnalize and does nothing
+//Finalize implements SupporterGuide.Finalize and does nothing
 //in this app.
 func (r *Runtime) Finalize() error {
 	return nil
@@ -92,29 +83,24 @@ func (r *Runtime) Finalize() error {
 //Payload implements SupporterGuide.Payload and provides a payload
 //that will retrieve all supporters.
 func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
-	low := float64(r.IdOffset)
-	remaining := float64(len(r.IDs)) - float64(low)
-	high := low + math.Min(remaining, float64(r.E.Metrics.MaxBatchSize))
-	max := len(r.IDs)
-	current := r.IDs[int32(low):int32(high):max]
 	payload := goengage.SupporterSearchRequestPayload{
 		IdentifierType: goengage.SupporterIDType,
-		Identifiers:    current,
+		ModifiedFrom:   "2000-01-01T00:00:00.00000Z",
+		ModifiedTo:     "2050-01-01T00:00:00.00000Z",
 		Offset:         0,
 		Count:          0,
 	}
-	r.IdOffset += r.E.Metrics.MaxBatchSize
 	return payload
 }
 
 //Channel implements SupporterGuide.Channnel and provides the
 //supporter channel.
 func (r *Runtime) Channel() chan goengage.Supporter {
-	return r.WriteChan
+	return r.SupporterChan
 }
 
 //DoneChannel implements SupporterGuide.DoneChannel to provide
-// a channel that  receives a true when the listener is done.
+// a channel that receives a true when the listener(s) are done.
 func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
 }
@@ -125,13 +111,47 @@ func (r *Runtime) Offset() int32 {
 	return 0
 }
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+//Writer accepts items from OutChan and writes them to the CSV.
+func (r *Runtime) Writer() error {
+	count := int32(0)
+	log.Printf("Writer: begin")
+	for {
+		s, okay := <-r.OutChan
+		if !okay {
+			break
+		}
+		email := ""
+		e := goengage.FirstEmail(s.Supporter)
+		if e != nil {
+			email = *e
+		}
+		row := []string{
+			s.Supporter.SupporterID,
+			email,
+			s.Segment.SegmentID,
+			s.Segment.Name,
+		}
+		err := r.CSVOut.Write(row)
+		if err != nil {
+			return err
+		}
+		r.CSVOut.Flush()
+		if count%1000 == 0 {
+			log.Printf("Writer: %d\n", count)
+		}
+		count++
+	}
+	log.Printf("Writer: end")
+	return nil
+}
+
+//Program entry point. Scan through supporters.  Write supporter-group
+//data to a CSV file.
 func main() {
 	var (
-		app     = kingpin.New("phone_numbers", "Write a CSV of supporterIDs and phone numbers")
+		app     = kingpin.New("supporter_segments", "Write a CSV of supporters and segments")
 		login   = app.Flag("login", "YAML file with API token").Required().String()
-		idFile  = app.Flag("input", "Text with list of Engage supporterIDs to look up").Required().String()
-		outFile = app.Flag("output", "CSV filename to store supporter-segment data").Default("phone_numbers.csv").String()
+		outFile = app.Flag("output", "CSV filename to store supporter-segment data").Default("supporter_segments.csv").String()
 		//debug   = app.Flag("debug", "Write requests and responses to a log file in JSON").Bool()
 	)
 	app.Parse(os.Args[1:])
@@ -152,50 +172,61 @@ func main() {
 	writer := csv.NewWriter(f)
 	headers := []string{
 		"SupporterID",
-		"HomePhone",
-		"CellPhone",
-		"WorkPhone",
+		"Email",
+		"SegmentID",
+		"SegmentName",
 	}
 	err = writer.Write(headers)
 	if err != nil {
-		panic(err)
+		log.Fatalf("%s on %s during header write\n", err, *outFile)
 	}
 
-	r := NewRuntime(e, *idFile, writer)
-	err = r.RequestedIds()
-	if err != nil {
-		panic(err)
-	}
-
+	r := NewRuntime(e, writer)
 	var wg sync.WaitGroup
 
-	//Start supporter listener. Only one of these because Visit is quick
-	//in this app. More than one cases "concurrent map writes" errors.
+	//start CSV writer. It waits for (supporter, segment) records
+	//to arrive on OutChan.
 	wg.Add(1)
-	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
-		defer wg.Done()
-		reportSupporter.ProcessSupporters(r.E, r)
-	})(e, &r, &wg)
+	go (func(r *Runtime) {
+		err := r.Writer()
+		if err != nil {
+			log.Fatalf("%s on CSV writer", err)
+		}
+	})(&r)
 
-	//Start done listener.
+	//Start supporter processor.  This drives all of the "Guide"-based
+	//calls in this  source file.
+	for i := 0; i < SupporterListenerCount; i++ {
+		wg.Add(1)
+		go (func(r *Runtime, wg *sync.WaitGroup) {
+			defer wg.Done()
+			report.ProcessSupporters(r.E, r)
+		})(&r, &wg)
+	}
+	log.Printf("main: started %d supporter listeners\n", SupporterListenerCount)
+
+	//Start done listener. It waits for all of the supporter
+	//readers to complete.
 	wg.Add(1)
 	go (func(r *Runtime, n int, wg *sync.WaitGroup) {
 		defer wg.Done()
 		goengage.DoneListener(r.DoneChan, n)
-	})(&r, 1, &wg)
+		close(r.OutChan)
+	})(&r, SupporterListenerCount, &wg)
 
-	//Start supporter reader.
+	//Start supporter reader. Reads all supporters and puts them
+	//onto a supporter channel.
 	wg.Add(1)
 	go (func(e *goengage.Environment, r *Runtime, wg *sync.WaitGroup) {
 		defer wg.Done()
-		reportSupporter.ReadSupporters(r.E, r)
+		report.ReadSupporters(r.E, r)
 	})(e, &r, &wg)
 
 	d, err := time.ParseDuration("10s")
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("main: sleeping for %s", d)
+	log.Printf("main: sleeping for %s seconds", d)
 	time.Sleep(d)
 	log.Printf("main:  waiting...")
 	wg.Wait()
