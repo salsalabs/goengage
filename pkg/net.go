@@ -18,7 +18,7 @@ const (
 
 	//FirstDuration is the duration that we nap after the first instance of a
 	//HTTP 504 error.
-	FirstDuration = "2s"
+	FirstDuration = "15s"
 
 	//MaxWaitIterations is the number of times that we'll timme out before giving up
 	//because of HTTP 504's.  Note that the sleep interval doubles every time we wait.
