@@ -83,13 +83,13 @@ func (n *NetOp) Do() (err error) {
 }
 
 //BotchedError returns true if the contents of the provided error message
-//contains an embedded network time out or calls-per-minute error.
-//Side effects include changing the status code so that the embedded error
-//is treated like an HTTP "too many requests" (429) error.
+//contains an embedded network timeout or calls-per-minute error. Side-
+//effects include logging the embedded error and changing the response
+//status code so that the embedded error is treated like an HTTP 429
+//("too many requests").
 func BotchedError(n *NetOp, resp *http.Response, s string) bool {
 	ok := strings.Contains(s, "504 Gateway Time-out") ||
-		strings.Contains(s, "Your per minute call rate") ||
-		strings.Contains(s, "invalid character 'Y' looking")
+		strings.Contains(s, "Your per minute call rate")
 	if ok {
 		message1 := fmt.Sprintf("BotchedError: captured an embedded error on %v\n", n.Endpoint)
 		message2 := fmt.Sprintf("BotchedError: embedded error is '%s'\n", s)
