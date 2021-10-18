@@ -91,12 +91,9 @@ func BotchedError(n *NetOp, resp *http.Response, s string) bool {
 	ok := strings.Contains(s, "504 Gateway Time-out") ||
 		strings.Contains(s, "Your per minute call rate")
 	if ok {
-		message1 := fmt.Sprintf("BotchedError: captured an embedded error on %v\n", n.Endpoint)
-		message2 := fmt.Sprintf("BotchedError: embedded error is '%s'\n", s)
-		log.Print(message1)
-		log.Println(message2)
-		n.Println(message1)
-		n.Println(message2)
+		message := fmt.Sprintf("BotchedError: captured embedded error '%v'\n", s)
+		log.Print(message)
+		n.Println(message)
 		resp.StatusCode = http.StatusTooManyRequests
 	}
 	return ok
