@@ -60,24 +60,7 @@ func (n *NetOp) Do() (err error) {
 	for i := 1; !ok && i <= MaxWaitIterations; i++ {
 		resp, err := n.internal()
 		if err != nil {
-			// Kludge time! Sometimes a 504 can appear in the HTTP
-			// response body and not as a response code.  We'll hack
-			// our way around that.  Perhaps get some relief from all
-			// of the natural timeouts that happen in an SaaS product.
-			message := fmt.Sprintf("Do: %v on read, endpoint %v", err, n.Endpoint)
-			log.Print(message)
-			n.Println(message)
-
-			s := fmt.Sprintf("%v", err)
-			if Botched429(s) {
-				message := fmt.Sprintf("Do: captured an embedded 429 error on %v\n", n.Endpoint)
-				log.Print(message)
-				n.Println(message)
-				resp.StatusCode = http.StatusTooManyRequests
-			} else {
-				return err
-			}
-
+			return err
 		}
 		s = resp.StatusCode
 		switch s {
@@ -99,12 +82,24 @@ func (n *NetOp) Do() (err error) {
 	return nil
 }
 
-//Botched429 returns true if the contents of the provided error message
-//indicates a 504 when a 504 is not returned by Engage.  Yup, total kludge.
-func Botched429(s string) bool {
-	return strings.Contains(s, "504 Gateway Time-out") ||
+//BotchedError returns true if the contents of the provided error message
+//contains an embedded network time out or calls-per-minute error.
+//Side effects include changing the status code so that the embedded error
+//is treated like an HTTP "too many requests" (429) error.
+func BotchedError(n *NetOp, resp *http.Response, s string) bool {
+	ok := strings.Contains(s, "504 Gateway Time-out") ||
 		strings.Contains(s, "Your per minute call rate") ||
 		strings.Contains(s, "invalid character 'Y' looking")
+	if ok {
+		message1 := fmt.Sprintf("BotchedError: captured an embedded error on %v\n", n.Endpoint)
+		message2 := fmt.Sprintf("BotchedError: embedded error is '%s'\n", s)
+		log.Print(message1)
+		log.Println(message2)
+		n.Println(message1)
+		n.Println(message2)
+		resp.StatusCode = http.StatusTooManyRequests
+	}
+	return ok
 }
 
 //Delay displays the current HTTP status, takes a nap, and returns
@@ -165,28 +160,21 @@ func (n *NetOp) internal() (resp *http.Response, err error) {
 	}
 	n.LogJSON(b)
 
-	//KLUDGE: Engage will sometimes reply with HTML containing this message.
-	//We'll capture that and convert it to an HTTP error to trigger the
-	//504 wait loop.
-	if strings.Contains(string(b), "504 Gateway Time-out") {
-		m := fmt.Sprintf("Captured an embedded 504 error on %v", n.Endpoint)
-		log.Println(m)
-		n.Println(m)
-		resp.StatusCode = http.StatusGatewayTimeout
+	//This catches embedded errors in a response body.
+	s := string(b)
+	if BotchedError(n, resp, s) {
 		return resp, nil
 	}
 
 	err = json.Unmarshal(b, &n.Response)
 	if err != nil {
-		errString := fmt.Sprintf("%v", err)
-		if !Botched429(errString) {
-			message := fmt.Sprintf("Do: Unmarshal error %v in '%v'", err, string(b))
-			log.Println(message)
-			n.Println(message)
+		//This catches embedded errors in an error message.
+		s := fmt.Sprintf("%v", err)
+		if BotchedError(n, resp, s) {
+			return resp, nil
 		}
-		return resp, err
 	}
-	return resp, nil
+	return resp, err
 }
 
 //LogJSON writes JSON to the Logger for the provided byte slice.
