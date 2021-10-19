@@ -15,6 +15,7 @@ import (
 	"encoding/csv"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -64,7 +65,7 @@ func (rt *Runtime) BuildOut(id int) error {
 			return err
 		}
 		if s == nil {
-			log.Printf("BuildOut-%d: %v does not locate a supporter\n", id, supporterId)
+			//log.Printf("BuildOut-%d: %v does not locate a supporter\n", id, supporterId)
 		} else {
 			email := ""
 			e := goengage.FirstEmail(*s)
@@ -106,11 +107,13 @@ func (rt *Runtime) RequestedIds() (a []string, err error) {
 	for fs.Scan() {
 		id := fs.Text()
 		id = strings.Trim(id, "'\" \t")
-		if len(id) != 36 {
-			log.Fatalf("RequestedIds: file %v, '%v' is not a valid id\n", rt.IDFile, id)
+		if len(id) == 36 {
+			a = append(a, id)
+		} else {
+			//log.Printf("RequestedIds: file %v, '%v' is not a valid id\n", rt.IDFile, id)
 		}
-		a = append(a, id)
 	}
+	sort.Strings(a)
 	return a, err
 }
 
