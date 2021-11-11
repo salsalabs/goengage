@@ -257,7 +257,7 @@ func main() {
 			defer wg.Done()
 			err := rt.BuildOut(i)
 			if err != nil {
-				log.Fatalf("BuildOut error %v\n", err)
+				log.Fatalf("BuildOut-%d: error %v\n", i, err)
 				os.Exit(1)
 			}
 		})(rt, &wg, i)
