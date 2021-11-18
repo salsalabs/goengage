@@ -70,7 +70,7 @@ func (g DedicationGuide) TypeActivity() string {
 //Filter returns true if the record should be used.
 //Implements goengage.report.Guide.
 func (g DedicationGuide) Filter(f goengage.Fundraise) bool {
-	return len(f.Dedication) > 0 && !f.ActivityDate.Before(g.Span.S) && !f.ActivityDate.After(g.Span.E)
+	return f.DedicationType != goengage.None && !f.ActivityDate.Before(g.Span.S) && !f.ActivityDate.After(g.Span.E)
 }
 
 //Headers returns column headers for a CSV file.
