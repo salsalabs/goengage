@@ -53,11 +53,13 @@ type Address struct {
 
 // CustomFieldError is returned when an attempt to change a custom field fails.
 type CustomFieldError struct {
-	ID        string `json:"id,omitempty"`
-	Code      int    `json:"code,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Details   string `json:"details,omitempty"`
-	FieldName string `json:"fieldName,omitempty"`
+	ID          string `json:"id,omitempty"`
+	Code        int    `json:"code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	Details     string `json:"details,omitempty"`
+	FieldName   string `json:"fieldName,omitempty"`
+	ContentType string `json:"contentType,omitempty`
+	ContentID   string `json:"contentID,omitempty`
 }
 
 //CustomFieldValue contains information about a custom field.  Note that
@@ -70,6 +72,7 @@ type CustomFieldValue struct {
 	OptInDate  *time.Time         `json:"optInDate,omitempty"`
 	OptOutDate *time.Time         `json:"optOutDate,omitempty"`
 	Errors     []CustomFieldError `json:"errors,omitempty"`
+	Warnings   []CustomFieldError `json:"warnings,omitempty"`
 	//Foreign key for GORM.
 	SupporterID string `json:"-" gorm:"supporter_id"`
 }
