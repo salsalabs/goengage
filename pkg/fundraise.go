@@ -42,8 +42,8 @@ type Fundraise struct {
 	PaymentProcessorName   string        `json:"paymentProcessorName,omitempty"`
 	Fund                   string        `json:"fund,omitempty"`
 	Campaign               string        `json:"campaign,omitempty"`
-	Designation            string        `json:"designation,omitempty"`
 	Appeal                 string        `json:"appeal,omitempty"`
+	Designation            string        `json:"designation,omitempty"`
 	DedicationType         string        `json:"dedicationType,omitempty"`
 	Dedication             string        `json:"dedication,omitempty"`
 	Notify                 string        `json:"notify,omitempty"`
