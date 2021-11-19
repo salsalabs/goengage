@@ -100,6 +100,13 @@ func (g SeeGuide) Headers() []string {
 		"TransactionType",
 		"TransactionID",
 		"Amount",
+		"Fund",
+		"Campaign",
+		"Appeal",
+		"Designation",
+		"DedicationType",
+		"Dedication",
+		"TrackingCode",
 	}
 	return a
 }
@@ -109,20 +116,51 @@ func (g SeeGuide) Headers() []string {
 func (g SeeGuide) Line(f goengage.Fundraise) []string {
 	activityDate := f.ActivityDate.In(g.Location())
 	transactionDate := activityDate.Format(BriefFormat)
-
-	a := []string{
-		f.SupporterID,
-		f.Supporter.FirstName,
-		f.Supporter.LastName,
-		f.PersonEmail,
-		transactionDate,
-		ToTitle(f.DonationType),
-		f.DonationID,
-		ToTitle(f.ActivityType),
-		f.ActivityID,
-		ToTitle(f.Transactions[0].Type),
-		f.Transactions[0].TransactionID,
-		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
+	h := g.Headers()
+	var a []string
+	for _, s := range h {
+		var b string
+		switch s {
+		case "SupporterID":
+			b = f.SupporterID
+		case "FirstName":
+			b = f.Supporter.FirstName
+		case "LastName":
+			b = f.Supporter.LastName
+		case "PersonEmail":
+			b = f.PersonEmail
+		case "TransactionDate":
+			b = transactionDate
+		case "DonationType":
+			b = f.DonationType
+		case "DonationID":
+			b = f.DonationID
+		case "ActivityType":
+			b = f.ActivityType
+		case "ActivityID":
+			b = f.ActivityID
+		case "TransactionType":
+			b = ToTitle(f.Transactions[0].Type)
+		case "TransactionID":
+			b = f.Transactions[0].TransactionID
+		case "Amount":
+			b = fmt.Sprintf("%.2f", f.TotalReceivedAmount)
+		case "Fund":
+			b = f.Fund
+		case "Campaign":
+			b = f.Campaign
+		case "Designation":
+			b = f.Designation
+		case "Appeal":
+			b = f.Appeal
+		case "DedicationType":
+			b = f.DedicationType
+		case "Dedication":
+			b = f.Dedication
+		case "TrackingCode":
+			b = f.TrackingCode
+		}
+		a = append(a, b)
 	}
 	return a
 }
