@@ -51,32 +51,6 @@ type Address struct {
 	OptInDate            *time.Time `json:"optInDate,omitempty"`
 }
 
-// CustomFieldError is returned when an attempt to change a custom field fails.
-type CustomFieldError struct {
-	ID          string `json:"id,omitempty"`
-	Code        int    `json:"code,omitempty"`
-	Message     string `json:"message,omitempty"`
-	Details     string `json:"details,omitempty"`
-	FieldName   string `json:"fieldName,omitempty"`
-	ContentType string `json:"contentType,omitempty`
-	ContentID   string `json:"contentID,omitempty`
-}
-
-//CustomFieldValue contains information about a custom field.  Note that
-//a supporter/activity will only have custom fields if the values have been
-//set in the supporter/activity record.
-type CustomFieldValue struct {
-	FieldID    string             `json:"fieldId,omitempty" gorm:"field_id,primarykey,omitempty"`
-	Name       string             `json:"name"`
-	Value      string             `json:"value"`
-	OptInDate  *time.Time         `json:"optInDate,omitempty"`
-	OptOutDate *time.Time         `json:"optOutDate,omitempty"`
-	Errors     []CustomFieldError `json:"errors,omitempty"`
-	Warnings   []CustomFieldError `json:"warnings,omitempty"`
-	//Foreign key for GORM.
-	SupporterID string `json:"-" gorm:"supporter_id"`
-}
-
 //Contact holds a way to communicate with a supporter.  Typical contacts
 //include email address and phone numbers.
 type Contact struct {

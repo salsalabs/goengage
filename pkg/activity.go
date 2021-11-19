@@ -27,16 +27,18 @@ type ActivityRequestPayload struct {
 //SUBSCRIPTION_MANAGEMENT requests.  Note that Base is actually
 //contained in the other activity result objects.
 type BaseActivity struct {
-	ActivityType     string     `json:"activityType,omitempty"`
-	ActivityID       string     `json:"activityId,omitempty"`
-	ActivityFormName string     `json:"activityFormName,omitempty"`
-	ActivityFormID   string     `json:"activityFormId,omitempty"`
-	SupporterID      string     `json:"supporterId,omitempty"`
-	PersonName       string     `json:"personName,omitempty"`
-	PersonEmail      string     `json:"personEmail,omitempty"`
-	NewSupporter     bool       `json:"newSupporter,omitempty"`
-	ActivityDate     *time.Time `json:"activityDate,omitempty"`
-	LastModified     *time.Time `json:"lastModified,omitempty"`
+	ActivityType      string             `json:"activityType,omitempty"`
+	ActivityID        string             `json:"activityId,omitempty"`
+	ActivityFormName  string             `json:"activityFormName,omitempty"`
+	ActivityFormID    string             `json:"activityFormId,omitempty"`
+	SupporterID       string             `json:"supporterId,omitempty"`
+	PersonName        string             `json:"personName,omitempty"`
+	PersonEmail       string             `json:"personEmail,omitempty"`
+	NewSupporter      bool               `json:"newSupporter,omitempty"`
+	ActivityDate      *time.Time         `json:"activityDate,omitempty"`
+	LastModified      *time.Time         `json:"lastModified,omitempty"`
+	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty"`
+	TrackingCode      string             `json:"trackingCode,omitempty"`
 }
 
 //BaseResponse is the set of common fields returned for all activities.
