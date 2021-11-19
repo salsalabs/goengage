@@ -40,14 +40,18 @@ type Fundraise struct {
 	AccountExpiration      *time.Time    `json:"accountExpiration,omitempty"`
 	AccountProvider        string        `json:"accountProvider,omitempty"`
 	PaymentProcessorName   string        `json:"paymentProcessorName,omitempty"`
-	FundName               string        `json:"fundName,omitempty"`
-	FundGLCode             string        `json:"fundGLCode,omitempty"`
+	Fund                   string        `json:"fund,omitempty"`
+	Campaign               string        `json:"campaign,omitempty"`
 	Designation            string        `json:"designation,omitempty"`
+	Appeal                 string        `json:"appeal,omitempty"`
 	DedicationType         string        `json:"dedicationType,omitempty"`
 	Dedication             string        `json:"dedication,omitempty"`
 	Notify                 string        `json:"notify,omitempty"`
-	WasImported            bool          `json:"wasimported,omitempty"`
+	WasImported            bool          `json:"wasImported,omitempty"`
+	WasAPIImported         bool          `json:"wasAPIImported,omitempty"`
 	Transactions           []Transaction `json:"transactions,omitempty" gorm:"foreignkey:activity_id"`
+	SalesForceEventID      string        `json:"salesforceEventId,omitempty"`
+	SalesForceRecurringID  string        `json:"salesforceRecurringId,omitempty"`
 	Supporter              Supporter     `gorm:"foreignkey:supporter_id"`
 	Month                  int
 	Day                    int
