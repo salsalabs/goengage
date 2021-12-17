@@ -31,7 +31,7 @@ type Segment struct {
 	Name              string `json:"name"`
 	Description       string `json:"description"`
 	Type              string `json:"type,omitempty"`
-	TotalMembers      int    `json:"totalSupporters,omitempty"`
+	TotalMembers      int    `json:"totalMembers,omitempty"`
 	ExternalSystemID  string `json:"externalSystemId,omitempty"`
 	Result            string `json:"result,omitempty"`
 	MailingList       bool   `json:"mailingList,omitempty"`
