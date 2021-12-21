@@ -145,11 +145,11 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 		state,
 		postalCode,
 		transactionDate,
-		ToTitle(f.DonationType),
-		ToTitle(f.ActivityType),
-		ToTitle(f.Transactions[0].Type),
+		goengage.ToTitle(f.DonationType),
+		goengage.ToTitle(f.ActivityType),
+		goengage.ToTitle(f.Transactions[0].Type),
 		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
-		ToTitle(f.DedicationType),
+		goengage.ToTitle(f.DedicationType),
 		f.Dedication,
 		f.Notify,
 		dedicationAddress,
@@ -198,40 +198,6 @@ func DefaultDates() (start, end string) {
 	return start, end
 }
 
-//Parse accepts a date in BriefFormat and returns a Go time. Engage
-//needs a date and time.  Parameter "todText" defines the time to add.
-//Errors are internal and fatal.
-func Parse(s string, loc *time.Location, todText string) time.Time {
-	t, err := time.ParseInLocation(BriefFormat, s, loc)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
-	d, err := time.ParseDuration(todText)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
-	t = t.Add(d)
-
-	// Engage wants Zulu time.
-	// TODO: handle positive offsets correctly.
-	_, offset := t.Zone()
-	zt := fmt.Sprintf("%ds", -offset)
-	d, err = time.ParseDuration(zt)
-	t = t.Add(d)
-	return t
-}
-
-//ToTitle converts engage constants to title-case.  Underbars
-//are treated as word separators.
-func ToTitle(s string) string {
-	parts := strings.Split(s, "_")
-	var a []string
-	for _, x := range parts {
-		a = append(a, strings.Title(strings.ToLower(x)))
-	}
-	return strings.Join(a, "_")
-}
-
 // Validate validates the provided start and end dates.
 // Converts the dates from the provided location to Zulu, checks for start
 // time before end time, then returns a slice of Span objects.  Typically,
@@ -239,8 +205,8 @@ func ToTitle(s string) string {
 // startDate and endDate crosses month boundaries.
 // Errors are internal and fatal.
 func Validate(startDate string, endDate string, loc *time.Location) []report.Span {
-	st := Parse(startDate, loc, StartDuration)
-	et := Parse(endDate, loc, EndDuration)
+	st := report.Parse(startDate, loc, StartDuration)
+	et := report.Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
 		log.Fatalf("end date '%v' is before start date '%v'", endDate, startDate)

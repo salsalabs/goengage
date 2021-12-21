@@ -118,3 +118,14 @@ func DoneListener(c chan bool, n int) {
 	log.Println("DoneListener: end")
 	close(c)
 }
+
+//ToTitle converts engage constants to title-case.  Underbars
+//are treated as word separators.
+func ToTitle(s string) string {
+	parts := strings.Split(s, "_")
+	var a []string
+	for _, x := range parts {
+		a = append(a, strings.Title(strings.ToLower(x)))
+	}
+	return strings.Join(a, "_")
+}

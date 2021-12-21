@@ -134,7 +134,7 @@ func (g SeeGuide) Line(f goengage.Fundraise) []string {
 		case "ActivityID":
 			b = f.ActivityID
 		case "TransactionType":
-			b = ToTitle(f.Transactions[0].Type)
+			b = goengage.ToTitle(f.Transactions[0].Type)
 		case "TransactionID":
 			b = f.Transactions[0].TransactionID
 		case "Amount":
@@ -196,49 +196,15 @@ func DefaultDates() (start, end string) {
 	return start, end
 }
 
-//Parse accepts a date in BriefFormat and returns a Go time. Engage
-//needs a date and time.  Parameter "todText" defines the time to add.
-//Errors are internal and fatal.
-func Parse(s string, loc *time.Location, todText string) time.Time {
-	t, err := time.ParseInLocation(BriefFormat, s, loc)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
-	d, err := time.ParseDuration(todText)
-	if err != nil {
-		log.Fatalf("%v\n", err)
-	}
-	t = t.Add(d)
-
-	// Engage wants Zulu time.
-	// TODO: handle positive offsets correctly.
-	_, offset := t.Zone()
-	zt := fmt.Sprintf("%ds", -offset)
-	d, err = time.ParseDuration(zt)
-	t = t.Add(d)
-	return t
-}
-
-//ToTitle converts engage constants to title-case.  Underbars
-//are treated as word separators.
-func ToTitle(s string) string {
-	parts := strings.Split(s, "_")
-	var a []string
-	for _, x := range parts {
-		a = append(a, strings.Title(strings.ToLower(x)))
-	}
-	return strings.Join(a, "_")
-}
-
 //ValidateDonationType returns an error if the provided
 //donation type is invalid.
 func ValidateDonationType(d string) error {
 	switch d {
 	case "All":
 		return nil
-	case ToTitle(goengage.OneTime):
+	case goengage.ToTitle(goengage.OneTime):
 		return nil
-	case ToTitle(goengage.Recurring):
+	case goengage.ToTitle(goengage.Recurring):
 		return nil
 	}
 	return fmt.Errorf("Not a valid donation type, '%s'", d)
@@ -246,7 +212,7 @@ func ValidateDonationType(d string) error {
 }
 func main() {
 	start, end := DefaultDates()
-	donationTypePrompt := fmt.Sprintf("Choose All, %s or %s", ToTitle(goengage.OneTime), ToTitle(goengage.Recurring))
+	donationTypePrompt := fmt.Sprintf("Choose All, %s or %s", goengage.ToTitle(goengage.OneTime), goengage.ToTitle(goengage.Recurring))
 	var (
 		app          = kingpin.New("see", "Write all donations for a timeframe to a CSV")
 		login        = app.Flag("login", "YAML file with API token").Required().String()

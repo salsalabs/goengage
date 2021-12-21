@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
@@ -104,9 +103,9 @@ func (g SupporterGuide) Line(f goengage.Fundraise) []string {
 		transactionDate,
 		f.DonationType,
 		f.DonationID,
-		ToTitle(f.ActivityType),
+		goengage.ToTitle(f.ActivityType),
 		f.ActivityID,
-		ToTitle(f.Transactions[0].Type),
+		goengage.ToTitle(f.Transactions[0].Type),
 		f.Transactions[0].TransactionID,
 		fmt.Sprintf("%.2f", f.TotalReceivedAmount),
 	}
@@ -170,17 +169,6 @@ func Parse(s string, loc *time.Location, todText string) time.Time {
 	d, err = time.ParseDuration(zt)
 	t = t.Add(d)
 	return t
-}
-
-//ToTitle converts engage constants to title-case.  Underbars
-//are treated as word separators.
-func ToTitle(s string) string {
-	parts := strings.Split(s, "_")
-	var a []string
-	for _, x := range parts {
-		a = append(a, strings.Title(strings.ToLower(x)))
-	}
-	return strings.Join(a, "_")
 }
 
 func main() {
