@@ -14,7 +14,7 @@ import (
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
-//EmailBlastGuide is the interface to use when scanning all supporters
+//EmailBlastGuide is the interface to use when scanning all email blasts
 //and doing something.
 type EmailBlastGuide interface {
 

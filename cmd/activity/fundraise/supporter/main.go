@@ -1,6 +1,11 @@
 package main
 
-//Application to scan for fundraising activities and write them to a CSV.
+//Application to retrieve fundraising activities for a single supporter
+//in a user-specified timerange.  Each line also contains a hard-coded,
+//client-specific custom field which defaults to empty. Output goes to a
+//CSV file.
+//
+//This app confirms to the "Guide" interface.
 import (
 	"fmt"
 	"log"
@@ -29,27 +34,20 @@ const (
 	//Used in converting Go time strings to Engage times.
 	EndDuration = "23h59m59.999s"
 
-	//DayDuration is used to scan a Span for new months.
-	DayDuration = "24h"
-
-	//BackupDuration is used to back a date up to the last
-	//millisecond in the previous day.
-	BackupDuration = "-1ms"
-
 	//ReaderCount is the number of Engage reaaders to start.
 	ReaderCount = 3
 )
 
 //SupporterGuide is the Guide proxy.
 type SupporterGuide struct {
-	Span        Span
+	Span        report.Span
 	Timezone    *time.Location
 	SupporterID string
 	ReadOffset  int32
 }
 
 //NewSupporterGuide returns an initialized SupporterGuide.
-func NewSupporterGuide(span Span, location *time.Location, supporterID string, offset int32) SupporterGuide {
+func NewSupporterGuide(span report.Span, location *time.Location, supporterID string, offset int32) SupporterGuide {
 	return SupporterGuide{
 		Span:        span,
 		Timezone:    location,
@@ -185,19 +183,6 @@ func ToTitle(s string) string {
 	return strings.Join(a, "_")
 }
 
-// Validate validates the provided start and end dates. Errors are
-// noisily fatal.  Returns a span.
-func Validate(startDate string, endDate string, loc *time.Location) Span {
-	st := Parse(startDate, loc, StartDuration)
-	et := Parse(endDate, loc, EndDuration)
-
-	if et.Before(st) {
-		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
-	}
-	span := Span{st, et}
-	return span
-}
-
 func main() {
 	start, end := DefaultDates()
 	var (
@@ -219,7 +204,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	span := Validate(*startDate, *endDate, location)
+	span := report.ValidateSpan(*startDate, *endDate, location)
 	guide := NewSupporterGuide(span, location, *supporterID, *readOffset)
 	ts := report.NewTimeSpan(span.S, span.E)
 	err = report.ReportFundraising(e, guide, ts)

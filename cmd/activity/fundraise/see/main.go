@@ -42,26 +42,20 @@ const (
 
 //SeeGuide is the Guide proxy.
 type SeeGuide struct {
-	Span         Span
+	Span         report.Span
 	Timezone     *time.Location
 	DonationType string
 	ReadOffset   int32
 }
 
 //NewSeeGuide returns an initialized SeeGuide.
-func NewSeeGuide(span Span, location *time.Location, donationType string, readOffset int32) SeeGuide {
+func NewSeeGuide(span report.Span, location *time.Location, donationType string, readOffset int32) SeeGuide {
 	return SeeGuide{
 		Span:         span,
 		Timezone:     location,
 		DonationType: donationType,
 		ReadOffset:   readOffset,
 	}
-}
-
-//Span is a pair of Time objects for the start and end of a time span.
-type Span struct {
-	S time.Time
-	E time.Time
 }
 
 //TypeActivity returns the kind of activity being read.
@@ -178,7 +172,8 @@ func (g SeeGuide) Readers() int {
 //Filename returns the CSV filename.
 func (g SeeGuide) Filename() string {
 	s := g.Span.S.Format(BriefFormat)
-	return fmt.Sprintf("%s_see.csv", s)
+	t := strings.ToLower(g.DonationType)
+	return fmt.Sprintf("%s_see_%s.csv", s, t)
 }
 
 //Offset returns the offset for the first read.
@@ -235,19 +230,6 @@ func ToTitle(s string) string {
 	return strings.Join(a, "_")
 }
 
-// ValidateSpan validates the provided start and end dates.
-// Errors are internal and fatal.
-func ValidateSpan(startDate string, endDate string, loc *time.Location) Span {
-	st := Parse(startDate, loc, StartDuration)
-	et := Parse(endDate, loc, EndDuration)
-
-	if et.Before(st) {
-		log.Fatalf("end date '%v' is before start date '%v'", startDate, endDate)
-	}
-	span := Span{st, et}
-	return span
-}
-
 //ValidateDonationType returns an error if the provided
 //donation type is invalid.
 func ValidateDonationType(d string) error {
@@ -288,7 +270,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	span := ValidateSpan(*startDate, *endDate, location)
+	span := report.ValidateSpan(*startDate, *endDate, location)
 	guide := NewSeeGuide(span, location, *donationType, *readOffset)
 	ts := report.NewTimeSpan(span.S, span.E)
 	err = report.ReportFundraising(e, guide, ts)

@@ -41,24 +41,18 @@ const (
 
 //DedicationGuide is the Guide proxy.
 type DedicationGuide struct {
-	Span     Span
+	Span     report.Span
 	AddKeys  bool
 	Timezone *time.Location
 }
 
 //NewDedicationGuide returns an initialized DedicationGuide.
-func NewDedicationGuide(span Span, addKeys bool, location *time.Location) DedicationGuide {
+func NewDedicationGuide(span report.Span, addKeys bool, location *time.Location) DedicationGuide {
 	return DedicationGuide{
 		Span:     span,
 		AddKeys:  addKeys,
 		Timezone: location,
 	}
-}
-
-//Span is a pair of Time objects for the start and end of a time span.
-type Span struct {
-	S time.Time
-	E time.Time
 }
 
 //TypeActivity returns the kind of activity being read.
@@ -244,14 +238,14 @@ func ToTitle(s string) string {
 // the Slice is 1 entry.  It becomes multiple entries when interval between
 // startDate and endDate crosses month boundaries.
 // Errors are internal and fatal.
-func Validate(startDate string, endDate string, loc *time.Location) []Span {
+func Validate(startDate string, endDate string, loc *time.Location) []report.Span {
 	st := Parse(startDate, loc, StartDuration)
 	et := Parse(endDate, loc, EndDuration)
 
 	if et.Before(st) {
 		log.Fatalf("end date '%v' is before start date '%v'", endDate, startDate)
 	}
-	var a []Span
+	var a []report.Span
 	day, _ := time.ParseDuration(DayDuration)
 	yesterday, err := time.ParseDuration(BackupDuration)
 	if err != nil {
@@ -259,12 +253,12 @@ func Validate(startDate string, endDate string, loc *time.Location) []Span {
 	}
 	for ct := st; ct.Before(et); ct = ct.Add(day) {
 		if ct.Month() != st.Month() {
-			span := Span{st, ct.Add(yesterday)}
+			span := report.Span{st, ct.Add(yesterday)}
 			a = append(a, span)
 			st = ct
 		}
 	}
-	span := Span{st, et}
+	span := report.Span{st, et}
 	a = append(a, span)
 	return a
 }

@@ -6,48 +6,9 @@ import (
 	"log"
 	"os"
 	"sync"
-	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 )
-
-//Guide provides the basic tools to read and filter records then
-//write them to a CSV file.
-type Guide interface {
-	//TypeActivity returns the kind of activity being read.
-	TypeActivity() string
-	//Filter returns true if the record should be used.
-	Filter(goengage.Fundraise) bool
-	//Headers returns column headers for a CSV file.
-	Headers() []string
-	//Line returns a list of strings to go in to the CSV file for each
-	//fundraising record.
-	Line(goengage.Fundraise) []string
-	//Readers returns the number of readers to start.
-	Readers() int
-	//Filename returns the CSV filename.
-	Filename() string
-	//Location returns the location used to adjust transactions.
-	//Transactions are Zulu.  Timezone is used to covert them to local.
-	Location() *time.Location
-	//Offset() returns the offset to start reading.  Useful for
-	//restarting after a service interruption.
-	Offset() int32
-}
-
-//TimeSpan contains a start and end time in Engage time format.
-type TimeSpan struct {
-	Start string
-	End   string
-}
-
-//NewTimeSpan creates a Timespan using two Time objects.
-func NewTimeSpan(s, e time.Time) TimeSpan {
-	return TimeSpan{
-		Start: s.Format(goengage.EngageDateFormat),
-		End:   e.Format(goengage.EngageDateFormat),
-	}
-}
 
 //MaxRecords returns the maximum number of activity records
 //of a particular type.
