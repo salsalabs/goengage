@@ -19,24 +19,6 @@ const (
 	//DedicationAddressName is the supporter custom field name that contains
 	//the dedication address.
 	DedicationAddressName = "Address of Recipient to Notify"
-
-	//BriefFormat is used to parse text into Classic-looking time.
-	BriefFormat = "2006-01-02"
-
-	//StartDuration is text to initialize a duration for start times.
-	//Used in converting Go time strings to Engage times.
-	StartDuration = "0h0m0.0s"
-
-	//EndDuration is text to initialize a duration for end times.
-	//Used in converting Go time strings to Engage times.
-	EndDuration = "23h59m59.999s"
-
-	//DayDuration is used to scan a Span for new months.
-	DayDuration = "24h"
-
-	//BackupDuration is used to back a date up to the last
-	//millisecond in the previous day.
-	BackupDuration = "-1ms"
 )
 
 //DedicationGuide is the Guide proxy.
@@ -111,7 +93,7 @@ func (g DedicationGuide) Line(f goengage.Fundraise) []string {
 	dedication = strings.Replace(dedication, "\r", " ", -1)
 	dedication = strings.Replace(dedication, "\t", " ", -1)
 	activityDate := f.ActivityDate.In(g.Location())
-	transactionDate := activityDate.Format(BriefFormat)
+	transactionDate := activityDate.Format(report.BriefFormat)
 
 	s := &f.Supporter
 	if s != nil {
@@ -175,7 +157,7 @@ func (g DedicationGuide) Readers() int {
 
 //Filename returns the CSV filename.
 func (g DedicationGuide) Filename() string {
-	s := g.Span.S.Format(BriefFormat)
+	s := g.Span.S.Format(report.BriefFormat)
 	return fmt.Sprintf("%s_dedications.csv", s)
 }
 
@@ -193,8 +175,8 @@ func DefaultDates() (start, end string) {
 	startDelta := 6 + int(now.Weekday())
 	startTime := now.AddDate(0, 0, -startDelta)
 	endTime := startTime.AddDate(0, 0, 6)
-	start = startTime.Format(BriefFormat)
-	end = endTime.Format(BriefFormat)
+	start = startTime.Format(report.BriefFormat)
+	end = endTime.Format(report.BriefFormat)
 	return start, end
 }
 
@@ -205,15 +187,15 @@ func DefaultDates() (start, end string) {
 // startDate and endDate crosses month boundaries.
 // Errors are internal and fatal.
 func Validate(startDate string, endDate string, loc *time.Location) []report.Span {
-	st := report.Parse(startDate, loc, StartDuration)
-	et := report.Parse(endDate, loc, EndDuration)
+	st := report.Parse(startDate, loc, report.StartDuration)
+	et := report.Parse(endDate, loc, report.EndDuration)
 
 	if et.Before(st) {
 		log.Fatalf("end date '%v' is before start date '%v'", endDate, startDate)
 	}
 	var a []report.Span
-	day, _ := time.ParseDuration(DayDuration)
-	yesterday, err := time.ParseDuration(BackupDuration)
+	day, _ := time.ParseDuration(report.DayDuration)
+	yesterday, err := time.ParseDuration(report.BackupDuration)
 	if err != nil {
 		panic(err)
 	}
