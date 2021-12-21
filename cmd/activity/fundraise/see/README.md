@@ -22,7 +22,7 @@ go get github.com/salsalabs/goengage
 go install github.com/salsalabs/goengage
 ```
 
-The source for this package can be found in the `cmd/activity/fundraise/see2` directory in `goengage`.
+The source for this package can be found in the `cmd/activity/fundraise/see` directory in `goengage`.
 
 ## Operation
 
@@ -30,13 +30,13 @@ The easiest way to run this app is to start in a console window.
 
 ```bash
 cd ~/go/src/github/salsalabs.com/goengage
-go run cmd/activity/fundraise/see2/main.go --help
+go run cmd/activity/fundraise/see/main.go --help
 ```
 
 Use `--help` shows the usage summary.
 
 ```
-usage: see2 --login=LOGIN [<flags>]
+usage: see --login=LOGIN [<flags>]
 
 Write donations to a CSV
 
@@ -72,7 +72,7 @@ token: 82874335-aedd-4f9e-918d-8ad78088a811
 If you've stored your token in `company.yaml`, then you'll need to use a command like this to start the deduplication report.
 
 ```bash
-go run cmd/activity/fundraise/see2/main.go --login company.yaml
+go run cmd/activity/fundraise/see/main.go --login company.yaml
 ```
 
 ## Outputs
@@ -125,7 +125,7 @@ The application logs all status to the console.  Errors are really obvious.  Her
 
 ### CSV output
 
-Donations with see2 are stored in `see2.csv` in the current directory.  Here's a sample.
+Donations with see are stored in `see.csv` in the current directory.  Here's a sample.
 
 ```
 PersonName,PersonEmail,AddressLine1,AddressLine2,City,State,Zip,TransactionDate,Amount,DedicationType,Dedication,Notify,DedicationAddress
@@ -138,14 +138,14 @@ Anne Souvlaki,anne@Souvlaki.com,,,,,,2020-12-15 17:41:28.178 +0000 UTC,1912.50,I
 If you'll be using this app a lot, then it will be a good idea to create a native program.
 
 ```bash
-go build -o ~/go/bin/fundraise_see2 cmd/activity/fundraise/see2/main.go
+go build -o ~/go/bin/fundraise_see cmd/activity/fundraise/see/main.go
 ```
 
 The output will be an executable in `~/go/bin` in your home directory.
 Add `~/go/bin` to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
 
 ```bash
-fundraise_see2 --login company.yaml
+fundraise_see --login company.yaml
 ```
 
 ## Questions?  Comments?
