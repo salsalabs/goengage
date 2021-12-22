@@ -111,8 +111,8 @@ func Delay(n *NetOp, statusCode int, pass int, duration time.Duration) time.Dura
 	return duration
 }
 
-//internal processes the request provided by NetOps.  This is here so that
-//we can handle both requests and metrics in the same module.
+//internal processes the request provided by NetOps.  This is here so
+//that we can handle both requests and metrics in the same module.
 func (n *NetOp) internal() (resp *http.Response, err error) {
 	u, _ := url.Parse(n.Endpoint)
 	u.Scheme = "https"
