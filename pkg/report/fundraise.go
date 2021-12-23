@@ -52,7 +52,7 @@ func ReadActivities(e *goengage.Environment,
 		total := resp.Payload.Total
 		for _, r := range resp.Payload.Activities {
 			if guide.Filter(r) {
-				s, err := ReadSupporter(e, r)
+				s, err := goengage.SupporterByID(e, r.SupporterID)
 				if err != nil {
 					panic(err)
 				}
@@ -95,34 +95,6 @@ func ReadBatch(e *goengage.Environment,
 	}
 	err = n.Do()
 	return resp, err
-}
-
-//ReadSupporter reads a supporter record for the specified ID.
-func ReadSupporter(e *goengage.Environment, f goengage.Fundraise) (supporter *goengage.Supporter, err error) {
-	payload := goengage.SupporterSearchRequestPayload{
-		Identifiers:    []string{f.SupporterID},
-		IdentifierType: goengage.SupporterIDType,
-	}
-
-	rqt := goengage.SupporterSearchRequest{
-		Header:  goengage.RequestHeader{},
-		Payload: payload,
-	}
-	var resp goengage.SupporterSearchResults
-	n := goengage.NetOp{
-		Host:     e.Host,
-		Method:   goengage.SearchMethod,
-		Endpoint: goengage.SearchSupporter,
-		Token:    e.Token,
-		Request:  &rqt,
-		Response: &resp,
-	}
-	err = n.Do()
-	if err != nil {
-		return supporter, err
-	}
-	s := resp.Payload.Supporters[0]
-	return &s, err
 }
 
 // ReportFundraising on a Guide by reading all records, filtering, then
