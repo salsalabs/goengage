@@ -8,8 +8,11 @@ import (
 //generally contained in "donations" as FundRaiseActivity.
 type Transaction struct {
 	TransactionID            string     `json:"transactionId,omitempty"`
-	Type                     string     `json:"type,omitempty"`
+	TemplateID               string     `json:"templateId,omitempty"`
+	RelatedTransactionID     string     `json:"relatedTransactionID,omitempty"`
 	Reason                   string     `json:"reason,omitempty"`
+	ReasonID                 string     `json:"reasonId,omitempty"`
+	Type                     string     `json:"type,omitempty"`
 	Date                     *time.Time `json:"date,omitempty"`
 	Amount                   float64    `json:"amount,omitempty"`
 	DeductibleAmount         float64    `json:"deductibleAmount,omitempty"`
