@@ -159,6 +159,14 @@ const (
 	Complete = "COMPLETE"
 )
 
+//Transaction Identifier Type
+const (
+	TransactionID  = "TRANSACTION_ID"
+	TemplateID     = "TEMPLATE_ID"
+	ActivityFormID = "ACTIVITY_FORM_ID"
+	//SUPPORTER_ID already defined...
+)
+
 //Moderatiion state
 const (
 	Display     = "DISPLAY"
