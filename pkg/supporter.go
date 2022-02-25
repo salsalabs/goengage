@@ -81,7 +81,6 @@ type Supporter struct {
 	Address                  *Address           `json:"address,omitempty"`
 	Contacts                 []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
 	CustomFieldValues        []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
-	Result                   string             `json:"result,omitempty"`
 	SourceTrackingCode       string             `json:"sourceTrackingCode,omitempty"`
 	UpdateSourceTrackingCode string             `json:"updateSourceTrackingCode,omitempty"`
 	Removed                  bool               `json:"removed,omitempty`

@@ -89,7 +89,6 @@ func NewSupporterKludgeFix(s Supporter) SupporterKludgeFix {
 		Address:           NewAddressKludgeFix(s.Address),
 		Contacts:          s.Contacts,
 		CustomFieldValues: s.CustomFieldValues,
-		ReadOnly:          s.ReadOnly,
 	}
 	return skf
 }
