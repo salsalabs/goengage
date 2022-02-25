@@ -64,22 +64,30 @@ type Contact struct {
 
 //Supporter describes a single Engage supporter.
 type Supporter struct {
-	SupporterID       string             `json:"supporterId,omitempty" gorm:"primary_key"`
-	Result            string             `json:"result,omitempty"`
-	Title             string             `json:"title,omitempty"`
-	FirstName         string             `json:"firstName,omitempty"`
-	MiddleName        string             `json:"middleName,omitempty"`
-	LastName          string             `json:"lastName,omitempty"`
-	Suffix            string             `json:"suffix,omitempty"`
-	DateOfBirth       *time.Time         `json:"dateOfBirth,omitempty"`
-	Gender            string             `json:"gender,omitempty"`
-	CreatedDate       *time.Time         `json:"createdDate,omitempty"`
-	LastModified      *time.Time         `json:"lastModified,omitempty"`
-	ExternalSystemID  string             `json:"externalSystemId,omitempty"`
-	Address           *Address           `json:"address,omitempty"`
-	Contacts          []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
-	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
-	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitempty"`
+	SupporterID              string             `json:"supporterId,omitempty" gorm:"primary_key"`
+	SalesForceID             string             `json:"salesforceId,omitempty`
+	Result                   string             `json:"result,omitempty"`
+	Title                    string             `json:"title,omitempty"`
+	FirstName                string             `json:"firstName,omitempty"`
+	MiddleName               string             `json:"middleName,omitempty"`
+	LastName                 string             `json:"lastName,omitempty"`
+	Suffix                   string             `json:"suffix,omitempty"`
+	DateOfBirth              *time.Time         `json:"dateOfBirth,omitempty"`
+	Gender                   string             `json:"gender,omitempty"`
+	CreatedDate              *time.Time         `json:"createdDate,omitempty"`
+	LastModified             *time.Time         `json:"lastModified,omitempty"`
+	JoinedDate               *time.Time         `json:"joinedDate,omitempty"`
+	ExternalSystemID         string             `json:"externalSystemId,omitempty"`
+	Address                  *Address           `json:"address,omitempty"`
+	Contacts                 []Contact          `json:"contacts,omitempty" gorm:"foreignkey:supporter_id"`
+	CustomFieldValues        []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
+	Result                   string             `json:"result,omitempty"`
+	SourceTrackingCode       string             `json:"sourceTrackingCode,omitempty"`
+	UpdateSourceTrackingCode string             `json:"updateSourceTrackingCode,omitempty"`
+	Removed                  bool               `json:"removed,omitempty`
+	SalsaClassicID           string             `json:"salsaClassicId,omitempty"`
+	CellPhoneOnly            bool               `json:"cellPhoneOnly,omitempty"`
+	Timezone                 string             `json:"timezone,omitempty"`
 }
 
 //SupporterSegment is returned when searching for segments that a
@@ -118,6 +126,7 @@ type SupporterSearchResults struct {
 	Timestamp *time.Time                     `json:"timestamp"`
 	Header    Header                         `json:"header"`
 	Payload   SupporterSearchResponsePayload `json:"payload,omitempty"`
+	Errors    []Error                        `json:"errors,omitempty"`
 }
 
 //SupporterSearchResponsePayload holds the payload for a single supporter search
