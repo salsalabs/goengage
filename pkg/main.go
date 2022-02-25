@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+//BriefFormat is like Classic.
+const BriefFormat = "2006-01-02"
+
 //EngageDateFormat is the Go date format for Engage.
 const EngageDateFormat = "2006-01-02T15:04:05.000Z"
 
