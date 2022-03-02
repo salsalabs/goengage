@@ -161,7 +161,7 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 
 //WaitForReaders waits for readers to send to a done channel.
 //The number of readers is specified in the provided Guide.
-//Closes the csv channel when all readers are done.
+//Closes the inbound Funrdraise channel when all readers are done.
 func WaitForReaders(guide Guide, gc chan goengage.Fundraise, done chan bool) {
 	count := guide.Readers()
 	for count > 0 {
