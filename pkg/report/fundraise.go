@@ -176,7 +176,7 @@ func WaitForReaders(guide Guide, gc chan goengage.Fundraise, done chan bool) {
 	log.Println("WaitForReaders: done")
 }
 
-//Store waits for Guide records to appear on the queue, then
+//Store waits for fundraise records to appear on the queue, then
 //Writes them to a CSV file.
 func Store(guide Guide, gc chan goengage.Fundraise) error {
 	log.Println("Store: begin")
