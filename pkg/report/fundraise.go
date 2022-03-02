@@ -57,8 +57,11 @@ func ReadActivities(e *goengage.Environment,
 					panic(err)
 				}
 				r.Supporter = *s
+				log.Printf("ReadActivities: pushed %+v\n", r)
 				gc <- r
 				pass++
+			} else {
+				log.Printf("ReadActivities: filter failed, %+v", r)
 			}
 		}
 		log.Printf("%s: offset %6d of %6d, %3d adds\n", n, offset, total, pass)
@@ -189,9 +192,11 @@ func Store(guide Guide, gc chan goengage.Fundraise) error {
 
 	for {
 		r, ok := <-gc
+		log.Printf("Store: %v\n", r)
 		if !ok {
 			break
 		}
+		log.Printf("Store: %v\n", guide.Line(r))
 		w.Write(guide.Line(r))
 		w.Flush()
 	}
