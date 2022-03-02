@@ -67,7 +67,7 @@ func main() {
 	b, err = json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		fmt.Printf("JSON marshall error, %s\n", err)
-		fmt.Printf("Supporter si %+v\n", result)
+		fmt.Printf("Supporter is %+v\n", result)
 	} else {
 		fmt.Println("--------------- Supporter Results ----------------")
 		fmt.Print(string(b))
