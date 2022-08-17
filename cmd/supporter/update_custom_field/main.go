@@ -12,7 +12,7 @@ import (
 //Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
-		app        = kingpin.New("update-custom-field", "A command-line app to modify a custom field.")
+		app        = kingpin.New("see-supporter", "A command-line app to modify a custom field.")
 		login      = app.Flag("login", "YAML file with API token").Required().String()
 		email      = app.Flag("email", "Supporter's email address").Required().String()
 		fieldName  = app.Flag("fieldName", "Custom field name to modify").Required().String()
@@ -67,7 +67,7 @@ func main() {
 	b, err = json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		fmt.Printf("JSON marshall error, %s\n", err)
-		fmt.Printf("Supporter si %+v\n", result)
+		fmt.Printf("Supporter is %+v\n", result)
 	} else {
 		fmt.Println("--------------- Supporter Results ----------------")
 		fmt.Print(string(b))
