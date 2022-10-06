@@ -84,11 +84,13 @@ const (
 
 //Error is used to report Engage errors.
 type Error struct {
-	ID        string `json:"id,omitempty"`
-	Code      int    `json:"code,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Details   string `json:"details,omitempty"`
-	FieldName string `json:"fieldName,omitempty"`
+	ID          string `json:"id,omitempty"`
+	Code        int    `json:"code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	Details     string `json:"details,omitempty"`
+	FieldName   string `json:"fieldName,omitempty"`
+	ContentType string `json:"contentType,omitempty"`
+	ContentID   string `json:"contentId,omitempty"`
 }
 
 //Warning is used to report Engage warnings.
