@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +14,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Runtime is used to pass arguments between methods.
+// Runtime is used to pass arguments between methods.
 type Runtime struct {
 	E         *goengage.Environment
 	StartDate string
@@ -22,7 +22,7 @@ type Runtime struct {
 	W         *csv.Writer
 }
 
-//Zippopatamus is the record that's returned for a postalcode lookup.
+// Zippopatamus is the record that's returned for a postalcode lookup.
 type Zippopatamus struct {
 	PostCode            string `json:"post code"`
 	Country             string `json:"country"`
@@ -36,8 +36,8 @@ type Zippopatamus struct {
 	} `json:"places"`
 }
 
-//Fix an address record using a call to Zippopatm.us.  Returns the modified
-//address record.  Errors trigger panics.
+// Fix an address record using a call to Zippopatm.us.  Returns the modified
+// address record.  Errors trigger panics.
 func fixWithZip(a *goengage.Address) (*goengage.Address, error) {
 	url := fmt.Sprintf("https://api.zippopotam.us/us/%s", a.PostalCode)
 	// log.Printf("fixWithZip url: '%s'", url)
@@ -46,7 +46,7 @@ func fixWithZip(a *goengage.Address) (*goengage.Address, error) {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	// log.Printf("fixWithZip body: '%s'", string(body))
 	if err != nil {
 		return a, err
@@ -65,9 +65,9 @@ func fixWithZip(a *goengage.Address) (*goengage.Address, error) {
 	return a, nil
 }
 
-//Process one supporter record by fixing city and/or state using a lookup from
-//zippopatm.us.  Outputs a CSV row if either the city or state changes. Errors
-//trigger panics.
+// Process one supporter record by fixing city and/or state using a lookup from
+// zippopatm.us.  Outputs a CSV row if either the city or state changes. Errors
+// trigger panics.
 func process(rt Runtime, s goengage.Supporter) {
 	e := ""
 	email := goengage.FirstEmail(s)
@@ -111,7 +111,7 @@ func process(rt Runtime, s goengage.Supporter) {
 	}
 }
 
-//Drives the process by processing all supporters. Errors panic.
+// Drives the process by processing all supporters. Errors panic.
 func drive(rt Runtime) {
 	count := int32(rt.E.Metrics.MaxBatchSize)
 	offset := int32(0)
@@ -152,8 +152,8 @@ func drive(rt Runtime) {
 	}
 }
 
-//Program entry point.  Look for supporters in a last_modified range.
-//No values means forever.
+// Program entry point.  Look for supporters in a last_modified range.
+// No values means forever.
 func main() {
 	var (
 		app       = kingpin.New("ZIP City State Lookup", "Use Zippotam.us to find missing states and cities by postalCode")
