@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-//Transaction holds a single monetary transaction.  Transactions are
-//generally contained in "donations" as FundRaiseActivity.
+// Transaction holds a single monetary transaction.  Transactions are
+// generally contained in "donations" as FundRaiseActivity.
 type Transaction struct {
 	TransactionID            string     `json:"transactionId,omitempty"`
 	TemplateID               string     `json:"templateId,omitempty"`
@@ -22,16 +22,16 @@ type Transaction struct {
 	ActivityID               string     `gorm:"activity_id"`
 }
 
-//Fundraise holds a single fundraising activity.  A fundraising
-//activity is actually a base activity with fundraising-specific fields.
-//Note:  Fundraise also contains recurring fields.  Those will be
-//automatically populated when the ActivityType is "Recurring".
+// Fundraise holds a single fundraising activity.  A fundraising
+// activity is actually a base activity with fundraising-specific fields.
+// Note:  Fundraise also contains recurring fields.  Those will be
+// automatically populated when the ActivityType is "Recurring".
 type Fundraise struct {
 	BaseActivity
 	DonationID             string        `json:"donationId,omitempty"`
 	TotalReceivedAmount    float64       `json:"totalReceivedAmount,omitempty"`
-	RecurringAmount        float64       `json:"recurringAmount,omitempty"`
 	OneTimeAmount          float64       `json:"oneTimeAmount,omitempty"`
+	RecurringAmount        float64       `json:"recurringAmount,omitempty"`
 	DonationType           string        `json:"donationType,omitempty"`
 	RecurringInterval      string        `json:"recurringInterval,omitempty"`
 	RecurringCount         int32         `json:"recurringCount,omitempty"`
@@ -61,7 +61,7 @@ type Fundraise struct {
 	Year                   int
 }
 
-//FundraiseResponse is returned for requests of type "FUNDRAISE".
+// FundraiseResponse is returned for requests of type "FUNDRAISE".
 type FundraiseResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {

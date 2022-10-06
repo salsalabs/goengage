@@ -3,13 +3,13 @@ package goengage
 //Describes search for transactions. Note that transactions are listed
 //as part of actions *and* can be searched without actions being involved.
 
-//Engage endpoints for transactions.
+// Engage endpoints for transactions.
 const (
 	SearchTransactionDetails = "/api/integration/ext/v1/transactionDetails/search"
 )
 
-//Transaction is an Engage donation template. Part of transactions in
-//the API documentation.
+// Transaction is an Engage donation template. Part of transactions in
+// the API documentation.
 type DonationTransaction struct {
 	CreatedBy              string  `json:"createdBy,omitempty"`
 	CreatedDate            string  `json:"createdDate,omitempty"`
@@ -40,25 +40,25 @@ type DonationTransaction struct {
 	Result                 string  `json:"result,omitempty"`
 }
 
-//TransactionSearchRequest contains parameters for searching for segments.
+// TransactionSearchRequest contains parameters for searching for segments.
 // Please see the documentation for details.
 type TransactionSearchRequest struct {
 	Header  RequestHeader                   `json:"header,omitempty"`
 	Payload TransactionSearchRequestPayload `json:"payload,omitempty"`
 }
 
-//TransactionSearchRequestPayload contains the payload for searching
-//for transaction templates..
+// TransactionSearchRequestPayload contains the payload for searching
+// for transaction templates..
 type TransactionSearchRequestPayload struct {
-	Identifiers     []string `json:"identifiers,omitEmpty"`
-	IdentifierType  string   `json:"identifierType,omitEmpty"`
-	TransactionFrom string   `json:"transactionFrom,omitEmpty"`
-	TransactionTo   string   `json:"transactionTo,omitEmpty"`
-	Offset          int32    `json:"offset,omitEmpty"`
-	Count           int32    `json:"count,omitEmpty"`
+	Identifiers     []string `json:"identifiers,omitempty"`
+	IdentifierType  string   `json:"identifierType,omitempty"`
+	TransactionFrom string   `json:"transactionFrom,omitempty"`
+	TransactionTo   string   `json:"transactionTo,omitempty"`
+	Offset          int32    `json:"offset,omitempty"`
+	Count           int32    `json:"count,omitempty"`
 }
 
-//TransactionSearchResponse contains the results returned by searching for segments.
+// TransactionSearchResponse contains the results returned by searching for segments.
 type TransactionSearchResponse struct {
 	ID        string                           `json:"id,omitempty"`
 	Timestamp *string                          `json:"timestamp,omitempty"`
@@ -67,15 +67,15 @@ type TransactionSearchResponse struct {
 	Errors    []Error                          `json:"errors,omitempty"`
 }
 
-//TransactionWrapper is a segment with errors and warnings.
+// TransactionWrapper is a segment with errors and warnings.
 type TransactionWrapper struct {
 	Errors   []Error `json:"errors,omitempty"`
 	Warnings []Error `json:"warnings,omitempty"`
 	DonationTransaction
 }
 
-//TransactionSearchResponsePayload wraps the response payload for a
-//segment search.
+// TransactionSearchResponsePayload wraps the response payload for a
+// segment search.
 type TransactionSearchResponsePayload struct {
 	Count        int32                `json:"count,omitempty"`
 	Offset       int32                `json:"offset,omitempty"`

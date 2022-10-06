@@ -65,7 +65,7 @@ type Contact struct {
 //Supporter describes a single Engage supporter.
 type Supporter struct {
 	SupporterID              string             `json:"supporterId,omitempty" gorm:"primary_key"`
-	SalesForceID             string             `json:"salesforceId,omitempty`
+	SalesForceID             string             `json:"salesforceId,omitempty"`
 	Result                   string             `json:"result,omitempty"`
 	Title                    string             `json:"title,omitempty"`
 	FirstName                string             `json:"firstName,omitempty"`
@@ -83,7 +83,7 @@ type Supporter struct {
 	CustomFieldValues        []CustomFieldValue `json:"customFieldValues,omitempty" gorm:"foreignkey:supporter_id"`
 	SourceTrackingCode       string             `json:"sourceTrackingCode,omitempty"`
 	UpdateSourceTrackingCode string             `json:"updateSourceTrackingCode,omitempty"`
-	Removed                  bool               `json:"removed,omitempty`
+	Removed                  bool               `json:"removed,omitempty"`
 	SalsaClassicID           string             `json:"salsaClassicId,omitempty"`
 	CellPhoneOnly            bool               `json:"cellPhoneOnly,omitempty"`
 	Timezone                 string             `json:"timezone,omitempty"`
