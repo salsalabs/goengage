@@ -6,23 +6,25 @@ package goengage
 // a CSV of blast information, including timestamps and URLs.
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/url"
 	"sync"
+	"time"
 
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
-// ChannelCount is the number of "done" notifications to wait for before terminate.
-const ChannelCount = 3
+const (
+	//SettleDuration is the app's settle time in seconds before it
+	//starts waiting for things to terminate.
+	SettleDuration = "5s"
+)
 
 // BlastListGuide is the interface to use when scanning all email blasts
 // and doing something.
 type BlastListGuide interface {
-
-	//VisitResult does something with the blast. Errors terminate.
-	VisitResult(s goengage.BlastListResult) error
 
 	//VisitContent does something with the blast. Errors terminate.
 	VisitContent(s goengage.BlastListResult, t goengage.BlastContent) error
@@ -32,7 +34,7 @@ type BlastListGuide interface {
 
 	//Payload is a convenience method to define which blasts to return.
 	// Each item is turned into a URL query at execution time.
-	Payload() goengage.BlastListRequest
+	Payload() *goengage.BlastListRequest
 
 	//ResultChannel is the listener channel for blast info.
 	ResultChannel() chan goengage.BlastListResult
@@ -44,6 +46,10 @@ type BlastListGuide interface {
 	//restarting after a service interruption.
 
 	Offset() int32
+
+	//Writer() returns the CSV writer for the output file.
+
+	Writer() *csv.Writer
 }
 
 // readBlastLists reads all blasts and pushes them onto a channel.
@@ -119,7 +125,6 @@ func handleResults(e *goengage.Environment, g BlastListGuide) error {
 		if !ok {
 			break
 		}
-		g.VisitResult(s)
 		for _, c := range s.Content {
 			g.VisitContent(s, c)
 		}
@@ -129,6 +134,9 @@ func handleResults(e *goengage.Environment, g BlastListGuide) error {
 	return nil
 }
 
+// ReportBlastLists does all of the heavy lifting.  It reads
+// all of the email blasts, queues them up for processing, then
+// does the processing via Go routines.
 func ReportBlastLists(e *goengage.Environment, g BlastListGuide) error {
 	var wg sync.WaitGroup
 	log.Println("ReportBlastLists: start")
@@ -138,30 +146,24 @@ func ReportBlastLists(e *goengage.Environment, g BlastListGuide) error {
 		defer wg.Done()
 		handleResults(e, g)
 	})(e, g, &wg)
+	log.Println("ReportBlastLists: started results listener")
 
 	// Start the reader.
 	go (func(e *goengage.Environment, g BlastListGuide, wg *sync.WaitGroup) {
 		defer wg.Done()
 		readBlastLists(e, g)
 	})(e, g, &wg)
+	log.Println("ReportBlastLists: started blast list reader")
 
-	// Wait for things to finish.
-	WaitForWorkers(ChannelCount, g.DoneChannel())
+	//Settle time.
+	d, _ := time.ParseDuration(SettleDuration)
+	log.Printf("ReportBlastLists: waiting %v seconds to let things settle\n", d.Seconds())
+	time.Sleep(d)
+
+	log.Println("ReportBlastLists: running...")
+	wg.Wait()
 	g.Finalize()
-	g.DoneChannel() <- true
+	// g.DoneChannel() <- true
 	log.Println("ReportBlastLists: end")
 	return nil
-}
-
-// WaitForWorkers waits for readers to send to a done channel.
-func WaitForWorkers(count int32, done chan bool) {
-	for count > 0 {
-		log.Printf("WaitForWorkers: Waiting for %d readers\n", count)
-		_, ok := <-done
-		if !ok {
-			break
-		}
-		count--
-	}
-	log.Println("WaitForWorkers: done")
 }
