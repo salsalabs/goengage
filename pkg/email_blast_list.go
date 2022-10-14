@@ -5,6 +5,19 @@ import "time"
 // Web Developer list-of-blasts endpoint.
 // Dee https://api.salsalabs.org/help/web-dev#operation/getBlastList
 
+// BlastListRequest is a convenience struct used to record the
+// search criteria for the list-of-blasts endpoint. Note that the
+// contents are used to append queries to the endpoint URL.
+type BlastListRequest struct {
+	StartDate string `json:"startDate,omitempty"`
+	EndDate   string `json:"endDate,omitempty"`
+	Criteria  string `json:"criteria,omitempty"`
+	SortField string `json:"sortField,omitempty"`
+	SortOrder string `json:"sortOrder,omitempty"`
+	Count     int32  `json:"count,omitempty"`
+	Offset    int32  `json:"offset,omitempty"`
+}
+
 // BlastContent describes a single blast.
 type BlastContent struct {
 	Subject                string    `json:"subject,omitempty"`
@@ -17,7 +30,7 @@ type BlastContent struct {
 
 // BlastListResponsePayload carries the tthe blast information that's
 // not considered content.
-type BlastListResults []struct {
+type BlastListResult struct {
 	ID           string         `json:"id,omitempty"`
 	Name         string         `json:"name,omitempty"`
 	Description  string         `json:"description,omitempty"`
@@ -30,10 +43,10 @@ type BlastListResults []struct {
 
 // BlastListResponse is the payload from Engage for the list-of-blasts endpoint.
 type BlastListResponsePayload struct {
-	Total   int                `json:"total,omitempty"`
-	Offset  int                `json:"offset,omitempty"`
-	Count   int                `json:"count,omitempty"`
-	Results []BlastListResults `json:"results,omitempty"`
+	Total   int32             `json:"total,omitempty"`
+	Offset  int32             `json:"offset,omitempty"`
+	Count   int32             `json:"count,omitempty"`
+	Results []BlastListResult `json:"results,omitempty"`
 }
 
 // BlastListResponse is returned from Engage for the list-of-blasts endpoint.
