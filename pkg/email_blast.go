@@ -4,28 +4,13 @@ package goengage
 // Search: see https://api.salsalabs.org/help/integration#operation/emailsSearch
 // Activity: see https://help.salsalabs.com/hc/en-us/articles/360019505914-Engage-API-Email-Results
 
-const (
-	//EmailType indicates a search for an email blast
-	EmailType = "EMAIL"
-
-	//CommSeriesType indicates a search for a communications series.
-	CommSeriesType = "CommSeries"
-
-	//EmailBlastSearch is used to find blasts.
-	EmailBlastSearch = "/api/integration/ext/v1/emails/search"
-
-	//IndividualBlastSearch is used to retrieve a single blast
-	//as well as as all of the recipient data.
-	IndividualBlastSearch = "/api/integration/ext/v1/emails/individualResults"
-)
-
-//EmailComponent are used in comm series.
+// EmailComponent are used in comm series.
 type EmailComponent struct {
 	ContentID     string `json:"contentid,omitempty"`
 	MessageNumber string `json:"messageNumber,omitempty"`
 }
 
-//EmailActivity describes the contents of the email.
+// EmailActivity describes the contents of the email.
 type EmailActivity struct {
 	ID          string            `json:"Id,omitempty"`
 	Topic       string            `json:"topic,omitempty"`
@@ -36,8 +21,8 @@ type EmailActivity struct {
 	EmailErrors *[]EmailError     `json:"errors,omitempty"`
 }
 
-//Conversion hold information about any donations made as a result of an
-//email blast.
+// Conversion hold information about any donations made as a result of an
+// email blast.
 type Conversion struct {
 	ConversionDate string `json:"conversionDate,omitempty"`
 	ActivityType   string `json:"activityType,omitempty"`
@@ -48,8 +33,8 @@ type Conversion struct {
 	DonationType   string `json:"donationType,omitempty"`
 }
 
-//SingleBlastRecipient holds identity, blast statistics
-//and conversion info.
+// SingleBlastRecipient holds identity, blast statistics
+// and conversion info.
 type SingleBlastRecipient struct {
 	SalesforceID         string       `json:"salesforceId,omitempty"`
 	SupporterID          string       `json:"supporterId,omitempty"`
@@ -75,7 +60,7 @@ type SingleBlastRecipient struct {
 	ConversionData       []Conversion `json:"conversionData,omitempty"`
 }
 
-//EmailError describes issues found in the email blast search call.
+// EmailError describes issues found in the email blast search call.
 type EmailError struct {
 	ID          string `json:"id,omitempty"`
 	Code        int    `json:"code,omitempty"`
@@ -86,7 +71,7 @@ type EmailError struct {
 	ContentID   string `json:"contentId,omitempty"`
 }
 
-//EmailBlastSearchRequestPayload contains the criteria used to retrieve blasts.
+// EmailBlastSearchRequestPayload contains the criteria used to retrieve blasts.
 type EmailBlastSearchRequestPayload struct {
 	ID            string `json:"id,omitempty"`
 	ContentID     string `json:"contentId,omitempty"`
@@ -98,15 +83,15 @@ type EmailBlastSearchRequestPayload struct {
 	Count         int32  `json:"count,omitempty"`
 }
 
-//EmailBlastSearchRequest wraps the request payload.
+// EmailBlastSearchRequest wraps the request payload.
 type EmailBlastSearchRequest struct {
 	ID      string                         `json:"id,omitempty"`
 	Header  RequestHeader                  `json:"header,omitempty"`
 	Payload EmailBlastSearchRequestPayload `json:"payload,omitempty"`
 }
 
-//EmailBlastSearchResponsePayload contains the results of a
-//search.
+// EmailBlastSearchResponsePayload contains the results of a
+// search.
 type EmailBlastSearchResponsePayload struct {
 	Total           int32           `json:"total,omitempty"`
 	Offset          int32           `json:"offset,omitempty"`
@@ -114,7 +99,7 @@ type EmailBlastSearchResponsePayload struct {
 	EmailActivities []EmailActivity `json:"emailActivities,omitempty"`
 }
 
-//EmailBlastSearchResponse wraps a response payload.
+// EmailBlastSearchResponse wraps a response payload.
 type EmailBlastSearchResponse struct {
 	ID        string                          `json:"id,omitempty"`
 	TimeStamp string                          `json:"timestamp,omitempty"`
@@ -122,8 +107,8 @@ type EmailBlastSearchResponse struct {
 	Payload   EmailBlastSearchResponsePayload `json:"payload,omitempty"`
 }
 
-//IndivualBlastRequestPayload sets the criteria for
-//the blasts to read.
+// IndivualBlastRequestPayload sets the criteria for
+// the blasts to read.
 type IndivualBlastRequestPayload struct {
 	ID            string `json:"id,omitempty"`
 	ContentID     string `json:"contentId,omitempty"`
@@ -135,14 +120,14 @@ type IndivualBlastRequestPayload struct {
 	Count         int32  `json:"count,omitempty"`
 }
 
-//IndivualBlastRequest wraps the request payload.
+// IndivualBlastRequest wraps the request payload.
 type IndivualBlastRequest struct {
 	ID      string                      `json:"id"`
 	Header  RequestHeader               `json:"header,omitempty"`
 	Payload IndivualBlastRequestPayload `json:"payload,omitempty"`
 }
 
-//IndivualBlastResponsePayload holds the response content.
+// IndivualBlastResponsePayload holds the response content.
 type IndivualBlastResponsePayload struct {
 	Total                       int32                     `json:"total,omitempty"`
 	Offset                      int32                     `json:"offset,omitempty"`
@@ -150,7 +135,7 @@ type IndivualBlastResponsePayload struct {
 	EmailErrors                 []EmailError              `json:"EmailErrors,omitempty"`
 }
 
-//IndividualBlastResponse wraps a response payload.
+// IndividualBlastResponse wraps a response payload.
 type IndividualBlastResponse struct {
 	ID        string                       `json:"id,omitempty"`
 	TimeStamp string                       `json:"timestamp,omitempty"`
@@ -158,7 +143,7 @@ type IndividualBlastResponse struct {
 	Payload   IndivualBlastResponsePayload `json:"payload,omitempty"`
 }
 
-//IndividualEmailActivity contains the email activity for one blast.
+// IndividualEmailActivity contains the email activity for one blast.
 type IndividualEmailActivity struct {
 	ID             string                    `json:"id,omitempty"`
 	Cursor         string                    `json:"cursor,omitempty"`
@@ -166,8 +151,8 @@ type IndividualEmailActivity struct {
 	RecipientsData SingleBlastRecipientsData `json:"recipientsData,omitempty"`
 }
 
-//SingleBlastRecipientsData is a wrapper around the recipients
-//for a blast.
+// SingleBlastRecipientsData is a wrapper around the recipients
+// for a blast.
 type SingleBlastRecipientsData struct {
 	Recipients []SingleBlastRecipient `json:"recipients,omitempty"`
 	Total      int32                  `json:"total,omitempty"`
