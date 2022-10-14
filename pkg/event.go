@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-//Attendee holds information about event attendees.  Note that an attendee
-//may not necessarily be a supporter.
+// Attendee holds information about event attendees.  Note that an attendee
+// may not necessarily be a supporter.
 type Attendee struct {
 	AttendeeID         string     `json:"attendeeId,omitempty"`
 	FirstName          string     `json:"firstName,omitempty"`
@@ -23,8 +23,8 @@ type Attendee struct {
 	Questions          []Question `json:"questions,omitempty"`
 }
 
-//Purchase contains the information about a single purchase for a P2P
-//event attendee.
+// Purchase contains the information about a single purchase for a P2P
+// event attendee.
 type Purchase struct {
 	PurchaseID string  `json:"purchaseId,omitempty"`
 	TicketID   string  `json:"ticketId,omitempty"`
@@ -35,14 +35,14 @@ type Purchase struct {
 	Status     string  `json:"status,omitempty"`
 }
 
-//Question holds a question and a response from the event signup process.
+// Question holds a question and a response from the event signup process.
 type Question struct {
 	ID       string `json:"id,omitempty"`
 	Question string `json:"question,omitempty"`
 	Answer   string `json:"answer,omitempty"`
 }
 
-//Ticket hold information about event tickets.
+// Ticket hold information about event tickets.
 type Ticket struct {
 	TicketID         string     `json:"ticketId,omitempty"`
 	TicketName       string     `json:"ticketName,omitempty"`
@@ -55,9 +55,9 @@ type Ticket struct {
 	Attendees        []Attendee `json:"attendees,omitempty"`
 }
 
-//TicketedEvent holds information about signup event for a
-//ticketed event. Note that the Purchases field is only filled in when
-//a P2P event attendee attends an event.
+// TicketedEvent holds information about signup event for a
+// ticketed event. Note that the Purchases field is only filled in when
+// a P2P event attendee attends an event.
 type TicketedEvent struct {
 	ActivityID           string        `json:"activityId,omitempty"`
 	ActivityFormName     string        `json:"activityFormName,omitempty"`
@@ -81,9 +81,9 @@ type TicketedEvent struct {
 	Purchases            []Purchase    `json:"purchases,omitempty"`
 }
 
-//TicketedEventResponse is returned when the request type is "TICKETED_EVENT"
-//or "P2P_EVENT".  P2P events differ from ticketed events by containing purchase
-//information.  A ticketed event will not have a 'Purchases" field.
+// TicketedEventResponse is returned when the request type is "TICKETED_EVENT"
+// or "P2P_EVENT".  P2P events differ from ticketed events by containing purchase
+// information.  A ticketed event will not have a 'Purchases" field.
 type TicketedEventResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {

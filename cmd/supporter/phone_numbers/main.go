@@ -1,9 +1,9 @@
-//App to extract phone numbers for a list of supporters. The extracted
-//data is stored in a CSV.  The CSV has one row per supporter. Each row
-//contains SupporterID, Home Phone, Cell Phone, and Work Phone.
+// App to extract phone numbers for a list of supporters. The extracted
+// data is stored in a CSV.  The CSV has one row per supporter. Each row
+// contains SupporterID, Home Phone, Cell Phone, and Work Phone.
 //
-//Unlike Classic, phone numbers in Engage are not fixed fields. They are
-//elements in the "Contacts" part of the supporter record.
+// Unlike Classic, phone numbers in Engage are not fixed fields. They are
+// elements in the "Contacts" part of the supporter record.
 package main
 
 import (
@@ -22,7 +22,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Runtime area for this app.
+// Runtime area for this app.
 type Runtime struct {
 	E         *goengage.Environment
 	WriteChan chan goengage.Supporter
@@ -33,8 +33,8 @@ type Runtime struct {
 	CSVOut    *csv.Writer
 }
 
-//RequestedIDs returns the list of supporterIDs from the ID file.
-//Each line of the file is a single Supporter ID.
+// RequestedIDs returns the list of supporterIDs from the ID file.
+// Each line of the file is a single Supporter ID.
 func (rt *Runtime) RequestedIds() error {
 	r, err := os.Open(rt.IDFile)
 	if err != nil {
@@ -57,7 +57,7 @@ func (rt *Runtime) RequestedIds() error {
 	return nil
 }
 
-//NewRuntime populates a new runtime.
+// NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, idFile string, out *csv.Writer) Runtime {
 	r := Runtime{
 		E:         env,
@@ -70,8 +70,8 @@ func NewRuntime(env *goengage.Environment, idFile string, out *csv.Writer) Runti
 	return r
 }
 
-//Visit implements SupporterGuide.Visit and does something with
-//a supporter record
+// Visit implements SupporterGuide.Visit and does something with
+// a supporter record
 func (r *Runtime) Visit(s goengage.Supporter) error {
 	if s.Contacts == nil {
 		return nil
@@ -100,14 +100,14 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	return nil
 }
 
-//Finalize implements SupporterGuide.Finalize and does nothing
-//in this app.
+// Finalize implements SupporterGuide.Finalize and does nothing
+// in this app.
 func (r *Runtime) Finalize() error {
 	return nil
 }
 
-//Payload implements SupporterGuide.Payload and provides a payload
-//that will retrieve all supporters.
+// Payload implements SupporterGuide.Payload and provides a payload
+// that will retrieve all supporters.
 func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	low := float64(r.IdOffset)
 	remaining := float64(len(r.IDs)) - float64(low)
@@ -124,20 +124,20 @@ func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	return payload
 }
 
-//Channel implements SupporterGuide.Channnel and provides the
-//supporter channel.
+// Channel implements SupporterGuide.Channnel and provides the
+// supporter channel.
 func (r *Runtime) Channel() chan goengage.Supporter {
 	return r.WriteChan
 }
 
-//DoneChannel implements SupporterGuide.DoneChannel to provide
+// DoneChannel implements SupporterGuide.DoneChannel to provide
 // a channel that  receives a true when the listener is done.
 func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
 }
 
-//Offset returns the offset for the first read.
-//Useful for restarts.
+// Offset returns the offset for the first read.
+// Useful for restarts.
 func (r *Runtime) Offset() int32 {
 	return 0
 }
@@ -155,7 +155,7 @@ func (r *Runtime) AdjustOffset(offset int32) int32 {
 	}
 }
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app     = kingpin.New("phone_numbers", "Write a CSV of supporterIDs and phone numbers")

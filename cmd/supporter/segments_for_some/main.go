@@ -33,14 +33,14 @@ const (
 	ReaderCount = 5
 )
 
-//OutRecord is the data that we want written to a CSV file.
+// OutRecord is the data that we want written to a CSV file.
 type OutRecord struct {
 	SupporterID string
 	Email       string
 	Segments    []goengage.Segment
 }
 
-//Runtime contains the configuration parts that this app needs.
+// Runtime contains the configuration parts that this app needs.
 type Runtime struct {
 	Env         *goengage.Environment
 	ReaderCount int
@@ -52,7 +52,7 @@ type Runtime struct {
 	Logger      *goengage.UtilLogger
 }
 
-//BuildOut accepts a supporter key from a channel and
+// BuildOut accepts a supporter key from a channel and
 // writes an OutRecord to the out channel.
 func (rt *Runtime) BuildOut(id int) error {
 	for {
@@ -94,8 +94,8 @@ func (rt *Runtime) BuildOut(id int) error {
 	return nil
 }
 
-//RequestedIDs returns the list of supporterIDs from a text file. Each line
-//is an id.
+// RequestedIDs returns the list of supporterIDs from a text file. Each line
+// is an id.
 func (rt *Runtime) RequestedIds() (a []string, err error) {
 	r, err := os.Open(rt.IDFile)
 	if err != nil {
@@ -117,8 +117,8 @@ func (rt *Runtime) RequestedIds() (a []string, err error) {
 	return a, err
 }
 
-//WriteOut accepts an OutRecord from a channel and writes
-//it to a CSV file.
+// WriteOut accepts an OutRecord from a channel and writes
+// it to a CSV file.
 func (rt *Runtime) WriteOut() error {
 	f, err := os.Create(rt.OutFile)
 	if err != nil {
@@ -161,8 +161,8 @@ func (rt *Runtime) WriteOut() error {
 	return nil
 }
 
-//WaitForReaders waits for readers to send to the done channel.
-//Closes the out channel when all readers are done.
+// WaitForReaders waits for readers to send to the done channel.
+// Closes the out channel when all readers are done.
 func (rt *Runtime) WaitForReaders() {
 	count := rt.ReaderCount
 	for count > 0 {
@@ -177,7 +177,7 @@ func (rt *Runtime) WaitForReaders() {
 	log.Println("WaitForReaders: done")
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app     = kingpin.New("segments_for_supporters", "Write a CSV of supporters and segments for a list of supporter IDs")

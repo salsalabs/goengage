@@ -28,8 +28,8 @@ const (
 	BackupDuration = "-1ms"
 )
 
-//Guide provides the basic tools to read and filter records then
-//write them to a CSV file.
+// Guide provides the basic tools to read and filter records then
+// write them to a CSV file.
 type Guide interface {
 	//TypeActivity returns the kind of activity being read.
 	TypeActivity() string
@@ -59,19 +59,19 @@ type Guide interface {
 	Offset() int32
 }
 
-//Span is a pair of Time objects for the start and end of a time span.
+// Span is a pair of Time objects for the start and end of a time span.
 type Span struct {
 	S time.Time
 	E time.Time
 }
 
-//TimeSpan contains a start and end time in Engage time format.
+// TimeSpan contains a start and end time in Engage time format.
 type TimeSpan struct {
 	Start string
 	End   string
 }
 
-//NewTimeSpan creates a Timespan using two Time objects.
+// NewTimeSpan creates a Timespan using two Time objects.
 func NewTimeSpan(s, e time.Time) TimeSpan {
 	return TimeSpan{
 		Start: s.Format(goengage.EngageDateFormat),
@@ -79,9 +79,9 @@ func NewTimeSpan(s, e time.Time) TimeSpan {
 	}
 }
 
-//Parse accepts a date in BriefFormat and returns a Go time. Engage
-//needs a date and time.  Parameter "todText" defines the time to add.
-//Errors are internal and fatal.
+// Parse accepts a date in BriefFormat and returns a Go time. Engage
+// needs a date and time.  Parameter "todText" defines the time to add.
+// Errors are internal and fatal.
 func Parse(s string, loc *time.Location, todText string) time.Time {
 	t, err := time.ParseInLocation(BriefFormat, s, loc)
 	if err != nil {
@@ -97,7 +97,7 @@ func Parse(s string, loc *time.Location, todText string) time.Time {
 	// TODO: handle positive offsets correctly.
 	_, offset := t.Zone()
 	zt := fmt.Sprintf("%ds", -offset)
-	d, err = time.ParseDuration(zt)
+	d, _ = time.ParseDuration(zt)
 	t = t.Add(d)
 	return t
 }

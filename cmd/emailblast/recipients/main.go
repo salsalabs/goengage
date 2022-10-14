@@ -13,7 +13,7 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Runtime is the internal data store for this app.
+// Runtime is the internal data store for this app.
 type Runtime struct {
 	Env             *goengage.Environment
 	PublishedFrom   string
@@ -21,8 +21,8 @@ type Runtime struct {
 	ConversionsFile *csv.Writer
 }
 
-//Blasts reads email blasts and passes blasts off to the
-//blast detail reader.
+// Blasts reads email blasts and passes blasts off to the
+// blast detail reader.
 func (rt *Runtime) Blasts() error {
 	count := rt.Env.Metrics.MaxBatchSize
 	offset := int32(0)
@@ -63,8 +63,8 @@ func (rt *Runtime) Blasts() error {
 	return nil
 }
 
-//Details reads the activity version of the blast and writes recipients
-//and conversions.
+// Details reads the activity version of the blast and writes recipients
+// and conversions.
 func (rt *Runtime) OneBlast(r goengage.EmailActivity) error {
 	log.Printf("OneBlast:   blast ID: %s, Name: %s\n", r.ID, r.Name)
 	count := rt.Env.Metrics.MaxBatchSize
@@ -119,7 +119,7 @@ func (rt *Runtime) OneBlast(r goengage.EmailActivity) error {
 	return nil
 }
 
-//Recipients formats and writes email and conversion activity.
+// Recipients formats and writes email and conversion activity.
 func (rt *Runtime) Recipients(blastId string, r goengage.SingleBlastRecipientsData) error {
 	// log.Printf("Recipients: blast ID: %s, %d/%d recipients", blastId, len(r.Recipients), r.Total)
 	for _, x := range r.Recipients {
@@ -171,7 +171,7 @@ func (rt *Runtime) Recipients(blastId string, r goengage.SingleBlastRecipientsDa
 	return nil
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app             = kingpin.New("recipients", "Write recipient and conversion data for blasts sent after a date")

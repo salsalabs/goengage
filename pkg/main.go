@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-//BriefFormat is like Classic.
+// BriefFormat is like Classic.
 const BriefFormat = "2006-01-02"
 
-//EngageDateFormat is the Go date format for Engage.
+// EngageDateFormat is the Go date format for Engage.
 const EngageDateFormat = "2006-01-02T15:04:05.000Z"
 
-//TimeStamp wraps a time for marshalling into JSON.
+// TimeStamp wraps a time for marshalling into JSON.
 type TimeStamp struct {
 	*time.Time
 }
@@ -27,9 +27,11 @@ const (
 	SearchMethod = http.MethodPost
 	//UpdateMethod is always "PUT" in Engage.
 	UpdateMethod = http.MethodPut
+	//EnquireMethod is always "GET" in Engage.
+	EnquireMethod = http.MethodGet
 )
 
-//Segment constants
+// Segment constants
 const (
 	//Added indicates that the provided segment was added to the system
 	Added = "ADDED"
@@ -40,7 +42,7 @@ const (
 	NotAllowed = "NOT_ALLOWED"
 )
 
-//Merge supporter records esult value constants.
+// Merge supporter records esult value constants.
 const (
 	//Found will be reported for the destination supporter if no updates were
 	//specified to be performed.
@@ -71,7 +73,7 @@ const (
 	CommSeries = "CommSeries"
 )
 
-//Contact types.
+// Contact types.
 const (
 	Email     = "EMAIL"
 	HomePhone = "HOME_PHONE"
@@ -82,7 +84,7 @@ const (
 	Linkedin  = "LINKEDIN_ID"
 )
 
-//Error is used to report Engage errors.
+// Error is used to report Engage errors.
 type Error struct {
 	ID          string `json:"id,omitempty"`
 	Code        int    `json:"code,omitempty"`
@@ -93,28 +95,28 @@ type Error struct {
 	ContentID   string `json:"contentId,omitempty"`
 }
 
-//Warning is used to report Engage warnings.
+// Warning is used to report Engage warnings.
 type Warning struct {
 	Error
 }
 
-//RequestHeader provides a reference ID.
+// RequestHeader provides a reference ID.
 type RequestHeader struct {
 	RefID string `json:"refId,omitempty"`
 }
 
-//Header returns server-side information for Engage API calls.
+// Header returns server-side information for Engage API calls.
 type Header struct {
 	ProcessingTime int    `json:"processingTime"`
 	ServerID       string `json:"serverId"`
 }
 
-//Engage endpoints for activities
+// Engage endpoints for activities
 const (
 	SearchActivity = "/api/integration/ext/v1/activities/search"
 )
 
-//Activity types
+// Activity types
 const (
 	SubscriptionManagementType = "SUBSCRIPTION_MANAGEMENT"
 	SubscriptionType           = "SUBSCRIBE"
@@ -125,38 +127,38 @@ const (
 	P2PEventType               = "P2P_EVENT"
 )
 
-//DonationType type
+// DonationType type
 const (
 	OneTime   = "ONE_TIME"
 	Recurring = "RECURRING"
 )
 
-//RecurringInterval
+// RecurringInterval
 const (
 	Monthly = "MONTHLY"
 	Yearly  = "YEARLY"
 )
 
-//Account type
+// Account type
 const (
 	CreditCard = "CREDIT_CARD"
 	ECheck     = "E_CHECK"
 )
 
-//Dedication type
+// Dedication type
 const (
 	None       = "NONE"
 	InHonorOf  = "IN_HONOR_OF"
 	InMemoryOf = "IN_MEMORY_OF"
 )
 
-//Event Reason
+// Event Reason
 const (
 	EventDonation = "DONATION"
 	EventTicket   = "EVENT_TICKET"
 )
 
-//Transaction type
+// Transaction type
 const (
 	Charge   = "CHARGE"
 	Refund   = "REFUND"
@@ -164,7 +166,7 @@ const (
 	Complete = "COMPLETE"
 )
 
-//Transaction Identifier Type
+// Transaction Identifier Type
 const (
 	TransactionID  = "TRANSACTION_ID"
 	TemplateID     = "TEMPLATE_ID"
@@ -172,14 +174,14 @@ const (
 	//SUPPORTER_ID already defined...
 )
 
-//Moderatiion state
+// Moderatiion state
 const (
 	Display     = "DISPLAY"
 	DontDisplay = "DONT_DISPLAY"
 	Pending     = "PENDING"
 )
 
-//Advocacy action target type
+// Advocacy action target type
 const (
 	FederalExecutive = "Federal Executive"
 	FederalSenate    = "Federal Senate"
@@ -192,7 +194,7 @@ const (
 	CustomTarget     = "Custom Target"
 )
 
-//Result from action telephone calls
+// Result from action telephone calls
 const (
 	CallBusy       = "BUSY"
 	CallFailed     = "FAILED"
@@ -205,7 +207,7 @@ const (
 	CallNoCall     = "NO_CALL"
 )
 
-//Event activity result
+// Event activity result
 const (
 	DonationOnly       = "DONATION_ONLY"
 	DonationAndTickets = "DONATION_AND_TICKETS"
@@ -218,13 +220,13 @@ const (
 	GuestAttendee     = "GUEST"
 )
 
-//Attendee status
+// Attendee status
 const (
 	RegisteredType   = "REGISTERED"
 	UnregisteredType = "UNREGISTERED"
 )
 
-//Ticket status.  Note that some of these definitions are for P2P only.
+// Ticket status.  Note that some of these definitions are for P2P only.
 const (
 	Valid                = "VALID"
 	Refunded             = "REFUNDED"
@@ -233,12 +235,22 @@ const (
 	ValidAndRefunded     = "VALID_AND_REFUNDED"
 )
 
-//Identifier/Segment types for supporter requests
+// Identifier/Segment types for supporter requests
 const (
 	SupporterIDType  = "SUPPORTER_ID"
 	SegmentIDType    = "SEGMENT_ID"
 	EmailAddressType = "EMAIL_ADDRESS"
 	ExternalIDType   = "EXTERNAL_ID"
+)
+
+//Email blast related constants
+
+const (
+	EmailType             = "EMAIL"
+	CommSeriesType        = "CommSeries"
+	EmailBlastSearch      = "/api/integration/ext/v1/emails/search"
+	IndividualBlastSearch = "/api/integration/ext/v1/emails/individualResults"
+	EmailBlastList        = "/api/developer/ext/v1/blasts"
 )
 
 // CustomFieldError is returned when an attempt to change a custom field fails.
@@ -252,9 +264,9 @@ type CustomFieldError struct {
 	ContentID   string `json:"contentID,omitempty"`
 }
 
-//CustomFieldValue contains information about a custom field.  Note that
-//a supporter/activity will only have custom fields if the values have been
-//set in the supporter/activity record.
+// CustomFieldValue contains information about a custom field.  Note that
+// a supporter/activity will only have custom fields if the values have been
+// set in the supporter/activity record.
 type CustomFieldValue struct {
 	FieldID    string             `json:"fieldId,omitempty" gorm:"field_id,primarykey,omitempty"`
 	Name       string             `json:"name"`

@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-//Address holds a street address and geolocation stuff for a supporter.
-//The kludge fix is to requre certain fields in the JSON by removing
-//'omitempty'. That allows us to overwrite those fields with emptiness.
+// Address holds a street address and geolocation stuff for a supporter.
+// The kludge fix is to requre certain fields in the JSON by removing
+// 'omitempty'. That allows us to overwrite those fields with emptiness.
 type AddressKludgeFix struct {
 	AddressLine1         string     `json:"addressLine1"`
 	AddressLine2         string     `json:"addressLine2"`
@@ -27,7 +27,7 @@ type AddressKludgeFix struct {
 	OptInDate            *time.Time `json:"optInDate,omitempty"`
 }
 
-//NewAddressKludgeFix accepts and address and returned a kludged address.
+// NewAddressKludgeFix accepts and address and returned a kludged address.
 func NewAddressKludgeFix(a *Address) *AddressKludgeFix {
 	adf := AddressKludgeFix{
 		AddressLine1:         a.AddressLine1,
@@ -50,8 +50,8 @@ func NewAddressKludgeFix(a *Address) *AddressKludgeFix {
 	return &adf
 }
 
-//Supporter describes a single Engage supporter.  The
-//KludgeFix is implemented in AddressKludgeFix.
+// Supporter describes a single Engage supporter.  The
+// KludgeFix is implemented in AddressKludgeFix.
 type SupporterKludgeFix struct {
 	SupporterID       string             `json:"supporterId,omitempty" gorm:"primary_key"`
 	Result            string             `json:"result,omitempty"`
@@ -71,7 +71,7 @@ type SupporterKludgeFix struct {
 	ReadOnly          bool               `json:"readOnly,omitempty" gorm:"readOnly,omitempty"`
 }
 
-//Accept a supporter, return n kludged supporter.
+// Accept a supporter, return n kludged supporter.
 func NewSupporterKludgeFix(s Supporter) SupporterKludgeFix {
 	skf := SupporterKludgeFix{
 		SupporterID:       s.SupporterID,
@@ -93,9 +93,9 @@ func NewSupporterKludgeFix(s Supporter) SupporterKludgeFix {
 	return skf
 }
 
-//SupporterKludgeFixSearchRequestPayload holds the search criteria.  There are rules
-//that you need to know about.  See those here
-//https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
+// SupporterKludgeFixSearchRequestPayload holds the search criteria.  There are rules
+// that you need to know about.  See those here
+// https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
 type SupporterKludgeFixSearchRequestPayload struct {
 	Identifiers    []string `json:"identifiers,omitempty"`
 	IdentifierType string   `json:"identifierType,omitempty"`
@@ -105,8 +105,8 @@ type SupporterKludgeFixSearchRequestPayload struct {
 	Count          int32    `json:"count,omitempty"`
 }
 
-//SupporterKludgeFixSearchResults lists the supporters that match the search criteria.
-//Note that SupporterKludgeFix is common throughout Engage.
+// SupporterKludgeFixSearchResults lists the supporters that match the search criteria.
+// Note that SupporterKludgeFix is common throughout Engage.
 type SupporterKludgeFixSearchResults struct {
 	ID        string                                  `json:"id"`
 	Timestamp *time.Time                              `json:"timestamp"`
@@ -114,8 +114,8 @@ type SupporterKludgeFixSearchResults struct {
 	Payload   SupporterKludgeFixSearchResponsePayload `json:"payload,omitempty"`
 }
 
-//SupporterKludgeFixSearchResponsePayload holds the payload for a single supporter search
-//operation.
+// SupporterKludgeFixSearchResponsePayload holds the payload for a single supporter search
+// operation.
 type SupporterKludgeFixSearchResponsePayload struct {
 	Count               int32                `json:"count,omitempty"`
 	Offset              int32                `json:"offset,omitempty"`
@@ -123,19 +123,19 @@ type SupporterKludgeFixSearchResponsePayload struct {
 	SupporterKludgeFixs []SupporterKludgeFix `json:"supporters,omitempty"`
 }
 
-//SupporterKludgeFixUpdatePayload holds the list of supporter records to be updated.
+// SupporterKludgeFixUpdatePayload holds the list of supporter records to be updated.
 type SupporterKludgeFixUpdatePayload struct {
 	SupporterKludgeFixs []SupporterKludgeFix `json:"supporters,omitempty"`
 }
 
-//SupporterKludgeFixUpdateRequest provides a list of modified supporter records that
-//the caller wants to be updated in the database.
+// SupporterKludgeFixUpdateRequest provides a list of modified supporter records that
+// the caller wants to be updated in the database.
 type SupporterKludgeFixUpdateRequest struct {
 	Header  RequestHeader                   `json:"header,omitempty"`
 	Payload SupporterKludgeFixUpdatePayload `json:"payload,omitempty"`
 }
 
-//SupporterKludgeFixUpdateResponse provides results for the updated supporters.
+// SupporterKludgeFixUpdateResponse provides results for the updated supporters.
 type SupporterKludgeFixUpdateResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
@@ -143,7 +143,7 @@ type SupporterKludgeFixUpdateResponse struct {
 	} `json:"payload,omitempty"`
 }
 
-//SupporterKludgeFixUpsert upserts the provided supporter into Engage.
+// SupporterKludgeFixUpsert upserts the provided supporter into Engage.
 func SupporterKludgeFixUpsert(e *Environment, s *SupporterKludgeFix, logger *UtilLogger) (*SupporterKludgeFix, error) {
 	payload := SupporterKludgeFixUpdatePayload{
 		SupporterKludgeFixs: []SupporterKludgeFix{*s},

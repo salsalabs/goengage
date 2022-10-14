@@ -14,8 +14,8 @@ import (
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
-//EmailBlastGuide is the interface to use when scanning all email blasts
-//and doing something.
+// EmailBlastGuide is the interface to use when scanning all email blasts
+// and doing something.
 type EmailBlastGuide interface {
 
 	//Visit does something with the blast. Errors terminate.
@@ -39,9 +39,9 @@ type EmailBlastGuide interface {
 	Offset() int32
 }
 
-//ReadEmailBlasts reads all blasts and pushes them onto a channel.
-//Probably a good idea to start this as a go routine after the Listener
-//is started...
+// ReadEmailBlasts reads all blasts and pushes them onto a channel.
+// Probably a good idea to start this as a go routine after the Listener
+// is started...
 func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 	log.Println("ReadEmailBlasts: start")
 	count := int32(e.Metrics.MaxBatchSize)
@@ -79,9 +79,9 @@ func ReadEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 	return nil
 }
 
-//ProcessEmailBlasts reads blasts from an interface-provided channel, then
-//calls Visit in the interface.  At end of data, the app calls Finalize() then
-//sends true to the DoneChannel.
+// ProcessEmailBlasts reads blasts from an interface-provided channel, then
+// calls Visit in the interface.  At end of data, the app calls Finalize() then
+// sends true to the DoneChannel.
 func ProcessEmailBlasts(e *goengage.Environment, g EmailBlastGuide) error {
 	log.Println("ProcessEmailBlasts: start")
 	for {

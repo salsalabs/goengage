@@ -9,7 +9,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app   = kingpin.New("see-supporter", "A command-line app to to show supporters for an email.")

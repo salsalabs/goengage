@@ -9,8 +9,8 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Program entry point.  Look for supporters in a last_modified range.
-//No values means forever.
+// Program entry point.  Look for supporters in a last_modified range.
+// No values means forever.
 func main() {
 	var (
 		app       = kingpin.New("see-supporter", "A command-line app to to show supporters for an email.")

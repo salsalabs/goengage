@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-//Engage endpoint for offline donation upsert.
+// Engage endpoint for offline donation upsert.
 const (
 	OfflineUpsertMethod = "POST"
 	OfflineUpsert       = "/api/integration/ext/v1/offlineDonations"
 )
 
-//DonorAddress is the donor's address.  Shorter than a standard address...
+// DonorAddress is the donor's address.  Shorter than a standard address...
 type DonorAddress struct {
 	AddressLine1 string `json:"addressLine1,omitempty"`
 	AddressLine2 string `json:"addressLine2,omitempty"`
@@ -23,7 +23,7 @@ type DonorAddress struct {
 	Country      string `json:"country,omitempty"`
 }
 
-//Donation contains information about an individual donation.
+// Donation contains information about an individual donation.
 type Donation struct {
 	AccountType              string             `json:"accountType,omitempty"`
 	AccountNumber            string             `json:"accountNumber,omitempty"`
@@ -47,22 +47,21 @@ type Donation struct {
 	Supporter                Supporter          `json:"supporter,omitempty"`
 }
 
-//DonationUpsertRequest tells Engage to add and modify offline donations.
-//Note that Engage does not provide a way to process donations through a gateway
-//via the API.  Note, too, that there are rules to follow.
-//See https://help.salsalabs.com/hc/en-us/articles/360002275693-Engage-API-Offline-Donations#addingupdating-offline-donations
+// DonationUpsertRequest tells Engage to add and modify offline donations.
+// Note that Engage does not provide a way to process donations through a gateway
+// via the API.  Note, too, that there are rules to follow.
+// See https://help.salsalabs.com/hc/en-us/articles/360002275693-Engage-API-Offline-Donations#addingupdating-offline-donations
 type DonationUpsertRequest struct {
 	Payload struct {
 		Donations []Donation `json:"donations,omitempty"`
 	} `json:"payload,omitempty"`
 }
 
-//DonationUpsertResponse contains information about the add/update donations
-//request.
+// DonationUpsertResponse contains information about the add/update donations
+// request.
 //
 // **KLUDGE***
 // This is the output from JSON-to-Go.  It does not use Donation in the list of donations.
-//
 type DonationUpsertResponse struct {
 	ID        string    `json:"id"`
 	Timestamp time.Time `json:"timestamp"`
@@ -96,8 +95,8 @@ type DonationUpsertResponse struct {
 	} `json:"payload"`
 }
 
-//ResultDonation contains a donation preceded by errors.  If "Errors" is
-//not present, then the donation was successful.
+// ResultDonation contains a donation preceded by errors.  If "Errors" is
+// not present, then the donation was successful.
 type ResultDonation struct {
 	Errors []struct {
 		ID        string `json:"id,omitempty"`
@@ -110,7 +109,7 @@ type ResultDonation struct {
 	Donation
 }
 
-//ToString converts Donation record to a JSON string.
+// ToString converts Donation record to a JSON string.
 func (r Donation) ToString() string {
 	b, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {

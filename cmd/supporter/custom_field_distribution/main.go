@@ -1,8 +1,8 @@
-//App to search for supporters that have a custom field then
-//to report on the distribution of custom field values.  The
-//app also shows supporters who do not have the custom field.
-//Unlike Classic, a supporter without an assigned custom field
-//value is not equipped with that custom field.
+// App to search for supporters that have a custom field then
+// to report on the distribution of custom field values.  The
+// app also shows supporters who do not have the custom field.
+// Unlike Classic, a supporter without an assigned custom field
+// value is not equipped with that custom field.
 package main
 
 import (
@@ -17,7 +17,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Runtime area for this app.
+// Runtime area for this app.
 type Runtime struct {
 	E          *goengage.Environment
 	InChan     chan goengage.Supporter
@@ -28,10 +28,10 @@ type Runtime struct {
 	ReadOffset int32
 }
 
-//Cache is used to store values and counts.
+// Cache is used to store values and counts.
 type Cache map[string]int32
 
-//NewRuntime populates a new runtime.
+// NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, f string) Runtime {
 	c := Cache{
 		Null:        0,
@@ -49,14 +49,14 @@ func NewRuntime(env *goengage.Environment, f string) Runtime {
 	return r
 }
 
-//Constants for cache updates.
+// Constants for cache updates.
 const (
 	Null        = "Null"
 	NotEquipped = "NotEquipped"
 )
 
-//Visit implements SupporterGuide.Visit and does something with
-//a supporter record
+// Visit implements SupporterGuide.Visit and does something with
+// a supporter record
 func (r *Runtime) Visit(s goengage.Supporter) error {
 	for _, f := range s.CustomFieldValues {
 		if f.Name == r.FieldName {
@@ -82,8 +82,8 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	return nil
 }
 
-//Finalize implements SupporterGuide.Finalize and outputs the
-//distribution results.
+// Finalize implements SupporterGuide.Finalize and outputs the
+// distribution results.
 func (r *Runtime) Finalize() error {
 	fmt.Println("Value,Count")
 	for _, k := range r.Keys {
@@ -93,8 +93,8 @@ func (r *Runtime) Finalize() error {
 	return nil
 }
 
-//Payload implements SupporterGuide.Payload and provides a payload
-//that will retrieve all supporters.
+// Payload implements SupporterGuide.Payload and provides a payload
+// that will retrieve all supporters.
 func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	payload := goengage.SupporterSearchRequestPayload{
 		IdentifierType: goengage.SupporterIDType,
@@ -106,31 +106,31 @@ func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	return payload
 }
 
-//Channel implements SupporterGuide.Channnel and provides the
-//supporter channel.
+// Channel implements SupporterGuide.Channnel and provides the
+// supporter channel.
 func (r *Runtime) Channel() chan goengage.Supporter {
 	return r.InChan
 }
 
-//DoneChannel implements SupporterGuide.DoneChannel to provide
+// DoneChannel implements SupporterGuide.DoneChannel to provide
 // a channel that  receives a true when the listener is done.
 func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
 }
 
-//Offset returns the offset for the first read.
-//Useful for restarts.
+// Offset returns the offset for the first read.
+// Useful for restarts.
 func (r *Runtime) Offset() int32 {
 	return r.ReadOffset
 }
 
-//Adjust offset changes the proposed offset as needed.
-//Useful for chunked ID reads.  Does nothing in this app.
+// Adjust offset changes the proposed offset as needed.
+// Useful for chunked ID reads.  Does nothing in this app.
 func (r *Runtime) AdjustOffset(offset int32) int32 {
 	return offset
 }
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app       = kingpin.New("custom_field-distribution", "Search for a custom field and report on value distribution")

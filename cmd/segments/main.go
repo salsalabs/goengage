@@ -9,7 +9,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Program entry point.  Summarize segments.  No details.
+// Program entry point.  Summarize segments.  No details.
 func main() {
 	var (
 		app     = kingpin.New("segments", "A command-line app to summarize segments.")

@@ -10,8 +10,8 @@ import (
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
-//MaxRecords returns the maximum number of activity records
-//of a particular type.
+// MaxRecords returns the maximum number of activity records
+// of a particular type.
 func MaxRecords(e *goengage.Environment, guide Guide, ts TimeSpan) (int32, error) {
 	resp, err := ReadBatch(e, guide, int32(0), ts)
 	if err != nil {
@@ -20,10 +20,10 @@ func MaxRecords(e *goengage.Environment, guide Guide, ts TimeSpan) (int32, error
 	return resp.Payload.Total, err
 }
 
-//ReadActivities retrieves activity records from Engage, filters them,
-//then writes them to the Guide channel. The offset channel tells
-//us where to start reading.  When no items are available from the
-//offset channel, we'll write a true to the done channel.
+// ReadActivities retrieves activity records from Engage, filters them,
+// then writes them to the Guide channel. The offset channel tells
+// us where to start reading.  When no items are available from the
+// offset channel, we'll write a true to the done channel.
 func ReadActivities(e *goengage.Environment,
 	guide Guide,
 	i int,
@@ -67,8 +67,8 @@ func ReadActivities(e *goengage.Environment,
 	log.Printf("%s: end", n)
 }
 
-//ReadBatch is a utility function to read activity records. Returns the
-//response object and an error code.
+// ReadBatch is a utility function to read activity records. Returns the
+// response object and an error code.
 func ReadBatch(e *goengage.Environment,
 	guide Guide,
 	offset int32,
@@ -159,9 +159,9 @@ func ReportFundraising(e *goengage.Environment, guide Guide, ts TimeSpan) (err e
 	return err
 }
 
-//WaitForReaders waits for readers to send to a done channel.
-//The number of readers is specified in the provided Guide.
-//Closes the inbound Funrdraise channel when all readers are done.
+// WaitForReaders waits for readers to send to a done channel.
+// The number of readers is specified in the provided Guide.
+// Closes the inbound Funrdraise channel when all readers are done.
 func WaitForReaders(guide Guide, gc chan goengage.Fundraise, done chan bool) {
 	count := guide.Readers()
 	for count > 0 {
@@ -176,8 +176,8 @@ func WaitForReaders(guide Guide, gc chan goengage.Fundraise, done chan bool) {
 	log.Println("WaitForReaders: done")
 }
 
-//Store waits for fundraise records to appear on the queue, then
-//Writes them to a CSV file.
+// Store waits for fundraise records to appear on the queue, then
+// Writes them to a CSV file.
 func Store(guide Guide, gc chan goengage.Fundraise) error {
 	log.Println("Store: begin")
 	f, err := os.Create(guide.Filename())

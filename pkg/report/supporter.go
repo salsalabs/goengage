@@ -13,8 +13,8 @@ import (
 	goengage "github.com/salsalabs/goengage/pkg"
 )
 
-//SupporterGuide is the interface to use when scanning all supporters
-//and doing something.
+// SupporterGuide is the interface to use when scanning all supporters
+// and doing something.
 type SupporterGuide interface {
 
 	//Visit does something with the supporter. Errors terminate.
@@ -43,9 +43,9 @@ type SupporterGuide interface {
 	AdjustOffset(offset int32) int32
 }
 
-//ReadSupporters reads all supporters and pushes them onto a channel.
-//Probably a good idea to start this as a go routine after the Listener
-//is started...
+// ReadSupporters reads all supporters and pushes them onto a channel.
+// Probably a good idea to start this as a go routine after the Listener
+// is started...
 func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 	log.Println("ReadSupporters: start")
 	count := int32(e.Metrics.MaxBatchSize)
@@ -83,9 +83,9 @@ func ReadSupporters(e *goengage.Environment, g SupporterGuide) error {
 	return nil
 }
 
-//ProcessSupporters reads supporters from an interface-provided channel, then
-//calls Visit in the interface.  At end of data, the app calls Finalize() then
-//sends true to the DoneChannel.
+// ProcessSupporters reads supporters from an interface-provided channel, then
+// calls Visit in the interface.  At end of data, the app calls Finalize() then
+// sends true to the DoneChannel.
 func ProcessSupporters(e *goengage.Environment, g SupporterGuide) error {
 	log.Println("ProcessSupporters: start")
 	for {

@@ -1,5 +1,5 @@
-//App to retrieve segment (group) members and write their State fields
-//to a CSV.  Raw data for segment-based demographic analysis.
+// App to retrieve segment (group) members and write their State fields
+// to a CSV.  Raw data for segment-based demographic analysis.
 package main
 
 import (
@@ -25,10 +25,10 @@ const (
 	SettleTime = "2s"
 )
 
-//Cache is the content that appears in the CSV file.
+// Cache is the content that appears in the CSV file.
 type Cache map[string]int32
 
-//Runtime area for this app.
+// Runtime area for this app.
 type Runtime struct {
 	E         *goengage.Environment
 	InChan    chan goengage.Supporter
@@ -39,7 +39,7 @@ type Runtime struct {
 	Logger    *goengage.UtilLogger
 }
 
-//NewRuntime populates a new runtime.
+// NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, segmentID string, results string, verbose bool) Runtime {
 	r := Runtime{
 		E:         env,
@@ -59,8 +59,8 @@ func NewRuntime(env *goengage.Environment, segmentID string, results string, ver
 	return r
 }
 
-//Drive finds all of the supporters in the specified group and writes
-//them to the input channel.
+// Drive finds all of the supporters in the specified group and writes
+// them to the input channel.
 func (rt Runtime) Drive() (err error) {
 	log.Println("Drive: begin")
 	count := rt.E.Metrics.MaxBatchSize
@@ -103,8 +103,8 @@ func (rt Runtime) Drive() (err error) {
 	return nil
 }
 
-//SaveCache writes an alphabetized CSV of states and counts to
-//the output CSV file.
+// SaveCache writes an alphabetized CSV of states and counts to
+// the output CSV file.
 func (rt Runtime) SaveCache() (err error) {
 	f, err := os.Create(rt.Results)
 	if err != nil {
@@ -143,8 +143,8 @@ func (rt Runtime) SaveCache() (err error) {
 	return nil
 }
 
-//Update retrieves Supporters from the input channel and updates
-//the cache in the runtime.  Writes the CSV at end of data.
+// Update retrieves Supporters from the input channel and updates
+// the cache in the runtime.  Writes the CSV at end of data.
 func (rt Runtime) Update() (err error) {
 	log.Println("Update: start")
 	for {
@@ -167,7 +167,7 @@ func (rt Runtime) Update() (err error) {
 	return nil
 }
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app       = kingpin.New("one_segment_states", "Tabulate segment member counts by state")

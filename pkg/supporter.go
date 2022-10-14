@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//Engage endpoints for supporters.
+// Engage endpoints for supporters.
 const (
 	SearchSupporter       = "/api/integration/ext/v1/supporters/search"
 	UpsertSupporter       = "/api/integration/ext/v1/supporters"
@@ -14,7 +14,7 @@ const (
 	SupporterSearchGroups = "/api/integration/ext/v1/supporters/groups"
 )
 
-//Contact types.
+// Contact types.
 const (
 	ContactEmail    = "EMAIL"
 	ContactHome     = "HOME_PHONE"
@@ -25,13 +25,13 @@ const (
 	ContactLinkedin = "LINKEDIN_ID"
 )
 
-//Status types.
+// Status types.
 const (
 	OptIn  = "OPT_IN"
 	OptOut = "OPT_OUT"
 )
 
-//Address holds a street address and geolocation stuff for a supporter.
+// Address holds a street address and geolocation stuff for a supporter.
 type Address struct {
 	AddressLine1         string     `json:"addressLine1,omitempty"`
 	AddressLine2         string     `json:"addressLine2,omitempty"`
@@ -51,8 +51,8 @@ type Address struct {
 	OptInDate            *time.Time `json:"optInDate,omitempty"`
 }
 
-//Contact holds a way to communicate with a supporter.  Typical contacts
-//include email address and phone numbers.
+// Contact holds a way to communicate with a supporter.  Typical contacts
+// include email address and phone numbers.
 type Contact struct {
 	Type   string `json:"type,omitempty"`
 	Value  string `json:"value,omitempty"`
@@ -62,7 +62,7 @@ type Contact struct {
 	ContactID   string `json:"-" gorm:"contact_id,primarykey,autoincrement"`
 }
 
-//Supporter describes a single Engage supporter.
+// Supporter describes a single Engage supporter.
 type Supporter struct {
 	SupporterID              string             `json:"supporterId,omitempty" gorm:"primary_key"`
 	SalesForceID             string             `json:"salesforceId,omitempty"`
@@ -89,26 +89,26 @@ type Supporter struct {
 	Timezone                 string             `json:"timezone,omitempty"`
 }
 
-//SupporterSegment is returned when searching for segments that a
-//supporter belongs to.
+// SupporterSegment is returned when searching for segments that a
+// supporter belongs to.
 type SupporterSegment struct {
 	SupporterID string    `json:"supporterId,omitempty"`
 	Segments    []Segment `json:"segments,omitempty"`
 	Result      string    `json:"result,omitempty"`
 }
 
-//SupporterSearchRequest provides the criteria to match when searching
-//for supporters.  Providing no criterria will return all supporters.
-//"modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
-//by identifiers.
+// SupporterSearchRequest provides the criteria to match when searching
+// for supporters.  Providing no criterria will return all supporters.
+// "modifiedTo" and/or "modifiedFrom" are mutually exclusive to searching
+// by identifiers.
 type SupporterSearchRequest struct {
 	Header  RequestHeader                 `json:"header,omitempty"`
 	Payload SupporterSearchRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterSearchRequestPayload holds the search criteria.  There are rules
-//that you need to know about.  See those here
-//https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
+// SupporterSearchRequestPayload holds the search criteria.  There are rules
+// that you need to know about.  See those here
+// https://help.salsalabs.com/hc/en-us/articles/224470107-Engage-API-Supporter-Data#searching-for-supporters
 type SupporterSearchRequestPayload struct {
 	Identifiers    []string `json:"identifiers,omitempty"`
 	IdentifierType string   `json:"identifierType,omitempty"`
@@ -118,8 +118,8 @@ type SupporterSearchRequestPayload struct {
 	Count          int32    `json:"count,omitempty"`
 }
 
-//SupporterSearchResults lists the supporters that match the search criteria.
-//Note that Supporter is common throughout Engage.
+// SupporterSearchResults lists the supporters that match the search criteria.
+// Note that Supporter is common throughout Engage.
 type SupporterSearchResults struct {
 	ID        string                         `json:"id"`
 	Timestamp *time.Time                     `json:"timestamp"`
@@ -128,8 +128,8 @@ type SupporterSearchResults struct {
 	Errors    []Error                        `json:"errors,omitempty"`
 }
 
-//SupporterSearchResponsePayload holds the payload for a single supporter search
-//operation.
+// SupporterSearchResponsePayload holds the payload for a single supporter search
+// operation.
 type SupporterSearchResponsePayload struct {
 	Count      int32       `json:"count,omitempty"`
 	Offset     int32       `json:"offset,omitempty"`
@@ -137,19 +137,19 @@ type SupporterSearchResponsePayload struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterUpdatePayload holds the list of supporter records to be updated.
+// SupporterUpdatePayload holds the list of supporter records to be updated.
 type SupporterUpdatePayload struct {
 	Supporters []Supporter `json:"supporters,omitempty"`
 }
 
-//SupporterUpdateRequest provides a list of modified supporter records that
-//the caller wants to be updated in the database.
+// SupporterUpdateRequest provides a list of modified supporter records that
+// the caller wants to be updated in the database.
 type SupporterUpdateRequest struct {
 	Header  RequestHeader          `json:"header,omitempty"`
 	Payload SupporterUpdatePayload `json:"payload,omitempty"`
 }
 
-//SupporterUpdateResponse provides results for the updated supporters.
+// SupporterUpdateResponse provides results for the updated supporters.
 type SupporterUpdateResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
@@ -157,8 +157,8 @@ type SupporterUpdateResponse struct {
 	} `json:"payload,omitempty"`
 }
 
-//DeleteRequest is used to delete supporter records.  By the way,
-//deleted records are gone forever -- they are not coming back, Jim.
+// DeleteRequest is used to delete supporter records.  By the way,
+// deleted records are gone forever -- they are not coming back, Jim.
 type DeleteRequest struct {
 	Header  RequestHeader `json:"header,omitempty"`
 	Payload struct {
@@ -166,7 +166,7 @@ type DeleteRequest struct {
 	} `json:"payload,omitempty"`
 }
 
-//DeletedResponse returns the results of deleting supporters.
+// DeletedResponse returns the results of deleting supporters.
 type DeletedResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
@@ -177,7 +177,7 @@ type DeletedResponse struct {
 	} `json:"payload,omitempty"`
 }
 
-//SupporterUpsert upserts the provided supporter into Engage.
+// SupporterUpsert upserts the provided supporter into Engage.
 func SupporterUpsert(e *Environment, s *Supporter, logger *UtilLogger) (*Supporter, error) {
 	payload := SupporterUpdatePayload{
 		Supporters: []Supporter{*s},
@@ -222,15 +222,15 @@ func SupporterUpsert(e *Environment, s *Supporter, logger *UtilLogger) (*Support
 	return s, err
 }
 
-//SupporterGroupsRequest requests the groups (segments) that a supporter
-//belongs to.
+// SupporterGroupsRequest requests the groups (segments) that a supporter
+// belongs to.
 type SupporterGroupsRequest struct {
 	Header  RequestHeader                 `json:"header,omitempty"`
 	Payload SupporterGroupsRequestPayload `json:"payload,omitempty"`
 }
 
-//SupporterGroupsRequestPayload holds the search criteria.
-//https://api.salsalabs.org/help/integration#operation/getGroupsForSupporters
+// SupporterGroupsRequestPayload holds the search criteria.
+// https://api.salsalabs.org/help/integration#operation/getGroupsForSupporters
 type SupporterGroupsRequestPayload struct {
 	Identifiers     []string `json:"identifiers,omitempty"`
 	IdentifierType  string   `json:"identifierType,omitempty"`
@@ -243,7 +243,7 @@ type SupporterGroupsRequestPayload struct {
 	IncludeNormal   bool     `json:"includeNormal,omitempty"`
 }
 
-//SupporterGroupsResponse provides results for the updated supporters.
+// SupporterGroupsResponse provides results for the updated supporters.
 type SupporterGroupsResponse struct {
 	ID        string                         `json:"id,omitempty"`
 	Timestamp string                         `json:"timestamp,omitempty"`
@@ -252,8 +252,8 @@ type SupporterGroupsResponse struct {
 	Errors    []Error                        `json:"errors,omitempty"`
 }
 
-//SupporterGroupsResponsePayload lists the supporters that match the search criteria.
-//Note that Supporter is common throughout Engage.
+// SupporterGroupsResponsePayload lists the supporters that match the search criteria.
+// Note that Supporter is common throughout Engage.
 type SupporterGroupsResponsePayload struct {
 	Total   int                `json:"total,omitempty"`
 	Offset  int32              `json:"offset,omitempty"`
@@ -261,8 +261,8 @@ type SupporterGroupsResponsePayload struct {
 	Results []SupporterSegment `json:"results,omitempty"`
 }
 
-//SupporterByID retrieves a supporter record for Engage using the SupporterID
-//in the provided record.
+// SupporterByID retrieves a supporter record for Engage using the SupporterID
+// in the provided record.
 func SupporterByID(e *Environment, k string) (*Supporter, error) {
 	payload := SupporterSearchRequestPayload{
 		Identifiers:    []string{k},
@@ -343,8 +343,8 @@ func SupporterByEmail(e *Environment, email string) (s *Supporter, err error) {
 	return s, err
 }
 
-//SupporterSegments accepts a supporterID and returns a list of segments
-//where the supporter is a member.
+// SupporterSegments accepts a supporterID and returns a list of segments
+// where the supporter is a member.
 func SupporterSegments(e *Environment, s string) (a []Segment, err error) {
 	offset := int32(0)
 	count := e.Metrics.MaxBatchSize

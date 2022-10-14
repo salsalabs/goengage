@@ -24,7 +24,7 @@ const (
 	SettleDuration = "5s"
 )
 
-//Runtime contains the configuration parts that this app needs.
+// Runtime contains the configuration parts that this app needs.
 type Runtime struct {
 	Env              *goengage.Environment
 	BlastChan        chan goengage.EmailActivity
@@ -38,22 +38,22 @@ type Runtime struct {
 	CommSeries       bool
 }
 
-//Visit does something with the blast. Errors terminate.
-//Implements goengage.EmailBlastGuide.
+// Visit does something with the blast. Errors terminate.
+// Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Visit(s goengage.EmailActivity) error {
 	rt.BlastCSVChan <- s
 	return nil
 }
 
-//Finalize is called after all blasts have been processed.
-//Implements goengage.EmailBlastGuide.
+// Finalize is called after all blasts have been processed.
+// Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Finalize() error {
 	close(rt.BlastCSVChan)
 	return nil
 }
 
-//Payload is the request payload defining which supporters to retrieve.
-//Implements goengage.EmailBlastGuide.
+// Payload is the request payload defining which supporters to retrieve.
+// Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Payload() goengage.EmailBlastSearchRequestPayload {
 	emailType := goengage.Email
 	log.Printf("Payload: comm series flag is %v\n", rt.CommSeries)
@@ -68,25 +68,25 @@ func (rt *Runtime) Payload() goengage.EmailBlastSearchRequestPayload {
 	return payload
 }
 
-//Channel is the listener channel to use.
+// Channel is the listener channel to use.
 func (rt *Runtime) Channel() chan goengage.EmailActivity {
 	return rt.BlastChan
 }
 
-//DoneChannel receives a true when the listener is done.
-//Implements goengage.EmailBlastGuide.
+// DoneChannel receives a true when the listener is done.
+// Implements goengage.EmailBlastGuide.
 func (rt *Runtime) DoneChannel() chan bool {
 	return rt.DoneChan
 }
 
-//Offset returns the offset to start reading.
-//Implements goengage.EmailBlastGuide.
+// Offset returns the offset to start reading.
+// Implements goengage.EmailBlastGuide.
 func (rt *Runtime) Offset() int32 {
 	return rt.BlastOffset
 }
 
-//WriteBlasts accepts a blast from the channel and writes it to a CSV
-//file.
+// WriteBlasts accepts a blast from the channel and writes it to a CSV
+// file.
 func (rt *Runtime) WriteBlasts() error {
 	f, err := os.Create(rt.BlastCSVFile)
 	if err != nil {
@@ -129,8 +129,8 @@ func (rt *Runtime) WriteBlasts() error {
 	return nil
 }
 
-//WriteComponents accepts a blast from the channel and writes
-//any Components to a CSVfile.
+// WriteComponents accepts a blast from the channel and writes
+// any Components to a CSVfile.
 func (rt *Runtime) WriteComponents() error {
 	log.Printf("WriteComponents: begin")
 	f, err := os.Create(rt.ComponentCSVFile)
@@ -172,7 +172,7 @@ func (rt *Runtime) WriteComponents() error {
 	return nil
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app              = kingpin.New("blasts_and_components", "Write all email activity (blast) and component info to CSV files")

@@ -21,9 +21,9 @@ const (
 	RowsPerCSV = 100_000
 )
 
-//ReadSegments reads segments from Engage and writes them to
-//a channel.  The channel is closed when all segments have been
-//written.
+// ReadSegments reads segments from Engage and writes them to
+// a channel.  The channel is closed when all segments have been
+// written.
 func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment) (err error) {
 	log.Println("ReadSegments: begin")
 	count := e.Metrics.MaxBatchSize
@@ -61,9 +61,9 @@ func ReadSegments(e *goengage.Environment, offset int32, c chan goengage.Segment
 	return nil
 }
 
-//ReadSupporters reads from the segment channel and writes all chapter members
-//to a CSV file names for the segment.  Note that an existing CSV  causes a segment
-//to be ignored.
+// ReadSupporters reads from the segment channel and writes all chapter members
+// to a CSV file names for the segment.  Note that an existing CSV  causes a segment
+// to be ignored.
 func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan bool, id int) (err error) {
 	log.Printf("ReadSupporters %v: begin\n", id)
 	for true {
@@ -146,7 +146,7 @@ func ReadSupporters(e *goengage.Environment, c1 chan goengage.Segment, done chan
 	return nil
 }
 
-//WaitTerminations waits for "SegmentListeners" supporter readers to complete.
+// WaitTerminations waits for "SegmentListeners" supporter readers to complete.
 func WaitTerminations(done chan bool) {
 	remaining := SegmentListeners
 	for remaining > 0 {
@@ -156,7 +156,7 @@ func WaitTerminations(done chan bool) {
 	}
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app     = kingpin.New("segments_and_supporters", "A command-line app to write Engage segments and email addresses to CSV files.")

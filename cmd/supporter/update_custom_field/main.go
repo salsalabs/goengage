@@ -9,7 +9,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app        = kingpin.New("update-custom-field", "A command-line app to modify a custom field.")

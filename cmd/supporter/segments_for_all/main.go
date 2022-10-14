@@ -1,5 +1,5 @@
-//App to write a CSV of supporters and segments.  Each row is a single
-//supporter-segment relationship.  A row contains
+// App to write a CSV of supporters and segments.  Each row is a single
+// supporter-segment relationship.  A row contains
 // * supporterId
 // * Email
 // * segmentId
@@ -25,13 +25,13 @@ const (
 	SupporterListenerCount = 5
 )
 
-//OutRec holds a supporter-segment relationship.
+// OutRec holds a supporter-segment relationship.
 type OutRec struct {
 	Supporter goengage.Supporter
 	Segment   goengage.Segment
 }
 
-//Runtime area for this app.
+// Runtime area for this app.
 type Runtime struct {
 	E             *goengage.Environment
 	SupporterChan chan goengage.Supporter
@@ -40,7 +40,7 @@ type Runtime struct {
 	CSVOut        *csv.Writer
 }
 
-//NewRuntime populates a new runtime.
+// NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, out *csv.Writer) Runtime {
 	r := Runtime{
 		E:             env,
@@ -52,16 +52,16 @@ func NewRuntime(env *goengage.Environment, out *csv.Writer) Runtime {
 	return r
 }
 
-//Adjust offset changes the proposed offset as needed.
-//Implements SupporterGuide.AdjustOffset.
-//Useful for chunked ID reads.  Does nothing in this app.
+// Adjust offset changes the proposed offset as needed.
+// Implements SupporterGuide.AdjustOffset.
+// Useful for chunked ID reads.  Does nothing in this app.
 func (r *Runtime) AdjustOffset(offset int32) int32 {
 	return offset
 }
 
-//Visit implements SupporterGuide.Visit and does something with
-//a supporter record.  In this case, Visit retrieves segments
-//for a supporter and writes them to OutChan.
+// Visit implements SupporterGuide.Visit and does something with
+// a supporter record.  In this case, Visit retrieves segments
+// for a supporter and writes them to OutChan.
 func (r *Runtime) Visit(s goengage.Supporter) error {
 	segments, err := goengage.SupporterSegments(r.E, s.SupporterID)
 	if err != nil {
@@ -74,14 +74,14 @@ func (r *Runtime) Visit(s goengage.Supporter) error {
 	return nil
 }
 
-//Finalize implements SupporterGuide.Finalize and does nothing
-//in this app.
+// Finalize implements SupporterGuide.Finalize and does nothing
+// in this app.
 func (r *Runtime) Finalize() error {
 	return nil
 }
 
-//Payload implements SupporterGuide.Payload and provides a payload
-//that will retrieve all supporters.
+// Payload implements SupporterGuide.Payload and provides a payload
+// that will retrieve all supporters.
 func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	payload := goengage.SupporterSearchRequestPayload{
 		IdentifierType: goengage.SupporterIDType,
@@ -93,25 +93,25 @@ func (r *Runtime) Payload() goengage.SupporterSearchRequestPayload {
 	return payload
 }
 
-//Channel implements SupporterGuide.Channnel and provides the
-//supporter channel.
+// Channel implements SupporterGuide.Channnel and provides the
+// supporter channel.
 func (r *Runtime) Channel() chan goengage.Supporter {
 	return r.SupporterChan
 }
 
-//DoneChannel implements SupporterGuide.DoneChannel to provide
+// DoneChannel implements SupporterGuide.DoneChannel to provide
 // a channel that receives a true when the listener(s) are done.
 func (r *Runtime) DoneChannel() chan bool {
 	return r.DoneChan
 }
 
-//Offset returns the offset for the first read.
-//Useful for restarts.
+// Offset returns the offset for the first read.
+// Useful for restarts.
 func (r *Runtime) Offset() int32 {
 	return 0
 }
 
-//Writer accepts items from OutChan and writes them to the CSV.
+// Writer accepts items from OutChan and writes them to the CSV.
 func (r *Runtime) Writer() error {
 	count := int32(0)
 	log.Printf("Writer: begin")
@@ -145,8 +145,8 @@ func (r *Runtime) Writer() error {
 	return nil
 }
 
-//Program entry point. Scan through supporters.  Write supporter-group
-//data to a CSV file.
+// Program entry point. Scan through supporters.  Write supporter-group
+// data to a CSV file.
 func main() {
 	var (
 		app     = kingpin.New("supporter_segments", "Write a CSV of supporters and segments")

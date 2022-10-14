@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-//FirstEmail returns the first email address for the provided supporter.
-//Returns nil if the supporter does not have an email.  (As if...)
+// FirstEmail returns the first email address for the provided supporter.
+// Returns nil if the supporter does not have an email.  (As if...)
 func FirstEmail(s Supporter) *string {
 	c := s.Contacts
 	if len(c) == 0 {
@@ -25,10 +25,10 @@ func FirstEmail(s Supporter) *string {
 	return nil
 }
 
-//FirstPhone returns the first phone number for the provided supporter.
-//Note that cell phones are not considered as they have a requirement of
-//Being opted-in
-//Returns nil if the supporter does not have an email.  (As if...)
+// FirstPhone returns the first phone number for the provided supporter.
+// Note that cell phones are not considered as they have a requirement of
+// Being opted-in
+// Returns nil if the supporter does not have an email.  (As if...)
 func FirstPhone(s Supporter) *string {
 	c := s.Contacts
 	if len(c) == 0 {
@@ -43,7 +43,7 @@ func FirstPhone(s Supporter) *string {
 	return nil
 }
 
-//Date parses an Engage date and returns a Go time.
+// Date parses an Engage date and returns a Go time.
 func Date(s string) (t *time.Time) {
 	if len(s) == 0 {
 		return t
@@ -56,15 +56,15 @@ func Date(s string) (t *time.Time) {
 	return &x
 }
 
-//UtilLogger is an environment to support a file logger.  It contains
-//a log.Logger attached to a file.
+// UtilLogger is an environment to support a file logger.  It contains
+// a log.Logger attached to a file.
 type UtilLogger struct {
 	File   *os.File
 	Logger *log.Logger
 }
 
-//NewUtilLogger creates a file and attaches a logger to it.  The file is generic
-//looking with the date-time that this object was created.
+// NewUtilLogger creates a file and attaches a logger to it.  The file is generic
+// looking with the date-time that this object was created.
 func NewUtilLogger() (*UtilLogger, error) {
 	u := UtilLogger{}
 	now := time.Now()
@@ -79,9 +79,9 @@ func NewUtilLogger() (*UtilLogger, error) {
 	return &u, err
 }
 
-//LogJSON is used to write the contents of a byte slice to the log
-//as formatted JSON.  Note that no writes are performed if the Logger
-//object hasn't been initialized.
+// LogJSON is used to write the contents of a byte slice to the log
+// as formatted JSON.  Note that no writes are performed if the Logger
+// object hasn't been initialized.
 func (u *UtilLogger) LogJSON(b []byte) {
 	if u.Logger != nil {
 		var x interface{}
@@ -91,20 +91,20 @@ func (u *UtilLogger) LogJSON(b []byte) {
 	}
 }
 
-//Printf is used to print a formatted message with the
-//internal logger.
+// Printf is used to print a formatted message with the
+// internal logger.
 func (u *UtilLogger) Printf(format string, v ...interface{}) {
 	u.Logger.Printf(format, v...)
 }
 
-//MarshalJSON JSON for a time.
+// MarshalJSON JSON for a time.
 func (t TimeStamp) MarshalJSON() ([]byte, error) {
 	s := t.Format(EngageDateFormat)
 	s = fmt.Sprintf(`"%v"`, s)
 	return []byte(s), nil
 }
 
-//DoneListener waits for 'n' messages on the provided channel.
+// DoneListener waits for 'n' messages on the provided channel.
 func DoneListener(c chan bool, n int) {
 	log.Println("DoneListener: start")
 	for n > 0 {
@@ -119,8 +119,8 @@ func DoneListener(c chan bool, n int) {
 	close(c)
 }
 
-//ToTitle converts engage constants to title-case.  Underbars
-//are treated as word separators.
+// ToTitle converts engage constants to title-case.  Underbars
+// are treated as word separators.
 func ToTitle(s string) string {
 	parts := strings.Split(s, "_")
 	var a []string

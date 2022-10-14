@@ -25,14 +25,14 @@ const (
 	StartDate = "2001-01-01T01:01:01.001Z"
 )
 
-//XrefRecord is the container for the information that goes to the output.
+// XrefRecord is the container for the information that goes to the output.
 type XrefRecord struct {
 	SupporterID string
 	Email       string
 	Segments    []string
 }
 
-//NewXrefRecord creates an XrefRecord and returns a reference.
+// NewXrefRecord creates an XrefRecord and returns a reference.
 func NewXrefRecord(s string, e string) *XrefRecord {
 	x := XrefRecord{
 		SupporterID: s,
@@ -42,7 +42,7 @@ func NewXrefRecord(s string, e string) *XrefRecord {
 	return &x
 }
 
-//Runtime holds the common data used by the tasks in this app.
+// Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
 	E            *goengage.Environment
 	SegmentID    string
@@ -54,8 +54,8 @@ type Runtime struct {
 	MemberOffset int32
 }
 
-//Members accepts a segmentId and writes the segment members to the
-//provided channel.
+// Members accepts a segmentId and writes the segment members to the
+// provided channel.
 func Members(rt Runtime) (err error) {
 	log.Println("Members: begin")
 
@@ -113,9 +113,9 @@ func Members(rt Runtime) (err error) {
 	return nil
 }
 
-//Segments accepts an xref record from the channel, populates the Groups field, then
-//pushes the completed record into the write channel. Notifies done with the input
-//channel is empty.
+// Segments accepts an xref record from the channel, populates the Groups field, then
+// pushes the completed record into the write channel. Notifies done with the input
+// channel is empty.
 func Segments(rt Runtime, id int) (err error) {
 	log.Printf("Segments %+v: begin\n", id)
 	for {
@@ -173,8 +173,8 @@ func Segments(rt Runtime, id int) (err error) {
 	return nil
 }
 
-//OutputCSV accepts Xref records from a channeland and writes them to
-//a CSV file.
+// OutputCSV accepts Xref records from a channeland and writes them to
+// a CSV file.
 func OutputCSV(rt Runtime) error {
 	log.Printf("OutputCSV: begin")
 	f, err := os.Create(rt.F)
@@ -203,8 +203,8 @@ func OutputCSV(rt Runtime) error {
 	return nil
 }
 
-//WaitTerminations waits for "SupporterListeners" supporter readers to
-//complete.  That triggers a close for the CSV writer channel.
+// WaitTerminations waits for "SupporterListeners" supporter readers to
+// complete.  That triggers a close for the CSV writer channel.
 func WaitTerminations(rt Runtime) {
 	log.Printf("WaitTerminations: begin")
 	remaining := SupporterListeners
@@ -217,7 +217,7 @@ func WaitTerminations(rt Runtime) {
 	log.Printf("WaitTerminations: end")
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app       = kingpin.New("one_segment_xref", "Find supporters for a segment. Display supporters and lists of groups they belong to.")

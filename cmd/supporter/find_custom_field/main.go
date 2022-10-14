@@ -21,7 +21,7 @@ const (
 	StartDate = "2001-01-01T01:01:01.001Z"
 )
 
-//CFRecord is the container for the information that goes to the output.
+// CFRecord is the container for the information that goes to the output.
 type CFRecord struct {
 	SupporterID      string
 	Email            string
@@ -30,7 +30,7 @@ type CFRecord struct {
 	CustomFieldValue string
 }
 
-//NewCFRecord creates an CFRecord and returns a reference.
+// NewCFRecord creates an CFRecord and returns a reference.
 func NewCFRecord(s goengage.Supporter, c goengage.CustomFieldValue) *CFRecord {
 	f := goengage.FirstEmail(s)
 	e := "(None)"
@@ -47,7 +47,7 @@ func NewCFRecord(s goengage.Supporter, c goengage.CustomFieldValue) *CFRecord {
 	return &x
 }
 
-//Runtime holds the common data used by the tasks in this app.
+// Runtime holds the common data used by the tasks in this app.
 type Runtime struct {
 	E    *goengage.Environment
 	Name string
@@ -59,8 +59,8 @@ type Runtime struct {
 	L    *goengage.UtilLogger
 }
 
-//Offsets accepts a number of records and writes offsets
-//to the offsets queue in chunks of MaxBatchSize.
+// Offsets accepts a number of records and writes offsets
+// to the offsets queue in chunks of MaxBatchSize.
 func Offsets(rt Runtime, total int32) {
 	for i := int32(0); i < total; i += rt.E.Metrics.MaxBatchSize {
 		rt.C0 <- i
@@ -68,7 +68,7 @@ func Offsets(rt Runtime, total int32) {
 	close(rt.C0)
 }
 
-//One accepts an offset and passes along the ones that match the filter requirements.
+// One accepts an offset and passes along the ones that match the filter requirements.
 func Supporters(rt Runtime, i int) (err error) {
 	log.Printf("Supporters %d: begin\n", i)
 	for {
@@ -114,8 +114,8 @@ func Supporters(rt Runtime, i int) (err error) {
 	return nil
 }
 
-//TotalRecords reads the first page of supporters and returns
-//the number of records.
+// TotalRecords reads the first page of supporters and returns
+// the number of records.
 func TotalRecords(rt Runtime) (int32, error) {
 	payload := goengage.SupporterSearchRequestPayload{
 		ModifiedFrom: StartDate,
@@ -142,8 +142,8 @@ func TotalRecords(rt Runtime) (int32, error) {
 	return resp.Payload.Total, nil
 }
 
-//OutputCSV accepts CF records from a channel and and writes them to
-//a CSV file.
+// OutputCSV accepts CF records from a channel and and writes them to
+// a CSV file.
 func OutputCSV(rt Runtime) error {
 	log.Printf("OutputCSV: begin")
 	f, err := os.Create(rt.F)
@@ -180,8 +180,8 @@ func OutputCSV(rt Runtime) error {
 	return nil
 }
 
-//WaitTerminations waits for "OffsetListeners" supporter readers to
-//complete.  That triggers a close for the CSV writer channel.
+// WaitTerminations waits for "OffsetListeners" supporter readers to
+// complete.  That triggers a close for the CSV writer channel.
 func WaitTerminations(rt Runtime) {
 	log.Printf("WaitTerminations: begin")
 	remaining := OffsetListeners
@@ -194,7 +194,7 @@ func WaitTerminations(rt Runtime) {
 	log.Printf("WaitTerminations: end")
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app         = kingpin.New("find_custom_field", "Find supporters that have values for the provided cusotm field.")

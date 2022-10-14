@@ -14,7 +14,7 @@ import (
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-//Runtime holds the stuff that this app needs.
+// Runtime holds the stuff that this app needs.
 type Runtime struct {
 	Env           *goengage.Environment
 	IncludeCounts bool
@@ -39,7 +39,7 @@ func NewRuntime(e *goengage.Environment, f string, s string, v bool) (*Runtime, 
 	return &rt, nil
 }
 
-//Run finds and displays all transactions.
+// Run finds and displays all transactions.
 func Run(rt *Runtime) error {
 	log.Println("Run: begin")
 	f, err := os.Create(rt.CSVFilename)
@@ -132,7 +132,7 @@ func Run(rt *Runtime) error {
 	return nil
 }
 
-//Program entry point.
+// Program entry point.
 func main() {
 	var (
 		app         = kingpin.New("supporter_transactions", "Creates a CSV of transactions for a supporter")

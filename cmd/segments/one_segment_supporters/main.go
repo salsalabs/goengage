@@ -1,5 +1,5 @@
-//App to search for supporters who are members of a group.
-//Displays contents of the "Recording" object.
+// App to search for supporters who are members of a group.
+// Displays contents of the "Recording" object.
 package main
 
 import (
@@ -19,7 +19,7 @@ const (
 	ListenerCount = 5
 )
 
-//Recording is the content that appears in the CSV file.
+// Recording is the content that appears in the CSV file.
 type Recording struct {
 	SupporterID  string
 	DateCreated  string
@@ -28,7 +28,7 @@ type Recording struct {
 	PostalCode   string
 }
 
-//Runtime area for this app.
+// Runtime area for this app.
 type Runtime struct {
 	E         *goengage.Environment
 	InChan    chan goengage.Supporter
@@ -39,7 +39,7 @@ type Runtime struct {
 	Logger    *goengage.UtilLogger
 }
 
-//NewRuntime populates a new runtime.
+// NewRuntime populates a new runtime.
 func NewRuntime(env *goengage.Environment, segmentID string, results string, verbose bool) Runtime {
 	r := Runtime{
 		E:         env,
@@ -59,8 +59,8 @@ func NewRuntime(env *goengage.Environment, segmentID string, results string, ver
 	return r
 }
 
-//Drive finds all of the supporters in the specified group and writes
-//them to the input channel.
+// Drive finds all of the supporters in the specified group and writes
+// them to the input channel.
 func Drive(rt Runtime) (err error) {
 	log.Println("Drive: begin")
 	count := rt.E.Metrics.MaxBatchSize
@@ -103,7 +103,7 @@ func Drive(rt Runtime) (err error) {
 	return nil
 }
 
-//Record reads Recording records from the CSV channel and writes
+// Record reads Recording records from the CSV channel and writes
 // them to the results file.
 func Record(rt Runtime) (err error) {
 	log.Println("Record: begin")
@@ -143,10 +143,10 @@ func Record(rt Runtime) (err error) {
 	return nil
 }
 
-//Update retrieves Supporters from the input channel. Each
-//supporter is formatted as a SupporterKludgeFix record and
-//submitted to Engage for repair. With that done, a Recording
-//is dropped on the CSV channel showing the results.
+// Update retrieves Supporters from the input channel. Each
+// supporter is formatted as a SupporterKludgeFix record and
+// submitted to Engage for repair. With that done, a Recording
+// is dropped on the CSV channel showing the results.
 func Update(rt Runtime, id int) (err error) {
 	log.Printf("Update-{%d}: start\n", id)
 	for {
@@ -173,7 +173,7 @@ func Update(rt Runtime, id int) (err error) {
 	return nil
 }
 
-//Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
+// Program entry point.  Look for supporters with an email.  Errors are noisy and fatal.
 func main() {
 	var (
 		app       = kingpin.New("one-segment-supporters", "Selectively display info about supporters in a segment.")

@@ -1,7 +1,7 @@
 package goengage
 
-//Petition contains information about a petition being signed.
-//Note that PetitionActivity starts with the contents of BaseActivity...
+// Petition contains information about a petition being signed.
+// Note that PetitionActivity starts with the contents of BaseActivity...
 type Petition struct {
 	BaseActivity
 	Comment                  string `json:"comment,omitempty"`
@@ -10,7 +10,7 @@ type Petition struct {
 	DisplayCommentPublicly   bool   `json:"displayCommentPublicly,omitempty"`
 }
 
-//Target describes the recipient of a targeted letter or call.
+// Target describes the recipient of a targeted letter or call.
 type Target struct {
 	TargetID            string `json:"targetId,omitempty"`
 	TargetName          string `json:"targetName,omitempty"`
@@ -29,7 +29,7 @@ type Target struct {
 	CallResult          string `json:"callResult,omitempty"`
 }
 
-//Letter contains the contents sent by a supporters to one or more Targets.
+// Letter contains the contents sent by a supporters to one or more Targets.
 type Letter struct {
 	Name               string   `json:"name,omitempty"`
 	Subject            string   `json:"subject,omitempty"`
@@ -40,13 +40,13 @@ type Letter struct {
 	Targets            []Target `json:"targets,omitempty"`
 }
 
-//TargetedLetter describes the action taken for a targeted letter.
+// TargetedLetter describes the action taken for a targeted letter.
 type TargetedLetter struct {
 	BaseActivity
 	Letters []Letter `json:"letters,omitempty"`
 }
 
-//PetitionResponse is returned when the request type is "PETITION".
+// PetitionResponse is returned when the request type is "PETITION".
 type PetitionResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
@@ -57,7 +57,7 @@ type PetitionResponse struct {
 	} `json:"payload,omitempty"`
 }
 
-//TargetedLetterResponse is returned when the request is "TARGETED_LETTERS".
+// TargetedLetterResponse is returned when the request is "TARGETED_LETTERS".
 type TargetedLetterResponse struct {
 	Header  Header `json:"header,omitempty"`
 	Payload struct {
