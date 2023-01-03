@@ -12,50 +12,97 @@ The app finds the donations with dedications and writes information to a CSV.
 * Dedication information (type, dedication, notify)
 * Dedication address information (custom field in the donor's supporter record)
 
+## Read this!  Not a TL;DR!
+
+The best way to run this application is to install and build on "ssh://intra-dbterm1.intra.salsalabs.net".
+Doing that gives you lots of power, a working cron (batch) facility, and security for the data.
+
+The most important of these "security for the data".  This app can run on your laptop.  BUT, if
+it did, then there would be Personally Identifiable Information (PII) on your laptop.  Having PII
+on your company laptop is strictly prohibited by every company out there.
+
+Using "ssh://intra-dbterm1.intra.salsalabs.net" requires a Salsa Classic VPN connection and an account.
+That makes the PII virtually invisible to bad guys outside of the company
 
 ## Prerequisites
 
 1. A current version of Go.  There are lots of articles on the web about
 installing Go.  The official installation steps can be found by [clicking here](https://golang.org/doc/install).
-1. An [Engage API token](https://help.salsalabs.com/hc/en-us/articles/224470007-Salsa-Engage-Integration-API-Overview).
+1. An [Engage Integration API token](https://help.salsalabs.com/hc/en-us/articles/224470007-Salsa-Engage-Integration-API-Overview).
+1. An account on "ssh://intra-dbterm1.intra.salsalabs.net".
+1. A directory in your home dir named "go".  It has subdirectories of 
+* bin
+* pkg
+* src
 
+Go knows how to install in this directory structure.  Using another structure will cause you to fail.
 
 ## Installation
 
-This package is part of the [GoEngage package on Github](https://github.com/salsalabs/goengage). 
-Use these steps to install `goengage`.
+Note: All commands are issued from a terminal window.  MacoS's Terminal app, any Linux terminal app or
+the Windows Console all work.  (Okay, Windows is officially supported but it is a total bear to run Go
+there.  Your mileage in Windows will definitely vary...)
+
+### GoEngage
+
+Go tracks software by "packages". The source for the dedication app is part Salsa/EveryAction's [GoEngage package on Github](https://github.com/salsalabs/goengage).  The dedication application is built into `goengage`.  (Not the best 
+practice, but that's the way it is...)
+
+That means that the source is installed by installing the `goengage` package.  Here are some steps
+that you can use.
 
 ```bash
 go get github.com/salsalabs/goengage
 go install github.com/salsalabs/goengage
 ```
 
+### Dedication app
+
 The source for this package can be found in the `cmd/activity/fundraise/dedication` directory in `goengage`.
+Installing the `goengage` package automatically installs the source for the dedication app.
 
-## Operation
+### Build
 
-The easiest way to run this app is to start in a console window. 
+The best way to run this app is to create a native executable.  Here are some steps that you can use.
 
 ```bash
-cd ~/go/src/github/salsalabs.com/goengage
-go run cmd/activity/fundraise/dedication/main.go --help
+cd ~/go/src/github.com/salsalabs/goengage/cmd/activity/dedication
+go build -o ~/go/bin/fundraise_dedication main.go
 ```
 
-Use `--help` shows the usage summary.
+### Environment
 
+Add `~/go/bin` to the PATH directory for the shell account on your computer.
+
+* linux/MacOSX: add to .bashrc
+* Windows: add to the PATH environment variable
+
+Adding `~/go/bin` makes it just a whole lot easier to run any Go apps that you build, including this one.
+
+## Usage
+
+You can confirm that the app has been built by entering this command.
+
+```bash
+fundrase_dedication --help
 ```
-usage: dedications --login=LOGIN [<flags>]
+
+You should see text like this:
+
+```bash
+usage: dedication --login=LOGIN [<flags>]
 
 Write dedications to a CSV
 
 Flags:
   --help                         Show context-sensitive help (also try --help-long and --help-man).
   --login=LOGIN                  YAML file with API token
-  --startDate="2020-12-14"       Start date, YYYY-MM-YY, default is Monday of last week at midnight
-  --endDate="2020-12-20"         End date, YYYY-MM-YY, default is the most recent Monday at midnight
+  --startDate="2022-12-26"       Start date, YYYY-MM-YY, default is Monday of last week at midnight
+  --endDate="2023-01-01"         End date, YYYY-MM-YY, default is the most recent Monday at midnight
   --timezone="America/New_York"  Client's timezone, defaults to EST/EDT
-   --keys                        Export activity, donation and supporter IDs
+  --keys                         Export activity, donation, transaction and supporter IDs
 ```
+
 
 ### Command-line arguments
 
@@ -82,7 +129,30 @@ If you've stored your token in `company.yaml`, then you'll need to use a command
 go run cmd/activity/fundraise/dedication/main.go --login company.yaml
 ```
 
+### Cron (batch)
+
+The `scripts` directory contains a sample crontab configuration that runs the dedication app every Monday at 02:00.
+
+```cron
+# use /bin/sh to run commands, no matter what /etc/passwd says
+SHELL=/bin/bash
+PATH=/home/aleonard/go/bin:/home/aleonard/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
+
+# min hour day month weekday command
+  00   02  *   *     Mon    /home/aleonard/bin/apda_prepare_weekly.bash
+  ```
+
+Here are some steps that you can use to install the sample script.
+
+1. Edit crontab using 
+`crontab -e`
+1. Paste in the sample crontab entry.
+1. Modify to fit your needs (don't run it more than once a week, K?)
+1. Save crontab.
+1. Wait until tomorrow to see the outputs.
+
 ## Outputs
+
 ### Console
 
 The application logs all status to the console.  Errors are really obvious.  Here's a sample of the console output for a successful application run.
@@ -193,21 +263,8 @@ Patsy,Pastry,patsy@pastry.com,273 Ramblin Man,,Grapevine,MI,27777-8212,2021-01-2
 Dana,danish,dana@pastry.com,17722 Fifth of Gin,,Spayallup,WA,97777-4132,2021-01-30,One_Time,Fundraise,Charge,35.00,In_Memory_Of,Killer Kitty,,
 ```
 
-## Advanced usage
-
-If you'll be using this app a lot, then it will be a good idea to create a native program.
-
-```bash
-go build -o ~/go/bin/fundraise_dedication cmd/activity/fundraise/dedication/main.go
-```
-
-The output will be an executable in `~/go/bin` in your home directory.
-Add `~/go/bin` to the PATH list that your OS uses and you'll be able to invoke the program with a command like this.
-
-```bash
-fundraise_dedication --login company.yaml
-```
 
 ## Questions?  Comments?
 
-Use the [GitHub issues page](https://github.com/salsalabs/goengage/issues) to report problems, ask questions or make comments. Please don't bother the nice folks at Salsalabs.  This is their nesting season and they will bite intruders.
+This app, being written in Go, won't be supported by EveryAction.  Sorry, but you are on your own.  If you are
+truly desparate, then your best bet will be to get the client to move to EveryAction.
